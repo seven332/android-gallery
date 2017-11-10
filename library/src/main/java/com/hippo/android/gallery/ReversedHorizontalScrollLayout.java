@@ -24,8 +24,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import java.util.List;
 
-// offset = target - base
-public class HorizontalScrollLayout extends BaseScrollLayout {
+// offset = -(target - base) = base - target
+public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
 
   private int totalLeft;
   private int totalRight;
@@ -50,19 +50,43 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   @Override
   public void layoutAnchor(View page, int offset) {
     measurePage(page);
-    page.layout(offset, 0, offset + page.getMeasuredWidth(), height);
 
-    totalLeft = offset;
-    totalRight = offset + page.getMeasuredWidth();
+    int right = width - offset;
+    int left = right - page.getMeasuredWidth();
+    page.layout(left, 0, right, height);
+
+    totalLeft = left;
+    totalRight = right;
   }
 
   @Override
   public boolean canLayoutNext(View last, int offset) {
-    return last.getLeft() < width + offset;
+    return last.getRight() > -offset;
   }
 
   @Override
   public void layoutNext(View page) {
+    measurePage(page);
+
+    int right = totalLeft - interval;
+    int left = right - page.getMeasuredWidth();
+    page.layout(left, 0, right, height);
+
+    totalLeft = left;
+  }
+
+  @Override
+  public int getNextBlank(View last) {
+    return Math.min(0, -last.getLeft());
+  }
+
+  @Override
+  public boolean canLayoutPrevious(View first, int offset) {
+    return first.getLeft() < width - offset;
+  }
+
+  @Override
+  public void layoutPrevious(View page) {
     measurePage(page);
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();
@@ -72,38 +96,20 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public int getNextBlank(View last) {
-    return Math.min(0, last.getRight() - width);
-  }
-
-  @Override
-  public boolean canLayoutPrevious(View first, int offset) {
-    return first.getRight() > offset;
-  }
-
-  @Override
-  public void layoutPrevious(View page) {
-    measurePage(page);
-    int right = totalLeft - interval;
-    int left = right - page.getMeasuredWidth();
-    page.layout(left, 0, right, height);
-
-    totalLeft = left;
-  }
-
-  @Override
   public int getPreviousOffset(View first) {
-    return first.getLeft();
+    return width - first.getRight();
   }
 
   @Override
   public void offsetPages(List<GalleryView.Page> pages, int offset) {
+    int actualOffset = -offset;
+
     for (GalleryView.Page page : pages) {
-      page.view.offsetLeftAndRight(offset);
+      page.view.offsetLeftAndRight(actualOffset);
     }
 
-    totalLeft += offset;
-    totalRight += offset;
+    totalLeft += actualOffset;
+    totalRight += actualOffset;
   }
 
   @Override
@@ -113,7 +119,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public int getAnchorOffset(View anchor) {
-    return anchor.getLeft();
+    return width - anchor.getRight();
   }
 
   @Override
@@ -124,6 +130,6 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public int applyScroll(int oldAnchorOffset, int distanceX, int distanceY) {
-    return oldAnchorOffset - distanceX;
+    return oldAnchorOffset + distanceX;
   }
 }
