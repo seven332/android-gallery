@@ -27,13 +27,13 @@ import java.util.List;
 public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   // First anchor page index
-  private int anchorIndex = 4;
+  private int anchorIndex;
 
   // First anchor page offset
-  private int anchorOffset = -1000;
+  private int anchorOffset;
 
   // The interval between pages
-  private int pageInterval = 50;
+  private int pageInterval;
 
   private ScrollLayout scrollLayout;
 
@@ -41,9 +41,9 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     this.pageInterval = pageInterval;
   }
 
-  public void setScrollLayout(ScrollLayout pagelayout) {
-    this.scrollLayout = pagelayout;
-    //this.anchorOffset = 0;
+  public void setScrollLayout(ScrollLayout pageLayout) {
+    this.scrollLayout = pageLayout;
+    this.anchorOffset = 0;
   }
 
   // Layout next pages one by one, until first invisible page
@@ -171,7 +171,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scroll(GalleryView.Nest nest, int distanceX, int distanceY) {
+  public void scrollBy(GalleryView.Nest nest, int distanceX, int distanceY) {
     anchorOffset = scrollLayout.applyScroll(anchorOffset, distanceX, distanceY);
     nest.layout(this, nest.getWidth(), nest.getHeight());
   }

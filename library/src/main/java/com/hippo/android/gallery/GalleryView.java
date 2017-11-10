@@ -20,14 +20,16 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/8/24.
  */
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Parcelable;
+import android.support.animation.FlingAnimation;
+import android.support.animation.FloatPropertyCompat;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,14 +40,33 @@ import java.util.Stack;
 
 public class GalleryView extends ViewGroup {
 
+  private static final String LOG_TAG = "GalleryView";
+
   private static final int INVALID_INDEX = -1;
   private static final int INVALID_TYPE = -1;
 
-  private GestureDetector gestureDetector;
+  public static final FloatPropertyCompat<GalleryView> SCROLL_BY = new FloatPropertyCompat<GalleryView>("scrollBy") {
+    @Override
+    public void setValue(GalleryView view, float value) {
+      float d = value - view.lastFling;
+      view.lastFling = value;
+      view.scrollBy((int) (d * view.flingScaleX), (int) (d * view.flingScaleY));
+    }
+
+    @Override
+    public float getValue(GalleryView view) {
+      return view.lastFling;
+    }
+  };
 
   private Nest nest = new Nest(this);
-
   private LayoutManager layoutManager;
+  private GestureRecognizer gestureRecognizer;
+
+  private float flingScaleX;
+  private float flingScaleY;
+  private float lastFling;
+  private FlingAnimation flingAnimation;
 
   public GalleryView(Context context) {
     super(context);
@@ -58,38 +79,8 @@ public class GalleryView extends ViewGroup {
   }
 
   private void init(Context context) {
-    gestureDetector = new GestureDetector(context, new GestureDetector.OnGestureListener() {
-      @Override
-      public boolean onDown(MotionEvent e) {
-        return false;
-      }
-
-      @Override
-      public void onShowPress(MotionEvent e) {
-
-      }
-
-      @Override
-      public boolean onSingleTapUp(MotionEvent e) {
-        return false;
-      }
-
-      @Override
-      public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        layoutManager.scroll(nest, (int) distanceX, (int) distanceY);
-        return true;
-      }
-
-      @Override
-      public void onLongPress(MotionEvent e) {
-
-      }
-
-      @Override
-      public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        return false;
-      }
-    });
+    gestureRecognizer = new GestureRecognizer(context, listener);
+    flingAnimation = new FlingAnimation(this, SCROLL_BY);
   }
 
   public void setLayoutManager(LayoutManager layoutManager) {
@@ -130,17 +121,33 @@ public class GalleryView extends ViewGroup {
 
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    if (layoutManager != null) {
-      nest.startLayout();
-      layoutManager.layout(nest, r - l, b - t);
-      nest.endLayout();
+    if (layoutManager == null) {
+      Log.e(LOG_TAG, "No layout manager attached; skipping layout");
+      return;
     }
+    nest.layout(layoutManager, r - l, b - t);
+  }
+
+  @SuppressLint("ClickableViewAccessibility")
+  @Override
+  public boolean onTouchEvent(MotionEvent event) {
+    return gestureRecognizer.onTouchEvent(event);
   }
 
   @Override
-  public boolean onTouchEvent(MotionEvent event) {
-    gestureDetector.onTouchEvent(event);
-    return true;
+  public void scrollBy(int dx, int dy) {
+    if (layoutManager == null) {
+      Log.e(LOG_TAG, "Cannot scroll without a LayoutManager set. "
+          + "Call setLayoutManager with a non-null argument.");
+      return;
+    }
+    layoutManager.scrollBy(nest, dx, dy);
+  }
+
+  @Override
+  public void scrollTo(int x, int y) {
+    Log.w(LOG_TAG, "GalleryView does not support scrolling to an absolute position. "
+        + "Use scrollToPosition instead");
   }
 
   /**
@@ -158,6 +165,84 @@ public class GalleryView extends ViewGroup {
   protected void dispatchRestoreInstanceState(SparseArray<Parcelable> container) {
     dispatchThawSelfOnly(container);
   }
+
+  // Stop fling animation and scale animation
+  private void cancelAnimations() {
+    flingAnimation.cancel();
+  }
+
+  private GestureRecognizer.Listener listener = new GestureRecognizer.Listener() {
+    @Override
+    public void onSingleTapUp(float x, float y) {
+
+    }
+
+    @Override
+    public void onSingleTapConfirmed(float x, float y) {
+
+    }
+
+    @Override
+    public void onDoubleTap(float x, float y) {
+
+    }
+
+    @Override
+    public void onDoubleTapConfirmed(float x, float y) {
+
+    }
+
+    @Override
+    public void onLongPress(float x, float y) {
+
+    }
+
+    @Override
+    public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
+      layoutManager.scrollBy(nest, (int) dx, (int) dy);
+    }
+
+    @Override
+    public void onFling(float velocityX, float velocityY) {
+      float velocity;
+      lastFling = 0.0f;
+      if (Math.abs(velocityX) > Math.abs(velocityY)) {
+        velocity = velocityX;
+        flingScaleX = 1.0f;
+        flingScaleY = velocityY / velocityX;
+      } else {
+        velocity = velocityY;
+        flingScaleY = 1.0f;
+        flingScaleX = velocityX / velocityY;
+      }
+
+      flingAnimation.cancel();
+      flingAnimation.setStartVelocity(-velocity)
+          .setMinValue(-Float.MAX_VALUE)
+          .setMaxValue(Float.MAX_VALUE)
+          .start();
+    }
+
+    @Override
+    public void onScaleBegin(float focusX, float focusY) {
+
+    }
+
+    @Override
+    public void onScale(float focusX, float focusY, float scale) {
+
+    }
+
+    @Override
+    public void onScaleEnd() {
+
+    }
+
+    @Override
+    public void onDown(float x, float y) {
+      cancelAnimations();
+    }
+  };
 
   public static class Nest {
 
@@ -186,7 +271,7 @@ public class GalleryView extends ViewGroup {
      */
     public void layout(LayoutManager layoutManager, int width, int height) {
       if (inLayout) {
-        Log.w("GalleryNest", "The view is already in layout");
+        Log.e(LOG_TAG, "Cannot layout GalleryView recursively");
         return;
       }
 
@@ -238,7 +323,7 @@ public class GalleryView extends ViewGroup {
     @NonNull
     public Page pinPage(int index) {
       if (!inLayout) {
-        throw new IllegalStateException("Can't only call obtainPage() in layout");
+        throw new IllegalStateException("Cannot only call pinPage() in layout");
       }
 
       if (adapter == null) {
@@ -280,6 +365,7 @@ public class GalleryView extends ViewGroup {
     }
 
     public void unpinPage(Page page) {
+      // Just mark it unpinned
       page.pinned = false;
     }
 
@@ -300,7 +386,7 @@ public class GalleryView extends ViewGroup {
 
     public abstract void layout(Nest nest, int width, int height);
 
-    public abstract void scroll(Nest nest, int distanceX, int distanceY);
+    public abstract void scrollBy(Nest nest, int dx, int dy);
   }
 
   public static abstract class Adapter {

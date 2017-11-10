@@ -50,7 +50,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scroll(GalleryView.Nest nest, int distanceX, int distanceY) {
+  public void scrollBy(GalleryView.Nest nest, int dx, int dy) {
 
   }
 
