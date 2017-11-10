@@ -238,10 +238,19 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
      */
     boolean canBeAnchor(View page);
 
+    /**
+     * Return the offset ot the anchor.
+     */
     int getAnchorOffset(View anchor);
 
+    /**
+     * Reset current layout state as the view.
+     */
     void resetLayoutState(View view);
 
+    /**
+     * Apply scroll to current layout state.
+     */
     int applyScroll(int oldAnchorOffset, int distanceX, int distanceY);
   }
 }
