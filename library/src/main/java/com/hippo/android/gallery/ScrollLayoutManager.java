@@ -20,32 +20,107 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/8/28.
  */
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import java.util.LinkedList;
+import java.util.List;
+
+// anchorIndex       0
+// anchorOffset  10000
+// getPageCount      5
+
+// anchorIndex        0
+// anchorOffset  -10000
+// getPageCount       5
 
 public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
+  // First anchor page index
+  private int anchorIndex = 99;
 
-  // First shown page index
-  private int currentIndex = 0;
-
-  // First shown page offset
-  private int currentOffset = -5000;
+  // First anchor page offset
+  private int anchorOffset = -1000;
 
   // The interval between pages
-  private int pageInterval = 0;
+  private int pageInterval = 50;
 
-  private PageLayout pageLayout;
+  private ScrollLayout scrollLayout;
 
   public void setPageInterval(int pageInterval) {
     this.pageInterval = pageInterval;
   }
 
-  public void setPageLayout(PageLayout pagelayout) {
-    this.pageLayout = pagelayout;
+  public void setScrollLayout(ScrollLayout pagelayout) {
+    this.scrollLayout = pagelayout;
+    //this.anchorOffset = 0;
+  }
+
+  // Layout next pages one by one, until first invisible page
+  private void layoutNextPages(GalleryView.Nest nest, LinkedList<GalleryView.Page> pages) {
+    int pageCount = nest.getPageCount();
+    int nextIndex = pages.getLast().getIndex();
+
+    while (++nextIndex < pageCount && scrollLayout.canLayoutNext(pages.getLast().view, 0)) {
+      GalleryView.Page nextPage = nest.pinPage(nextIndex);
+      pages.addLast(nextPage);
+      scrollLayout.layoutNext(nextPage.view);
+
+      // If the last pages can't has previous, remove the second last page
+      if (!scrollLayout.canLayoutPrevious(nextPage.view, 0)) {
+        // pages.size() must be 2
+        if (pages.size() != 2) {
+          throw new IllegalStateException("If canLayoutPrevious() is true in layoutNextPages(), "
+              + "pages.size() must be 2");
+        }
+        // Remove it
+
+        Log.d("TAG", "layoutNextPages: " + pages.getFirst());
+
+        nest.unpinPage(pages.getFirst());
+        pages.removeFirst();
+        scrollLayout.resetLayoutState(nextPage.view);
+      }
+    }
+  }
+
+  // Layout previous pages one by one, until first invisible page
+  private void layoutPreviousPages(GalleryView.Nest nest, LinkedList<GalleryView.Page> pages, int nextBlank) {
+    int previousIndex = pages.getFirst().getIndex();
+
+    while (--previousIndex >= 0 && scrollLayout.canLayoutPrevious(pages.getFirst().view, nextBlank)) {
+      GalleryView.Page previousPage = nest.pinPage(previousIndex);
+      pages.addFirst(previousPage);
+      scrollLayout.layoutPrevious(previousPage.view);
+
+      // If the first pages can't has next, remove the second first page
+      if (!scrollLayout.canLayoutNext(previousPage.view, nextBlank)) {
+        // pages.size() must be 2
+        if (pages.size() != 2) {
+          throw new IllegalStateException("If canLayoutNext() is true in layoutPreviousPages(), "
+              + "pages.size() must be 2");
+        }
+        // Remove it
+
+        Log.d("TAG", "layoutPreviousPages: " + pages.getLast());
+
+        nest.unpinPage(pages.getLast());
+        pages.removeLast();
+        scrollLayout.resetLayoutState(previousPage.view);
+      }
+    }
+  }
+
+  private void adjustPagesPosition(int nextBlank, int previousOffset, LinkedList<GalleryView.Page> pages) {
+    int pageOffset = 0;
+    if (previousOffset > 0) {
+      // There is blank in previous area.
+      pageOffset = -previousOffset;
+    } else if (nextBlank < 0) {
+      pageOffset = Math.min(-nextBlank, -previousOffset);
+    }
+    if (pageOffset != 0) {
+      scrollLayout.offsetPages(pages, pageOffset);
+    }
   }
 
   @Override
@@ -56,268 +131,137 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
       return;
     }
 
-    pageLayout.start(width, height, pageInterval);
-
     // Ensure current index in the range.
-    int newIndex = Utils.clamp(currentIndex, 0, nest.getPageCount() - 1);
-    if (currentIndex != newIndex) {
-      currentIndex = newIndex;
-      currentIndex = 0;
+    int newIndex = Utils.clamp(anchorIndex, 0, nest.getPageCount() - 1);
+    if (anchorIndex != newIndex) {
+      anchorIndex = newIndex;
+      anchorOffset = 0;
     }
 
-    // Layout first visible page
-    pageLayout.layoutCurrent(nest.pinPage(currentIndex), currentOffset);
+    scrollLayout.start(width, height, pageInterval);
 
-    // Layout next pages
-    int index = currentIndex;
-    while (++index < pageCount && pageLayout.canLayoutNext()) {
-      pageLayout.layoutNext(nest.pinPage(index));
+    LinkedList<GalleryView.Page> pages = new LinkedList<>();
+
+    /*
+     * 1. Layout anchor page
+     */
+    GalleryView.Page anchorPage = nest.pinPage(anchorIndex);
+    pages.add(anchorPage);
+    scrollLayout.layoutAnchor(anchorPage.view, anchorOffset);
+
+    /*
+     * 2. Layout next pages one by one, until the first out-of-screen page
+     */
+    layoutNextPages(nest, pages);
+
+    int nextBlank = scrollLayout.getNextBlank(pages.getLast().view);
+
+    /*
+     * 3. Layout previous pages one by one, until the first out-of-screen page
+     */
+    layoutPreviousPages(nest, pages, nextBlank);
+
+    int previousOffset = scrollLayout.getPreviousOffset(pages.getFirst().view);
+
+    /*
+     * 4. Adjust pages position to avoid blank
+     */
+    adjustPagesPosition(nextBlank, previousOffset, pages);
+
+    /*
+     * 5. Continue layout next pages
+     */
+    layoutNextPages(nest, pages);
+
+    /*
+     * 6. Update anchorIndex and anchorOffset
+     */
+    for (GalleryView.Page page : pages) {
+      if (scrollLayout.canBeAnchor(page.view)) {
+        anchorIndex = page.getIndex();
+        anchorOffset = scrollLayout.getAnchorOffset(page.view);
+        break;
+      }
     }
-    int mostNextIndex = index - 1;
 
-    // Layout previous pages
-    int nextLess = pageLayout.getNextLess();
-    int positiveNextLess = Math.max(0, nextLess);
-    index = currentIndex;
-    while (--index >= 0 && pageLayout.canLayoutPrevious(positiveNextLess)) {
-      pageLayout.layoutPrevious(nest.pinPage(index));
-    }
-
-    // Adjust pages position
-    int previousLess = pageLayout.getPreviousLess();
-    if (previousLess > 0) {
-      // Has previous blank, fill it
-      pageLayout.offsetPages(-previousLess);
-    } else if (nextLess > 0) {
-      // Has next blank, fill it
-      pageLayout.offsetPages(Math.min(nextLess, -previousLess));
-    }
-
-    // Continue layout next pages
-    index = mostNextIndex;
-    while (++index < pageCount && pageLayout.canLayoutNext()) {
-      pageLayout.layoutNext(nest.pinPage(index));
-    }
-
-    // TODO Remove
-
-    GalleryView.Page currentPage = pageLayout.end();
-    if (currentPage != null) {
-      currentIndex = currentPage.getIndex();
-      currentOffset = pageLayout.getPageOffset(currentPage);
-    } else {
-      Log.e("ScrollLayoutManager", "Can't find current page");
+    Log.d("TAG", "++++++++++++++++++==+++++");
+    for (GalleryView.Page page : pages) {
+      Log.d("TAG", "" + page);
     }
   }
 
   @Override
   public void scroll(GalleryView.Nest nest, int distanceX, int distanceY) {
-    currentOffset = pageLayout.applyScroll(currentOffset, distanceX, distanceY);
+    anchorOffset = scrollLayout.applyScroll(anchorOffset, distanceX, distanceY);
     nest.layout(this, nest.getWidth(), nest.getHeight());
   }
 
-  /**
-   * TODO
-   */
-  public static abstract class PageLayout {
+  public interface ScrollLayout {
 
     /**
      * Starts new layout turn.
      */
-    public abstract void start(int width, int height, int interval);
+    void start(int width, int height, int interval);
 
     /**
-     * Ends this layout turn, return new current page.
+     * Layout the anchor page.
+     *
+     * @param offset the offset of the page to the baseline.
      */
-    @Nullable
-    public abstract GalleryView.Page end();
+    void layoutAnchor(View page, int offset);
 
     /**
-     * Get the page offset.
+     * Returns {@code true} if a page can be layout after the current last page.
+     *
+     * @param last current last page
+     * @param offset the offset to correct the baseline
      */
-    public abstract int getPageOffset(GalleryView.Page page);
+    boolean canLayoutNext(View last, int offset);
 
     /**
-     * Layout current page.
+     * Layout the page as a next page.
      */
-    public abstract void layoutCurrent(GalleryView.Page page, int offset);
+    void layoutNext(View page);
 
     /**
-     * Return {@code true} if {@link #layoutNext(GalleryView.Page)} should still be called.
+     * Returns the blank remains in next direction.
+     *
+     * @param last the last view
      */
-    public abstract boolean canLayoutNext();
+    int getNextBlank(View last);
 
     /**
-     * Layout the page as next page.
+     * Returns {@code true} if a view can be layout after the first view.
+     *
+     * @param first current first view
+     * @param offset the offset to correct the baseline
      */
-    public abstract void layoutNext(GalleryView.Page page);
-
-    public abstract int getNextLess();
+    boolean canLayoutPrevious(View first, int offset);
 
     /**
-     * Return {@code true} if {@link #layoutPrevious(GalleryView.Page)} should still be called.
+     * Layout the page as a previous page.
      */
-    public abstract boolean canLayoutPrevious(int nextLess);
+    void layoutPrevious(View page);
 
     /**
-     * Layout the page as previous page.
+     * Returns the offset to baseline in previous direction.
      */
-    public abstract void layoutPrevious(GalleryView.Page page);
-
-    public abstract int getPreviousLess();
+    int getPreviousOffset(View first);
 
     /**
      * Offset all pages.
-     * Positive: previous to next.
-     * Negative: next to previous.
      */
-    public abstract void offsetPages(int offset);
-
-    public abstract void removeDumpPages();
+    void offsetPages(List<GalleryView.Page> pages, int offset);
 
     /**
-     * TODO
+     * Whether the page can be a anchor.
      */
-    public abstract int applyScroll(int currentOffset, int distanceX, int distanceY);
+    boolean canBeAnchor(View page);
+
+    int getAnchorOffset(View anchor);
+
+    void resetLayoutState(View view);
+
+    int applyScroll(int oldAnchorOffset, int distanceX, int distanceY);
   }
-
-  /**
-   * TODO
-   */
-  public static class VerticallyPageLayout extends PageLayout {
-
-    private int width;
-    private int height;
-    private int interval;
-
-    private int widthMeasureSpec;
-    private int heightMeasureSpec;
-
-    private int totalTop;
-    private int totalBottom;
-
-    private LinkedList<GalleryView.Page> pages = new LinkedList<>();
-
-    @Override
-    public void start(int width, int height, int interval) {
-      this.width = width;
-      this.height = height;
-      this.interval = interval;
-      this.widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
-      this.heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-    }
-
-    @Override
-    public GalleryView.Page end() {
-      GalleryView.Page currentPage = null;
-      for (GalleryView.Page page : pages) {
-        if (page.view.getBottom() > 0) {
-          currentPage = page;
-          break;
-        }
-      }
-
-      pages.clear();
-
-      return currentPage;
-    }
-
-    @Override
-    public int getPageOffset(GalleryView.Page page) {
-      return page.view.getTop();
-    }
-
-    public void measureView(View view) {
-      ViewGroup.LayoutParams lp = view.getLayoutParams();
-      view.measure(widthMeasureSpec, ViewGroup.getChildMeasureSpec(heightMeasureSpec, 0, lp.height));
-    }
-
-    @Override
-    public void layoutCurrent(GalleryView.Page page, int offset) {
-      pages.add(page);
-
-      View view = page.view;
-      measureView(view);
-      view.layout(0, offset, width, offset + view.getMeasuredHeight());
-
-      totalTop = offset;
-      totalBottom = offset + view.getMeasuredHeight();
-    }
-
-    @Override
-    public boolean canLayoutNext() {
-      return pages.getLast().view.getTop() < height;
-    }
-
-    @Override
-    public void layoutNext(GalleryView.Page page) {
-      pages.addLast(page);
-
-      View view = page.view;
-      measureView(view);
-      int top = totalBottom + interval;
-      int bottom = top + view.getMeasuredHeight();
-      view.layout(0, top, width, bottom);
-
-      totalBottom = bottom;
-    }
-
-    @Override
-    public int getNextLess() {
-      return height - pages.getLast().view.getBottom();
-    }
-
-    @Override
-    public boolean canLayoutPrevious(int nextLess) {
-      return pages.getFirst().view.getBottom() > -nextLess;
-    }
-
-    @Override
-    public void layoutPrevious(GalleryView.Page page) {
-      pages.addFirst(page);
-
-      View view = page.view;
-      measureView(view);
-      int bottom = totalTop + interval;
-      int top = bottom - view.getMeasuredHeight();
-      view.layout(0, top, width, bottom);
-
-      totalTop = top;
-    }
-
-    @Override
-    public int getPreviousLess() {
-      return pages.getFirst().view.getTop();
-    }
-
-    @Override
-    public void offsetPages(int offset) {
-      for (GalleryView.Page page : pages) {
-        page.view.offsetTopAndBottom(offset);
-      }
-      totalTop += offset;
-      totalBottom += offset;
-    }
-
-    @Override
-    public void removeDumpPages() {
-      // TODO
-    }
-
-    @Override
-    public int applyScroll(int currentOffset, int distanceX, int distanceY) {
-      return currentOffset - distanceY;
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
 }

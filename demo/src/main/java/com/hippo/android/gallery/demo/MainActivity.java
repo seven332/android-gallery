@@ -16,6 +16,7 @@
 
 package com.hippo.android.gallery.demo;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +24,7 @@ import android.view.LayoutInflater;
 import android.widget.TextView;
 import com.hippo.android.gallery.GalleryView;
 import com.hippo.android.gallery.ScrollLayoutManager;
+import com.hippo.android.gallery.VerticallyScrollLayout;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     ScrollLayoutManager layoutManager = new ScrollLayoutManager();
-    layoutManager.setPageLayout(new ScrollLayoutManager.VerticallyPageLayout());
+    layoutManager.setScrollLayout(new VerticallyScrollLayout());
 
     GalleryView galleryView = findViewById(R.id.gallery_view);
     galleryView.setLayoutManager(layoutManager);
@@ -64,6 +66,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBindPage(GalleryView.Page page) {
       ((TextView) page.view).setText(Integer.toString(page.getIndex()));
+
+      if (page.getIndex() % 2 == 0) {
+        page.view.setBackgroundColor(Color.GREEN);
+      } else {
+        page.view.setBackgroundColor(Color.YELLOW);
+      }
     }
 
     @Override

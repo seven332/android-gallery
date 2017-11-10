@@ -46,7 +46,6 @@ public class GalleryView extends ViewGroup {
   private Nest nest = new Nest(this);
 
   private LayoutManager layoutManager;
-  private Adapter adapter;
 
   public GalleryView(Context context) {
     super(context);
@@ -100,7 +99,6 @@ public class GalleryView extends ViewGroup {
 
   public void setAdapter(Adapter adapter) {
     // TODO
-    this.adapter = adapter;
     nest.setAdapter(adapter);
   }
 
@@ -213,13 +211,18 @@ public class GalleryView extends ViewGroup {
       for (Iterator<Page> iterator = pages.iterator(); iterator.hasNext();) {
         Page page = iterator.next();
         if (!page.pinned) {
-          view.removeView(page.view);
           iterator.remove();
 
+          view.removeView(page.view);
           adapter.unbindPage(page);
 
           Stack<Page> stack = cache.get(page.getType());
-          if (stack != null && stack.size() < MAX_PAGE) {
+          if (stack == null) {
+            stack = new Stack<>();
+            cache.put(page.getType(), stack);
+          }
+
+          if (stack.size() < MAX_PAGE) {
             stack.push(page);
           } else {
             adapter.destroyPage(page);
@@ -267,25 +270,17 @@ public class GalleryView extends ViewGroup {
       }
 
       // Bind and attach
-      view.addView(page.view);
-      adapter.bindPage(page, index);
       pages.add(page);
       page.pinned = true;
+
+      view.addView(page.view);
+      adapter.bindPage(page, index);
 
       return page;
     }
 
-    /**
-     * Gets pinned page with the index. If the page with the index
-     * is not pinned, return {@code null}.
-     */
-    public Page getPage(int index) {
-      for (Page page : pages) {
-        if (page.pinned && page.getIndex() == index) {
-          return page;
-        }
-      }
-      return null;
+    public void unpinPage(Page page) {
+      page.pinned = false;
     }
 
     public int getWidth() {
@@ -309,35 +304,6 @@ public class GalleryView extends ViewGroup {
   }
 
   public static abstract class Adapter {
-
-    private static final int MAX_PAGE = 5;
-
-    private SparseArray<Stack<Page>> cache = new SparseArray<>();
-
-    Page requestPage(GalleryView parent, int type) {
-      Stack<Page> stack = cache.get(type);
-      if (stack != null && !stack.empty()) {
-        return stack.pop();
-      }
-
-      return createPage(parent, type);
-    }
-
-    void releasePage(Page page) {
-      unbindPage(page);
-
-      Stack<Page> stack = cache.get(page.getType());
-      if (stack != null && stack.size() < MAX_PAGE) {
-        stack.push(page);
-        return;
-      }
-
-      destroyPage(page);
-    }
-
-    void close() {
-
-    }
 
     private Page createPage(GalleryView parent, int type) {
       Page page = onCreatePage(parent, type);
@@ -426,6 +392,11 @@ public class GalleryView extends ViewGroup {
 
     public int getType() {
       return type;
+    }
+
+    @Override
+    public String toString() {
+      return "Page{" + Integer.toHexString(hashCode()) + " index=" + index + ", type=" + type + "}";
     }
   }
 }
