@@ -24,7 +24,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import java.util.List;
 
-public class VerticallyScrollLayout extends BaseScrollLayout {
+// offset = target - base
+public class VerticalScrollLayout extends BaseScrollLayout {
 
   private int totalTop;
   private int totalBottom;

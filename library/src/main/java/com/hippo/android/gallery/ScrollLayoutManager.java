@@ -20,23 +20,14 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/8/28.
  */
 
-import android.util.Log;
 import android.view.View;
 import java.util.LinkedList;
 import java.util.List;
 
-// anchorIndex       0
-// anchorOffset  10000
-// getPageCount      5
-
-// anchorIndex        0
-// anchorOffset  -10000
-// getPageCount       5
-
 public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   // First anchor page index
-  private int anchorIndex = 99;
+  private int anchorIndex = 4;
 
   // First anchor page offset
   private int anchorOffset = -1000;
@@ -73,9 +64,6 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
               + "pages.size() must be 2");
         }
         // Remove it
-
-        Log.d("TAG", "layoutNextPages: " + pages.getFirst());
-
         nest.unpinPage(pages.getFirst());
         pages.removeFirst();
         scrollLayout.resetLayoutState(nextPage.view);
@@ -100,9 +88,6 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
               + "pages.size() must be 2");
         }
         // Remove it
-
-        Log.d("TAG", "layoutPreviousPages: " + pages.getLast());
-
         nest.unpinPage(pages.getLast());
         pages.removeLast();
         scrollLayout.resetLayoutState(previousPage.view);
@@ -182,11 +167,6 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
         anchorOffset = scrollLayout.getAnchorOffset(page.view);
         break;
       }
-    }
-
-    Log.d("TAG", "++++++++++++++++++==+++++");
-    for (GalleryView.Page page : pages) {
-      Log.d("TAG", "" + page);
     }
   }
 
