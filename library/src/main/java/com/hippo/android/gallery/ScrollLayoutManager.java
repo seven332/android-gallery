@@ -172,7 +172,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void scrollBy(GalleryView.Nest nest, int distanceX, int distanceY) {
-    anchorOffset = scrollLayout.applyScroll(anchorOffset, distanceX, distanceY);
+    anchorOffset = scrollLayout.scrollBy(anchorOffset, distanceX, distanceY);
     nest.layout(this, nest.getWidth(), nest.getHeight());
   }
 
@@ -251,6 +251,6 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     /**
      * Apply scroll to current layout state.
      */
-    int applyScroll(int oldAnchorOffset, int distanceX, int distanceY);
+    int scrollBy(int oldAnchorOffset, int distanceX, int distanceY);
   }
 }

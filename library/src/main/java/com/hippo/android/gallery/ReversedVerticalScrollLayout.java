@@ -129,7 +129,7 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public int applyScroll(int oldAnchorOffset, int distanceX, int distanceY) {
+  public int scrollBy(int oldAnchorOffset, int distanceX, int distanceY) {
     return oldAnchorOffset + distanceY;
   }
 }
