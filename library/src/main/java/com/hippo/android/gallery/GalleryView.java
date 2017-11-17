@@ -230,7 +230,7 @@ public class GalleryView extends ViewGroup {
 
     @Override
     public void onScale(float focusX, float focusY, float scale) {
-
+      layoutManager.scaleBy(nest, (int) focusX, (int) focusY, scale);
     }
 
     @Override
@@ -241,6 +241,26 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onDown(float x, float y) {
       cancelAnimations();
+    }
+
+    @Override
+    public void onUp(float x, float y) {
+
+    }
+
+    @Override
+    public void onCancel() {
+
+    }
+
+    @Override
+    public void onPointerDown(float x, float y) {
+
+    }
+
+    @Override
+    public void onPointerUp(float x, float y) {
+
     }
   };
 
@@ -364,19 +384,31 @@ public class GalleryView extends ViewGroup {
       return page;
     }
 
+    /**
+     * Marks the page unpinned. The page will be removed when layout ends.
+     */
     public void unpinPage(Page page) {
       // Just mark it unpinned
       page.pinned = false;
     }
 
+    /**
+     * Returns the width of the {@link GalleryView}.
+     */
     public int getWidth() {
       return view.getWidth();
     }
 
+    /**
+     * Returns the height of the {@link GalleryView}.
+     */
     public int getHeight() {
       return view.getHeight();
     }
 
+    /**
+     * Returns the count of pages.
+     */
     public int getPageCount() {
       return adapter.getPageCount();
     }
@@ -387,6 +419,8 @@ public class GalleryView extends ViewGroup {
     public abstract void layout(Nest nest, int width, int height);
 
     public abstract void scrollBy(Nest nest, int dx, int dy);
+
+    public abstract void scaleBy(Nest nest, int x, int y, float factor);
   }
 
   public static abstract class Adapter {
@@ -427,27 +461,7 @@ public class GalleryView extends ViewGroup {
     }
 
     public final void notifyPageSetChanged() {
-    }
-
-    public final void notifyPageChanged(int position) {
-    }
-
-    public final void notifyPageRangeChanged(int positionStart, int pageCount) {
-    }
-
-    public final void notifyPageInserted(int position) {
-    }
-
-    public final void notifyPageRangeInserted(int positionStart, int pageCount) {
-    }
-
-    public final void notifyPageRemoved(int position) {
-    }
-
-    public final void notifyPageRangeRemoved(int positionStart, int pageCount) {
-    }
-
-    public final void notifyPageMoved(int fromPosition, int toPosition) {
+      // TODO
     }
   }
 

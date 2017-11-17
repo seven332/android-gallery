@@ -41,4 +41,24 @@ final class Utils {
     }
     return x;
   }
+
+  /**
+   * Returns the input value x clamped to the range [bound1, bound2] if bound2 &gt;= bound1,
+   * otherwise [bound2, bound1].
+   *
+   * @param x the input
+   * @param bound1 the first bound
+   * @param bound2 the second bound
+   * @return the result which has been clamped
+   */
+  public static float clamp(float x, float bound1, float bound2) {
+    if (bound2 >= bound1) {
+      if (x > bound2) return bound2;
+      if (x < bound1) return bound1;
+    } else {
+      if (x > bound1) return bound1;
+      if (x < bound2) return bound2;
+    }
+    return x;
+  }
 }

@@ -21,7 +21,6 @@ package com.hippo.android.gallery;
  */
 
 import android.view.View;
-import android.view.ViewGroup;
 import java.util.List;
 
 // offset = -(target - base) = base - target
@@ -30,30 +29,23 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   private int totalLeft;
   private int totalRight;
 
-  @Override
-  protected int selfWidthMeasureSpec(int width) {
-    return View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-  }
-
-  @Override
-  protected int selfHeightMeasureSpec(int height) {
-    return View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY);
-  }
-
   protected void measurePage(View view) {
-    view.measure(
-        ViewGroup.getChildMeasureSpec(widthMeasureSpec, 0, view.getLayoutParams().width),
-        heightMeasureSpec
-    );
+    int widthMeasureSpec = getPageMeasureSpec(width, view.getLayoutParams().width);
+    int heightMeasureSpec = isScalable(view)
+        ? View.MeasureSpec.makeMeasureSpec((int) (height * scale), View.MeasureSpec.EXACTLY)
+        : View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY);
+    view.measure(widthMeasureSpec, heightMeasureSpec);
   }
 
   @Override
   public void layoutAnchor(View page, int offset) {
     measurePage(page);
 
+    int deviate = isScalable(page) ? this.deviate : 0;
+    int bottom = deviate + page.getMeasuredHeight();
     int right = width - offset;
     int left = right - page.getMeasuredWidth();
-    page.layout(left, 0, right, height);
+    page.layout(left, deviate, right, bottom);
 
     totalLeft = left;
     totalRight = right;
@@ -68,9 +60,11 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   public void layoutNext(View page) {
     measurePage(page);
 
+    int deviate = isScalable(page) ? this.deviate : 0;
+    int bottom = deviate + page.getMeasuredHeight();
     int right = totalLeft - interval;
     int left = right - page.getMeasuredWidth();
-    page.layout(left, 0, right, height);
+    page.layout(left, deviate, right, bottom);
 
     totalLeft = left;
   }
@@ -88,9 +82,12 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   @Override
   public void layoutPrevious(View page) {
     measurePage(page);
+
+    int deviate = isScalable(page) ? this.deviate : 0;
+    int bottom = deviate + page.getMeasuredHeight();
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();
-    page.layout(left, 0, right, height);
+    page.layout(left, deviate, right, bottom);
 
     totalRight = right;
   }
@@ -129,7 +126,14 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public int scrollBy(int oldAnchorOffset, int distanceX, int distanceY) {
-    return oldAnchorOffset + distanceX;
+  public void scrollBy(int dx, int dy, int[] result) {
+    result[0] = dx;
+    result[1] = -dy;
+  }
+
+  @Override
+  public void scaleBy(int anchorOffset, int pageDeviate, int x, int y, float factor, int[] result) {
+    result[0] = (width - x) - (int) (((width - x) - anchorOffset) * factor);
+    result[1] = y - (int) ((y - pageDeviate) * factor);
   }
 }

@@ -20,31 +20,45 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/11/10.
  */
 
+import android.view.View;
+import android.view.ViewGroup;
+
 public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayout {
 
   protected int width;
   protected int height;
+  protected float scale;
+  protected int deviate;
   protected int interval;
 
-  protected int widthMeasureSpec;
-  protected int heightMeasureSpec;
-
   @Override
-  public void start(int width, int height, int interval) {
+  public void start(int width, int height, float scale, int deviate, int interval) {
     this.width = width;
     this.height = height;
+    this.scale = scale;
+    this.deviate = deviate;
     this.interval = interval;
-    this.widthMeasureSpec = selfWidthMeasureSpec(width);
-    this.heightMeasureSpec = selfHeightMeasureSpec(height);
   }
 
-  /**
-   * Simulate the WidthMeasureSpec of the GalleryView.
-   */
-  protected abstract int selfWidthMeasureSpec(int width);
+  protected static boolean isScalable(View view) {
+    return view instanceof Scalable && ((Scalable) view).isScalable();
+  }
 
-  /**
-   * Simulate the HeightMeasureSpec of the GalleryView.
-   */
-  protected abstract int selfHeightMeasureSpec(int height);
+  protected static int getPageMeasureSpec(int parentSize, int childSize) {
+    int resultSize;
+    int resultMode;
+
+    if (childSize == ViewGroup.LayoutParams.MATCH_PARENT) {
+      resultSize = parentSize;
+      resultMode = View.MeasureSpec.EXACTLY;
+    } else if (childSize == ViewGroup.LayoutParams.WRAP_CONTENT) {
+      resultSize = 0;
+      resultMode = View.MeasureSpec.UNSPECIFIED;
+    } else {
+      resultSize = childSize;
+      resultMode = View.MeasureSpec.EXACTLY;
+    }
+
+    return View.MeasureSpec.makeMeasureSpec(resultSize, resultMode);
+  }
 }

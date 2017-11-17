@@ -40,40 +40,69 @@ class GestureRecognizer {
     void onScale(float focusX, float focusY, float scale);
     void onScaleEnd();
     void onDown(float x, float y);
+    void onUp(float x, float y);
+    void onCancel();
+    void onPointerDown(float x, float y);
+    void onPointerUp(float x, float y);
   }
 
   private final Listener listener;
+  private final DownUpDetector downUpDetector;
   private final GestureDetectorCompat gestureDetector;
   private final ScaleGestureDetector scaleDetector;
 
+  private boolean scaling = false;
+
   public GestureRecognizer(Context context, Listener listener) {
     this.listener = listener;
-    this.gestureDetector = new GestureDetectorCompat(context, new GestureListener(listener));
-    this.scaleDetector = new ScaleGestureDetector(context, new ScaleListener(listener));
+    this.downUpDetector = new DownUpDetector(new DownUpListener());
+    this.gestureDetector = new GestureDetectorCompat(context, new GestureListener());
+    this.scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
   }
 
   public boolean onTouchEvent(MotionEvent event) {
-    gestureDetector.onTouchEvent(event);
+    downUpDetector.onTouchEvent(event);
     scaleDetector.onTouchEvent(event);
-
-    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-      listener.onDown(event.getX(), event.getY());
-    }
-
+    gestureDetector.onTouchEvent(event);
     return true;
   }
 
-  private static class GestureListener extends GestureDetector.SimpleOnGestureListener {
+  private class DownUpListener implements DownUpDetector.DownUpListener {
 
-    private Listener listener;
-
-    public GestureListener(Listener listener) {
-      this.listener = listener;
+    @Override
+    public void onDown(float x, float y) {
+      scaling = false;
+      listener.onDown(x, y);
     }
 
     @Override
+    public void onUp(float x, float y) {
+      listener.onUp(x, y);
+    }
+
+    @Override
+    public void onCancel() {
+      listener.onCancel();
+    }
+
+    @Override
+    public void onPointerDown(float x, float y) {
+      listener.onPointerDown(x, y);
+    }
+
+    @Override
+    public void onPointerUp(float x, float y) {
+      listener.onPointerUp(x, y);
+    }
+  }
+
+  private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+    @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-      listener.onScroll(distanceX, distanceY, e2.getX() - e1.getX(), e2.getY() - e1.getY(), e2.getX(), e2.getY());
+      if (!scaling) {
+        listener.onScroll(distanceX, distanceY, e2.getX() - e1.getX(), e2.getY() - e1.getY(), e2.getX(), e2.getY());
+      }
       return true;
     }
 
@@ -86,10 +115,27 @@ class GestureRecognizer {
 
   private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 
-    private Listener listener;
+    @Override
+    public boolean onScaleBegin(ScaleGestureDetector detector) {
+      scaling = true;
+      listener.onScaleBegin(detector.getFocusX(), detector.getFocusY());
+      return true;
+    }
 
-    public ScaleListener(Listener listener) {
-      this.listener = listener;
+    @Override
+    public boolean onScale(ScaleGestureDetector detector) {
+      if (scaling) {
+        listener.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
+      }
+      return true;
+    }
+
+    @Override
+    public void onScaleEnd(ScaleGestureDetector detector) {
+      if (scaling) {
+        listener.onScaleEnd();
+        scaling = false;
+      }
     }
   }
 }

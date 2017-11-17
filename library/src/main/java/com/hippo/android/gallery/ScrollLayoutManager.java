@@ -26,14 +26,27 @@ import java.util.List;
 
 public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
+  // SCALE_MIN MUST BE 1.0f
+  private static final float SCALE_MIN = 1.0f;
+  private static final float SCALE_MAX = 3.0f;
+
   // First anchor page index
-  private int anchorIndex;
+  private int anchorIndex = 0;
 
   // First anchor page offset
-  private int anchorOffset;
+  private int anchorOffset = 0;
 
   // The interval between pages
-  private int pageInterval;
+  private int pageInterval = 50;
+
+  // Scale factor for the scalable pages
+  // Full width is 1.0f
+  private float pageScale = 1.0f;
+
+  // The offset against scroll direction
+  private int pageDeviate;
+
+  private int[] temp = new int[2];
 
   private ScrollLayout scrollLayout;
 
@@ -116,14 +129,18 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
       return;
     }
 
-    // Ensure current index in the range.
+    // Ensure current index in the range
     int newIndex = Utils.clamp(anchorIndex, 0, nest.getPageCount() - 1);
     if (anchorIndex != newIndex) {
       anchorIndex = newIndex;
       anchorOffset = 0;
     }
 
-    scrollLayout.start(width, height, pageInterval);
+    // Ensure page scale and deviate in the range
+    pageScale = Utils.clamp(pageScale, SCALE_MIN, SCALE_MAX);
+    pageDeviate = Utils.clamp(pageDeviate, (int) (-(pageScale - 1.0f) * width), 0);
+
+    scrollLayout.start(width, height, pageScale, pageDeviate, pageInterval);
 
     LinkedList<GalleryView.Page> pages = new LinkedList<>();
 
@@ -171,9 +188,25 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scrollBy(GalleryView.Nest nest, int distanceX, int distanceY) {
-    anchorOffset = scrollLayout.scrollBy(anchorOffset, distanceX, distanceY);
+  public void scrollBy(GalleryView.Nest nest, int dx, int dy) {
+    scrollLayout.scrollBy(dx, dy, temp);
+    // It's hard to fix anchorOffset, let layout() fix it
+    anchorOffset += temp[0];
+    pageDeviate += temp[1];
     nest.layout(this, nest.getWidth(), nest.getHeight());
+  }
+
+  public void scaleBy(GalleryView.Nest nest, int x, int y, float factor) {
+    float oldPageScale = pageScale;
+    pageScale = Utils.clamp(factor * pageScale, SCALE_MIN, SCALE_MAX);
+
+    if (pageScale != oldPageScale) {
+      // TODO Need a better way to fix anchorOffset and pageDeviate
+      scrollLayout.scaleBy(anchorOffset, pageDeviate, x, y, pageScale / oldPageScale, temp);
+      anchorOffset = temp[0];
+      pageDeviate = temp[1];
+      nest.layout(this, nest.getWidth(), nest.getHeight());
+    }
   }
 
   public interface ScrollLayout {
@@ -181,7 +214,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     /**
      * Starts new layout turn.
      */
-    void start(int width, int height, int interval);
+    void start(int width, int height, float scale, int deviate, int interval);
 
     /**
      * Layout the anchor page.
@@ -250,7 +283,17 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
     /**
      * Apply scroll to current layout state.
+     *
+     * @param result a two-size array to store the offset of
+     *               anchorOffset and pageDeviate
      */
-    int scrollBy(int oldAnchorOffset, int distanceX, int distanceY);
+    void scrollBy(int dx, int dy, int[] result);
+
+    /**
+     * Apply scale to current layout state.
+     *
+     * @param result a two-size to store new anchorOffset and pageDeviate
+     */
+    void scaleBy(int anchorOffset, int pageDeviate, int x, int y, float factor, int[] result);
   }
 }

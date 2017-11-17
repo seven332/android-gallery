@@ -21,7 +21,6 @@ package com.hippo.android.gallery;
  */
 
 import android.view.View;
-import android.view.ViewGroup;
 import java.util.List;
 
 // offset = target - base
@@ -30,30 +29,25 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   private int totalTop;
   private int totalBottom;
 
-  @Override
-  protected int selfWidthMeasureSpec(int width) {
-    return View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
-  }
-
-  @Override
-  protected int selfHeightMeasureSpec(int height) {
-    return View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-  }
-
   protected void measurePage(View view) {
-    view.measure(
-        widthMeasureSpec,
-        ViewGroup.getChildMeasureSpec(heightMeasureSpec, 0, view.getLayoutParams().height)
-    );
+    int widthMeasureSpec = isScalable(view)
+        ? View.MeasureSpec.makeMeasureSpec((int) (width * scale), View.MeasureSpec.EXACTLY)
+        : View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
+    int heightMeasureSpec = getPageMeasureSpec(height, view.getLayoutParams().height);
+    view.measure(widthMeasureSpec, heightMeasureSpec);
   }
 
   @Override
   public void layoutAnchor(View page, int offset) {
     measurePage(page);
-    page.layout(0, offset, width, offset + page.getMeasuredHeight());
+
+    int deviate = isScalable(page) ? this.deviate : 0;
+    int right = deviate + page.getMeasuredWidth();
+    int bottom = offset + page.getMeasuredHeight();
+    page.layout(deviate, offset, right, bottom);
 
     totalTop = offset;
-    totalBottom = offset + page.getMeasuredHeight();
+    totalBottom = bottom;
   }
 
   @Override
@@ -64,9 +58,12 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   @Override
   public void layoutNext(View page) {
     measurePage(page);
+
+    int deviate = isScalable(page) ? this.deviate : 0;
+    int right = deviate + page.getMeasuredWidth();
     int top = totalBottom + interval;
     int bottom = top + page.getMeasuredHeight();
-    page.layout(0, top, width, bottom);
+    page.layout(deviate, top, right, bottom);
 
     totalBottom = bottom;
   }
@@ -84,9 +81,12 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   @Override
   public void layoutPrevious(View page) {
     measurePage(page);
+
+    int deviate = isScalable(page) ? this.deviate : 0;
+    int right = deviate + page.getMeasuredWidth();
     int bottom = totalTop - interval;
     int top = bottom - page.getMeasuredHeight();
-    page.layout(0, top, width, bottom);
+    page.layout(deviate, top, right, bottom);
 
     totalTop = top;
   }
@@ -123,7 +123,14 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public int scrollBy(int oldAnchorOffset, int distanceX, int distanceY) {
-    return oldAnchorOffset - distanceY;
+  public void scrollBy(int dx, int dy, int[] result) {
+    result[0] = -dy;
+    result[1] = -dx;
+  }
+
+  @Override
+  public void scaleBy(int anchorOffset, int pageDeviate, int x, int y, float factor, int[] result) {
+    result[0] = y - (int) ((y - anchorOffset) * factor);
+    result[1] = x - (int) ((x - pageDeviate) * factor);
   }
 }

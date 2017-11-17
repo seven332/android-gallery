@@ -54,6 +54,10 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   }
 
+  @Override
+  public void scaleBy(GalleryView.Nest nest, int x, int y, float factor) {
+    // TODO
+  }
 
 
   private void layoutPage(GalleryView.Nest nest, int width, int height, int index) {
