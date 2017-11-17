@@ -16,34 +16,40 @@
 
 package com.hippo.android.gallery.demo;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
-import android.widget.TextView;
+import android.widget.ImageView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.hippo.android.gallery.GalleryView;
+import com.hippo.android.gallery.ReversedHorizontalScrollLayout;
 import com.hippo.android.gallery.ScrollLayoutManager;
-import com.hippo.android.gallery.VerticallyScrollLayout;
 
 public class MainActivity extends AppCompatActivity {
+
+  private static final String[] IMAGE_URLS = {
+      "http://www.gstatic.com/webp/gallery/1.jpg",
+      "http://www.gstatic.com/webp/gallery/2.jpg",
+      "http://www.gstatic.com/webp/gallery/3.jpg",
+      "http://www.gstatic.com/webp/gallery/4.jpg",
+      "http://www.gstatic.com/webp/gallery/5.jpg",
+  };
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-
-
-
     ScrollLayoutManager layoutManager = new ScrollLayoutManager();
-    layoutManager.setScrollLayout(new VerticallyScrollLayout());
+    layoutManager.setScrollLayout(new ReversedHorizontalScrollLayout());
 
     GalleryView galleryView = findViewById(R.id.gallery_view);
     galleryView.setLayoutManager(layoutManager);
     galleryView.setAdapter(new Adapter(getLayoutInflater()));
   }
-
 
   private static class Adapter extends GalleryView.Adapter {
 
@@ -59,29 +65,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onDestroyPage(GalleryView.Page page) {
-
-    }
+    public void onDestroyPage(GalleryView.Page page) {}
 
     @Override
     public void onBindPage(GalleryView.Page page) {
-      ((TextView) page.view).setText(Integer.toString(page.getIndex()));
+      ImageView imageView = page.view.findViewById(R.id.image);
 
-      if (page.getIndex() % 2 == 0) {
-        page.view.setBackgroundColor(Color.GREEN);
-      } else {
-        page.view.setBackgroundColor(Color.YELLOW);
-      }
+      RequestOptions myOptions = new RequestOptions()
+          .dontTransform()
+          .override(Target.SIZE_ORIGINAL);
+
+      Glide.with(inflater.getContext())
+          .load(IMAGE_URLS[page.getIndex()])
+          .apply(myOptions)
+          .into(imageView);
     }
 
     @Override
-    public void onUnbindPage(GalleryView.Page page) {
-
-    }
+    public void onUnbindPage(GalleryView.Page page) {}
 
     @Override
     public int getPageCount() {
-      return 100;
+      return IMAGE_URLS.length;
     }
   }
 }
