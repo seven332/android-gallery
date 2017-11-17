@@ -350,6 +350,7 @@ public class GalleryView extends ViewGroup {
         throw new IllegalStateException("Don't unset adapter in layout");
       }
 
+      // TODO What if notifyPageSetChanged() called
       // Get from unpinned attached page
       for (Page page : pages) {
         if (page.getIndex() == index) {

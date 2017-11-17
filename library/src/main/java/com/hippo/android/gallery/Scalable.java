@@ -32,5 +32,5 @@ public interface Scalable {
   /**
    * Set visible rect of the page. The remain area could be drawn or not.
    */
-  void setVisibleRect(int left, int right, int top, int bottom);
+  void setVisibleRect(int left, int top, int right, int bottom);
 }

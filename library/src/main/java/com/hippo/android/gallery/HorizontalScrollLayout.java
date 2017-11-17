@@ -44,7 +44,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
     int deviate = isScalable(page) ? this.deviate : 0;
     int bottom = deviate + page.getMeasuredHeight();
     int right = offset + page.getMeasuredWidth();
-    page.layout(offset, deviate, right, bottom);
+    layout(page, offset, deviate, right, bottom);
 
     totalLeft = offset;
     totalRight = right;
@@ -63,7 +63,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
     int bottom = deviate + page.getMeasuredHeight();
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();
-    page.layout(left, deviate, right, bottom);
+    layout(page, left, deviate, right, bottom);
 
     totalRight = right;
   }
@@ -86,7 +86,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
     int bottom = deviate + page.getMeasuredHeight();
     int right = totalLeft - interval;
     int left = right - page.getMeasuredWidth();
-    page.layout(left, deviate, right, bottom);
+    layout(page, left, deviate, right, bottom);
 
     totalLeft = left;
   }

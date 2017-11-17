@@ -20,6 +20,7 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/11/10.
  */
 
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -30,6 +31,8 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
   protected float scale;
   protected int deviate;
   protected int interval;
+
+  private Rect rect = new Rect();
 
   @Override
   public void start(int width, int height, float scale, int deviate, int interval) {
@@ -60,5 +63,22 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
     }
 
     return View.MeasureSpec.makeMeasureSpec(resultSize, resultMode);
+  }
+
+  protected void layout(View view, int left, int top, int right, int bottom) {
+    view.layout(left, top, right, bottom);
+
+    if (isScalable(view)) {
+      rect.left = -left;
+      rect.top = -top;
+      rect.right = width - left;
+      rect.bottom = height - top;
+
+      if (!rect.intersect(0, 0, right - left, bottom - top)) {
+        rect.setEmpty();
+      }
+
+      ((Scalable) view).setVisibleRect(rect.left, rect.top, rect.right, rect.bottom);
+    }
   }
 }

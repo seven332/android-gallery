@@ -45,7 +45,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
     int bottom = deviate + page.getMeasuredHeight();
     int right = width - offset;
     int left = right - page.getMeasuredWidth();
-    page.layout(left, deviate, right, bottom);
+    layout(page, left, deviate, right, bottom);
 
     totalLeft = left;
     totalRight = right;
@@ -64,7 +64,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
     int bottom = deviate + page.getMeasuredHeight();
     int right = totalLeft - interval;
     int left = right - page.getMeasuredWidth();
-    page.layout(left, deviate, right, bottom);
+    layout(page, left, deviate, right, bottom);
 
     totalLeft = left;
   }
@@ -87,7 +87,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
     int bottom = deviate + page.getMeasuredHeight();
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();
-    page.layout(left, deviate, right, bottom);
+    layout(page, left, deviate, right, bottom);
 
     totalRight = right;
   }

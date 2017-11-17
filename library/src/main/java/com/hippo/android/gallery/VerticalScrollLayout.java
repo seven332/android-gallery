@@ -44,7 +44,7 @@ public class VerticalScrollLayout extends BaseScrollLayout {
     int deviate = isScalable(page) ? this.deviate : 0;
     int right = deviate + page.getMeasuredWidth();
     int bottom = offset + page.getMeasuredHeight();
-    page.layout(deviate, offset, right, bottom);
+    layout(page, deviate, offset, right, bottom);
 
     totalTop = offset;
     totalBottom = bottom;
@@ -63,7 +63,7 @@ public class VerticalScrollLayout extends BaseScrollLayout {
     int right = deviate + page.getMeasuredWidth();
     int top = totalBottom + interval;
     int bottom = top + page.getMeasuredHeight();
-    page.layout(deviate, top, right, bottom);
+    layout(page, deviate, top, right, bottom);
 
     totalBottom = bottom;
   }
@@ -86,7 +86,7 @@ public class VerticalScrollLayout extends BaseScrollLayout {
     int right = deviate + page.getMeasuredWidth();
     int bottom = totalTop - interval;
     int top = bottom - page.getMeasuredHeight();
-    page.layout(deviate, top, right, bottom);
+    layout(page, deviate, top, right, bottom);
 
     totalTop = top;
   }
