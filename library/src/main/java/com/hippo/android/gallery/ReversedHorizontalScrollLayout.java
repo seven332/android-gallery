@@ -30,10 +30,9 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   private int totalRight;
 
   protected void measurePage(View view) {
-    int widthMeasureSpec = getPageMeasureSpec(width, view.getLayoutParams().width);
-    int heightMeasureSpec = isScalable(view)
-        ? View.MeasureSpec.makeMeasureSpec((int) (height * scale), View.MeasureSpec.EXACTLY)
-        : View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY);
+    float scale = isScalable(view) ? this.scale : 1.0f;
+    int widthMeasureSpec = getPageMeasureSpec((int) (width * scale), view.getLayoutParams().width);
+    int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec((int) (height * scale), View.MeasureSpec.EXACTLY);
     view.measure(widthMeasureSpec, heightMeasureSpec);
   }
 

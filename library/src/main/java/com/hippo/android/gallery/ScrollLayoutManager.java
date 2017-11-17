@@ -37,7 +37,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   private int anchorOffset = 0;
 
   // The interval between pages
-  private int pageInterval = 50;
+  private int pageInterval = 0;
 
   // Scale factor for the scalable pages
   // Full width is 1.0f
