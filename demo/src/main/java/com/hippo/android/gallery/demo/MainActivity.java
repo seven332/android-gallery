@@ -20,7 +20,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
@@ -45,6 +47,12 @@ public class MainActivity extends AppCompatActivity {
 
     ScrollLayoutManager layoutManager = new ScrollLayoutManager();
     layoutManager.setScrollLayout(new ReversedHorizontalScrollLayout());
+    layoutManager.setPageInterval((int) (24 * getResources().getDisplayMetrics().density));
+
+//    PagerLayoutManager layoutManager = new PagerLayoutManager();
+//    layoutManager.setPagerLayout(new HorizontalPagerLayout());
+//    layoutManager.setPageInterval((int) (24 * getResources().getDisplayMetrics().density));
+//    layoutManager.setScaleType(PagerLayoutManager.SCALE_FIT_HEIGHT);
 
     GalleryView galleryView = findViewById(R.id.gallery_view);
     galleryView.setLayoutManager(layoutManager);
@@ -52,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private static class Adapter extends GalleryView.Adapter {
+
+    private static final int TYPE_IMAGE = 0;
+    private static final int TYPE_TEXT = 1;
 
     private LayoutInflater inflater;
 
@@ -61,7 +72,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public GalleryView.Page onCreatePage(GalleryView parent, int type) {
-      return new GalleryView.Page(inflater.inflate(R.layout.page, parent, false));
+      View view;
+      if (type == TYPE_IMAGE) {
+        view = inflater.inflate(R.layout.page_image, parent, false);
+      } else {
+        view = inflater.inflate(R.layout.page_text, parent, false);
+      }
+      return new GalleryView.Page(view);
     }
 
     @Override
@@ -69,16 +86,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBindPage(GalleryView.Page page) {
-      ImageView imageView = page.view.findViewById(R.id.image);
+      if (page.getType() == TYPE_IMAGE) {
+        ImageView imageView = page.view.findViewById(R.id.image);
 
-      RequestOptions myOptions = new RequestOptions()
-          .dontTransform()
-          .override(Target.SIZE_ORIGINAL);
+        RequestOptions myOptions = new RequestOptions()
+            .dontTransform()
+            .override(Target.SIZE_ORIGINAL);
 
-      Glide.with(inflater.getContext())
-          .load(IMAGE_URLS[page.getIndex()])
-          .apply(myOptions)
-          .into(imageView);
+        Glide.with(inflater.getContext())
+            .load(IMAGE_URLS[page.getIndex() / 2])
+            .apply(myOptions)
+            .into(imageView);
+      } else {
+        TextView textView = page.view.findViewById(R.id.text);
+        textView.setText("Image " + (page.getIndex() / 2 + 1));
+      }
     }
 
     @Override
@@ -86,7 +108,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public int getPageCount() {
-      return IMAGE_URLS.length;
+      return IMAGE_URLS.length * 2;
+    }
+
+    @Override
+    public int getPageViewType(int index) {
+      return index % 2 == 0 ? TYPE_IMAGE : TYPE_TEXT;
     }
   }
 }

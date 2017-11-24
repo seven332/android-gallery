@@ -39,6 +39,6 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     ListView listView = findViewById(R.id.list_view);
-    listView.setAdapter(new ArrayAdapter<>(this, R.layout.page, array));
+    listView.setAdapter(new ArrayAdapter<>(this, R.layout.page_image, array));
   }
 }

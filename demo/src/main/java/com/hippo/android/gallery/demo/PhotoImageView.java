@@ -24,25 +24,48 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import com.hippo.android.gallery.Scalable;
+import android.util.Log;
+import com.hippo.android.gallery.Photo;
 
-public class ScalableImageView extends AppCompatImageView implements Scalable {
+public class PhotoImageView extends AppCompatImageView implements Photo {
 
-  public ScalableImageView(Context context) {
+  public PhotoImageView(Context context) {
     super(context);
   }
 
-  public ScalableImageView(Context context, @Nullable AttributeSet attrs) {
+  public PhotoImageView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
   }
 
   @Override
-  public boolean isScalable() {
+  public boolean isPhotoEnabled() {
+    // TODO
     return true;
   }
 
   @Override
-  public void setVisibleRect(int left, int right, int top, int bottom) {
+  public void setVisibleRect(float left, float top, float right, float bottom) {
+    // TODO
+    Log.d("TAG", left + "-" + top + "-" + right + "-" + bottom);
+  }
+
+  @Override
+  public void scale(float x, float y, float factor) {
+    // TODO
+  }
+
+  @Override
+  public void setScaleType(int scaleType) {
+    // TODO
+  }
+
+  @Override
+  public void offset(float dx, float dy) {
+    // TODO
+  }
+
+  @Override
+  public void setStartPosition(int startPosition) {
     // TODO
   }
 }
