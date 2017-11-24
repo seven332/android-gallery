@@ -152,6 +152,18 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     // TODO
   }
 
+  @Override
+  public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {}
+
+  @Override
+  protected void down(GalleryView.Nest nest, int x, int y) {}
+
+  @Override
+  protected void up(GalleryView.Nest nest, int x, int y) {}
+
+  @Override
+  protected void cancelAnimations() {}
+
   public interface PagerLayout {
 
     void start(int width, int height, int interval,

@@ -20,6 +20,8 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/8/28.
  */
 
+import android.support.animation.FlingAnimation;
+import android.support.animation.FloatPropertyCompat;
 import android.view.View;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,6 +51,23 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   private int[] temp = new int[2];
 
   private ScrollLayout scrollLayout;
+
+  public static final FloatPropertyCompat<ScrollLayoutManager> SCROLL_BY = new FloatPropertyCompat<ScrollLayoutManager>("scrollBy") {
+    @Override
+    public void setValue(ScrollLayoutManager slm, float value) {
+      float d = value - slm.lastFling;
+      slm.lastFling = value;
+      slm.scrollBy((int) (d * slm.flingScaleX), (int) (d * slm.flingScaleY));
+    }
+    @Override
+    public float getValue(ScrollLayoutManager slm) {
+      return slm.lastFling;
+    }
+  };
+  private float flingScaleX;
+  private float flingScaleY;
+  private float lastFling;
+  private FlingAnimation flingAnimation = new FlingAnimation(this, SCROLL_BY);
 
   public void setPageInterval(int pageInterval) {
     this.pageInterval = pageInterval;
@@ -211,6 +230,40 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
       pageDeviate = temp[1];
       nest.layout(this, nest.getWidth(), nest.getHeight());
     }
+  }
+
+  @Override
+  public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {
+    float velocity;
+    lastFling = 0.0f;
+    if (Math.abs(velocityX) > Math.abs(velocityY)) {
+      velocity = velocityX;
+      flingScaleX = 1.0f;
+      flingScaleY = velocityY / velocityX;
+    } else {
+      velocity = velocityY;
+      flingScaleY = 1.0f;
+      flingScaleX = velocityX / velocityY;
+    }
+
+    flingAnimation.cancel();
+    flingAnimation.setStartVelocity(-velocity)
+        .setMinValue(-Float.MAX_VALUE)
+        .setMaxValue(Float.MAX_VALUE)
+        .start();
+  }
+
+  @Override
+  protected void down(GalleryView.Nest nest, int x, int y) {
+    cancelAnimations();
+  }
+
+  @Override
+  protected void up(GalleryView.Nest nest, int x, int y) {}
+
+  @Override
+  protected void cancelAnimations() {
+    flingAnimation.cancel();
   }
 
   public interface ScrollLayout {

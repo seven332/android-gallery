@@ -23,8 +23,6 @@ package com.hippo.android.gallery;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Parcelable;
-import android.support.animation.FlingAnimation;
-import android.support.animation.FloatPropertyCompat;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -45,28 +43,11 @@ public class GalleryView extends ViewGroup {
   private static final int INVALID_INDEX = -1;
   private static final int INVALID_TYPE = -1;
 
-  public static final FloatPropertyCompat<GalleryView> SCROLL_BY = new FloatPropertyCompat<GalleryView>("scrollBy") {
-    @Override
-    public void setValue(GalleryView view, float value) {
-      float d = value - view.lastFling;
-      view.lastFling = value;
-      view.scrollBy((int) (d * view.flingScaleX), (int) (d * view.flingScaleY));
-    }
-
-    @Override
-    public float getValue(GalleryView view) {
-      return view.lastFling;
-    }
-  };
-
   private Nest nest = new Nest(this);
-  private LayoutManager layoutManager;
   private GestureRecognizer gestureRecognizer;
 
-  private float flingScaleX;
-  private float flingScaleY;
-  private float lastFling;
-  private FlingAnimation flingAnimation;
+  @Nullable
+  private LayoutManager layoutManager;
 
   public GalleryView(Context context) {
     super(context);
@@ -80,12 +61,18 @@ public class GalleryView extends ViewGroup {
 
   private void init(Context context) {
     gestureRecognizer = new GestureRecognizer(context, listener);
-    flingAnimation = new FlingAnimation(this, SCROLL_BY);
   }
 
-  public void setLayoutManager(LayoutManager layoutManager) {
-    // TODO
+  public void setLayoutManager(@Nullable LayoutManager layoutManager) {
+    LayoutManager oldLayoutManager = this.layoutManager;
+    if (oldLayoutManager != null) {
+      oldLayoutManager.detach();
+    }
+
     this.layoutManager = layoutManager;
+    if (layoutManager != null) {
+      layoutManager.attach(nest);
+    }
   }
 
   public void setAdapter(Adapter adapter) {
@@ -166,11 +153,6 @@ public class GalleryView extends ViewGroup {
     dispatchThawSelfOnly(container);
   }
 
-  // Stop fling animation and scale animation
-  private void cancelAnimations() {
-    flingAnimation.cancel();
-  }
-
   private GestureRecognizer.Listener listener = new GestureRecognizer.Listener() {
     @Override
     public void onSingleTapUp(float x, float y) {
@@ -199,53 +181,43 @@ public class GalleryView extends ViewGroup {
 
     @Override
     public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
-      layoutManager.scrollBy(nest, (int) dx, (int) dy);
+      if (layoutManager != null) {
+        layoutManager.scrollBy((int) dx, (int) dy);
+      }
     }
 
     @Override
     public void onFling(float velocityX, float velocityY) {
-      float velocity;
-      lastFling = 0.0f;
-      if (Math.abs(velocityX) > Math.abs(velocityY)) {
-        velocity = velocityX;
-        flingScaleX = 1.0f;
-        flingScaleY = velocityY / velocityX;
-      } else {
-        velocity = velocityY;
-        flingScaleY = 1.0f;
-        flingScaleX = velocityX / velocityY;
+      if (layoutManager != null) {
+        layoutManager.fling(velocityX, velocityY);
       }
-
-      flingAnimation.cancel();
-      flingAnimation.setStartVelocity(-velocity)
-          .setMinValue(-Float.MAX_VALUE)
-          .setMaxValue(Float.MAX_VALUE)
-          .start();
     }
 
     @Override
-    public void onScaleBegin(float focusX, float focusY) {
-
-    }
+    public void onScaleBegin(float focusX, float focusY) {}
 
     @Override
     public void onScale(float focusX, float focusY, float scale) {
-      layoutManager.scaleBy(nest, (int) focusX, (int) focusY, scale);
+      if (layoutManager != null) {
+        layoutManager.scaleBy((int) focusX, (int) focusY, scale);
+      }
     }
 
     @Override
-    public void onScaleEnd() {
-
-    }
+    public void onScaleEnd() {}
 
     @Override
     public void onDown(float x, float y) {
-      cancelAnimations();
+      if (layoutManager != null) {
+        layoutManager.down((int) x, (int) y);
+      }
     }
 
     @Override
     public void onUp(float x, float y) {
-
+      if (layoutManager != null) {
+        layoutManager.up((int) x, (int) y);
+      }
     }
 
     @Override
@@ -417,11 +389,70 @@ public class GalleryView extends ViewGroup {
 
   public static abstract class LayoutManager {
 
-    public abstract void layout(Nest nest, int width, int height);
+    @Nullable
+    private Nest nest;
 
-    public abstract void scrollBy(Nest nest, int dx, int dy);
+    private void attach(Nest nest) {
+      if (this.nest != null) {
+        throw new IllegalStateException("This LayoutManager is already attached to a GalleryView.");
+      }
+      this.nest = nest;
+    }
 
-    public abstract void scaleBy(Nest nest, int x, int y, float factor);
+    private void detach() {
+      this.nest = null;
+      cancelAnimations();
+    }
+
+    public void layout(int width, int height) {
+      if (nest != null) {
+        layout(nest, width, height);
+      }
+    }
+
+    public void scrollBy(int dx, int dy) {
+      if (nest != null) {
+        scrollBy(nest, dx, dy);
+      }
+    }
+
+    public void scaleBy(int x, int y, float factor) {
+      if (nest != null) {
+        scaleBy(nest, x, y, factor);
+      }
+    }
+
+    public void fling(float velocityX, float velocityY) {
+      if (nest != null) {
+        fling(nest, velocityX, velocityY);
+      }
+    }
+
+    public void down(int x, int y) {
+      if (nest != null) {
+        down(nest, x, y);
+      }
+    }
+
+    public void up(int x, int y) {
+      if (nest != null) {
+        up(nest, x, y);
+      }
+    }
+
+    protected abstract void layout(Nest nest, int width, int height);
+
+    protected abstract void scrollBy(Nest nest, int dx, int dy);
+
+    protected abstract void scaleBy(Nest nest, int x, int y, float factor);
+
+    protected abstract void fling(Nest nest, float velocityX, float velocityY);
+
+    protected abstract void down(Nest nest, int x, int y);
+
+    protected abstract void up(Nest nest, int x, int y);
+
+    protected abstract void cancelAnimations();
   }
 
   public static abstract class Adapter {
