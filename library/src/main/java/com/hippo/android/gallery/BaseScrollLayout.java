@@ -32,7 +32,15 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
   protected int deviate;
   protected int interval;
 
-  private Rect rect = new Rect();
+  private boolean widthFixed;
+  private boolean heightFixed;
+
+  private Rect temp = new Rect();
+
+  public BaseScrollLayout(boolean widthFixed, boolean heightFixed) {
+    this.widthFixed = widthFixed;
+    this.heightFixed = heightFixed;
+  }
 
   @Override
   public void start(int width, int height, float scale, int deviate, int interval) {
@@ -43,32 +51,42 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
     this.interval = interval;
   }
 
-  protected static boolean isScalable(View view) {
-    return view instanceof Scalable && ((Scalable) view).isScalable();
+  private static int getPageMeasureSpec(int parentSize, int childDimension, boolean fixed) {
+    if (fixed) {
+      return View.MeasureSpec.makeMeasureSpec(parentSize, View.MeasureSpec.EXACTLY);
+    } else {
+      int resultSize;
+      int resultMode;
+
+      if (childDimension == ViewGroup.LayoutParams.MATCH_PARENT) {
+        resultSize = parentSize;
+        resultMode = View.MeasureSpec.EXACTLY;
+      } else if (childDimension == ViewGroup.LayoutParams.WRAP_CONTENT) {
+        resultSize = 0;
+        resultMode = View.MeasureSpec.UNSPECIFIED;
+      } else {
+        resultSize = childDimension;
+        resultMode = View.MeasureSpec.EXACTLY;
+      }
+
+      return View.MeasureSpec.makeMeasureSpec(resultSize, resultMode);
+    }
   }
 
-  protected static int getPageMeasureSpec(int parentSize, int childSize) {
-    int resultSize;
-    int resultMode;
-
-    if (childSize == ViewGroup.LayoutParams.MATCH_PARENT) {
-      resultSize = parentSize;
-      resultMode = View.MeasureSpec.EXACTLY;
-    } else if (childSize == ViewGroup.LayoutParams.WRAP_CONTENT) {
-      resultSize = 0;
-      resultMode = View.MeasureSpec.UNSPECIFIED;
-    } else {
-      resultSize = childSize;
-      resultMode = View.MeasureSpec.EXACTLY;
-    }
-
-    return View.MeasureSpec.makeMeasureSpec(resultSize, resultMode);
+  protected void measure(View view) {
+    float scale = Utils.asPhoto(view) != null ? this.scale : 1.0f;
+    ViewGroup.LayoutParams lp = view.getLayoutParams();
+    int widthMeasureSpec = getPageMeasureSpec((int) (width * scale), lp.width, widthFixed);
+    int heightMeasureSpec = getPageMeasureSpec((int) (height * scale), lp.height, heightFixed);
+    view.measure(widthMeasureSpec, heightMeasureSpec);
   }
 
   protected void layout(View view, int left, int top, int right, int bottom) {
     view.layout(left, top, right, bottom);
 
-    if (isScalable(view)) {
+    Photo photo = Utils.asPhoto(view);
+    if (photo != null) {
+      Rect rect = temp;
       rect.left = -left;
       rect.top = -top;
       rect.right = width - left;
@@ -78,7 +96,7 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
         rect.setEmpty();
       }
 
-      ((Scalable) view).setVisibleRect(rect.left, rect.top, rect.right, rect.bottom);
+      photo.setVisibleRect(rect.left, rect.top, rect.right, rect.bottom);
     }
   }
 }

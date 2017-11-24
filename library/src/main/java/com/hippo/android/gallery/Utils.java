@@ -20,6 +20,9 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/11/4.
  */
 
+import android.support.annotation.Nullable;
+import android.view.View;
+
 final class Utils {
 
   /**
@@ -60,5 +63,19 @@ final class Utils {
       if (x < bound2) return bound2;
     }
     return x;
+  }
+
+  /**
+   * Returns the view as photo. Returns {@code null} if the view isn't a photo or it's disabled.
+   */
+  @Nullable
+  public static Photo asPhoto(View view) {
+    if (view instanceof Photo) {
+      Photo photo = (Photo) view;
+      if (photo.isPhotoEnabled()) {
+        return photo;
+      }
+    }
+    return null;
   }
 }

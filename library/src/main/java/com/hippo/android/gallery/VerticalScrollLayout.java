@@ -29,18 +29,15 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   private int totalTop;
   private int totalBottom;
 
-  protected void measurePage(View view) {
-    float scale = isScalable(view) ? this.scale : 1.0f;
-    int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec((int) (width * scale), View.MeasureSpec.EXACTLY);
-    int heightMeasureSpec = getPageMeasureSpec((int) (height * scale), view.getLayoutParams().height);
-    view.measure(widthMeasureSpec, heightMeasureSpec);
+  public VerticalScrollLayout() {
+    super(true, false);
   }
 
   @Override
   public void layoutAnchor(View page, int offset) {
-    measurePage(page);
+    measure(page);
 
-    int deviate = isScalable(page) ? this.deviate : 0;
+    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
     int right = deviate + page.getMeasuredWidth();
     int bottom = offset + page.getMeasuredHeight();
     layout(page, deviate, offset, right, bottom);
@@ -56,9 +53,9 @@ public class VerticalScrollLayout extends BaseScrollLayout {
 
   @Override
   public void layoutNext(View page) {
-    measurePage(page);
+    measure(page);
 
-    int deviate = isScalable(page) ? this.deviate : 0;
+    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
     int right = deviate + page.getMeasuredWidth();
     int top = totalBottom + interval;
     int bottom = top + page.getMeasuredHeight();
@@ -79,9 +76,9 @@ public class VerticalScrollLayout extends BaseScrollLayout {
 
   @Override
   public void layoutPrevious(View page) {
-    measurePage(page);
+    measure(page);
 
-    int deviate = isScalable(page) ? this.deviate : 0;
+    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
     int right = deviate + page.getMeasuredWidth();
     int bottom = totalTop - interval;
     int top = bottom - page.getMeasuredHeight();

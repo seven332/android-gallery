@@ -461,6 +461,10 @@ public class GalleryView extends ViewGroup {
       return 0;
     }
 
+    public final void notifyPageChanged(int index) {
+      // TODO
+    }
+
     public final void notifyPageSetChanged() {
       // TODO
     }
