@@ -327,7 +327,7 @@ public class GalleryView extends ViewGroup {
       for (Page page : pages) {
         if (page.getIndex() == index) {
           // One index one page, break if the index fit but the type not
-          if (adapter.getPageViewType(index) != page.getType()) {
+          if (adapter.getPageType(index) != page.getType()) {
             break;
           }
           page.pinned = true;
@@ -340,7 +340,7 @@ public class GalleryView extends ViewGroup {
 
       // Get from cache
       Page page = null;
-      int type = adapter.getPageViewType(index);
+      int type = adapter.getPageType(index);
       Stack<Page> stack = cache.get(type);
       if (stack != null && !stack.empty()) {
         page = stack.pop();
@@ -492,7 +492,7 @@ public class GalleryView extends ViewGroup {
 
     public abstract int getPageCount();
 
-    public int getPageViewType(int index) {
+    public int getPageType(int index) {
       return 0;
     }
 
