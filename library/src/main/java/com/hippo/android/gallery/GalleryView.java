@@ -75,9 +75,16 @@ public class GalleryView extends ViewGroup {
     }
   }
 
-  public void setAdapter(Adapter adapter) {
-    // TODO
-    nest.setAdapter(adapter);
+  public void setAdapter(@Nullable Adapter adapter) {
+    Adapter oldAdapter = nest.adapter;
+    if (oldAdapter != null) {
+      oldAdapter.detach();
+    }
+
+    nest.adapter = adapter;
+    if (adapter != null) {
+      adapter.attach(nest);
+    }
   }
 
   @Override
@@ -240,22 +247,21 @@ public class GalleryView extends ViewGroup {
 
     private static final int MAX_PAGE = 5;
 
-    // Current pages
+    // Pages which are attached to GalleryView
     private List<Page> pages = new LinkedList<>();
-    // Page cache
+    // Page cache, key is page type
     private SparseArray<Stack<Page>> cache = new SparseArray<>();
 
     private final GalleryView view;
+
+    @Nullable
     private Adapter adapter;
 
+    // Whether the GalleryView is in layout
     private boolean inLayout;
 
     Nest(GalleryView view) {
       this.view = view;
-    }
-
-    void setAdapter(Adapter adapter) {
-      this.adapter = adapter;
     }
 
     /**
@@ -273,38 +279,51 @@ public class GalleryView extends ViewGroup {
     }
 
     void startLayout() {
-      // Make all pages unpinned
-      for (Page page : pages) {
-        page.pinned = false;
-      }
-
       inLayout = true;
+
+      for (Iterator<Page> iterator = pages.iterator(); iterator.hasNext();) {
+        Page page = iterator.next();
+        if (page.pinned) {
+          // Mark the page unpinned if it's pinned
+          page.pinned = false;
+        } else {
+          // Unpin the page if it's not pinned
+          unpinPageInternal(page);
+          iterator.remove();
+        }
+      }
     }
 
     void endLayout() {
-      inLayout = false;
-
       // Remove all unpinned pages
       for (Iterator<Page> iterator = pages.iterator(); iterator.hasNext();) {
         Page page = iterator.next();
         if (!page.pinned) {
+          unpinPageInternal(page);
           iterator.remove();
-
-          view.removeView(page.view);
-          adapter.unbindPage(page);
-
-          Stack<Page> stack = cache.get(page.getType());
-          if (stack == null) {
-            stack = new Stack<>();
-            cache.put(page.getType(), stack);
-          }
-
-          if (stack.size() < MAX_PAGE) {
-            stack.push(page);
-          } else {
-            adapter.destroyPage(page);
-          }
         }
+      }
+
+      inLayout = false;
+    }
+
+    // pages still keeps the page
+    private void unpinPageInternal(Page page) {
+      page.pinned = false;
+      view.removeView(page.view);
+      //noinspection ConstantConditions
+      adapter.unbindPage(page);
+
+      Stack<Page> stack = cache.get(page.getType());
+      if (stack == null) {
+        stack = new Stack<>();
+        cache.put(page.getType(), stack);
+      }
+
+      if (stack.size() < MAX_PAGE) {
+        stack.push(page);
+      } else {
+        adapter.destroyPage(page);
       }
     }
 
@@ -322,7 +341,6 @@ public class GalleryView extends ViewGroup {
         throw new IllegalStateException("Don't unset adapter in layout");
       }
 
-      // TODO What if notifyPageSetChanged() called
       // Get from unpinned attached page
       for (Page page : pages) {
         if (page.getIndex() == index) {
@@ -362,11 +380,19 @@ public class GalleryView extends ViewGroup {
     }
 
     /**
-     * Marks the page unpinned. The page will be removed when layout ends.
+     * Unpin the page.
      */
     public void unpinPage(Page page) {
-      // Just mark it unpinned
-      page.pinned = false;
+      if (!inLayout) {
+        throw new IllegalStateException("Cannot only call unpinPage() in layout");
+      }
+
+      if (adapter == null) {
+        throw new IllegalStateException("Don't unset adapter in layout");
+      }
+
+      unpinPageInternal(page);
+      pages.remove(page);
     }
 
     /**
@@ -387,7 +413,29 @@ public class GalleryView extends ViewGroup {
      * Returns the count of pages.
      */
     public int getPageCount() {
+      if (adapter == null) {
+        throw new IllegalStateException("Can only call getPageCount() in layout");
+      }
       return adapter.getPageCount();
+    }
+
+    private void notifyPageChanged(int index) {
+      for (Page page : pages) {
+        if (page.getIndex() == index) {
+          page.pinned = false;
+          view.requestLayout();
+          break;
+        }
+      }
+    }
+
+    private void notifyPageSetChanged() {
+      if (!pages.isEmpty()) {
+        for (Page page : pages) {
+          page.pinned = false;
+        }
+        view.requestLayout();
+      }
     }
   }
 
@@ -461,6 +509,20 @@ public class GalleryView extends ViewGroup {
 
   public static abstract class Adapter {
 
+    @Nullable
+    private Nest nest;
+
+    private void attach(Nest nest) {
+      if (this.nest != null) {
+        throw new IllegalStateException("This Adapter is already attached to a GalleryView.");
+      }
+      this.nest = nest;
+    }
+
+    private void detach() {
+      this.nest = null;
+    }
+
     private Page createPage(GalleryView parent, int type) {
       Page page = onCreatePage(parent, type);
       page.setType(type);
@@ -497,11 +559,15 @@ public class GalleryView extends ViewGroup {
     }
 
     public final void notifyPageChanged(int index) {
-      // TODO
+      if (nest != null) {
+        nest.notifyPageChanged(index);
+      }
     }
 
     public final void notifyPageSetChanged() {
-      // TODO
+      if (nest != null) {
+        nest.notifyPageSetChanged();
+      }
     }
   }
 
@@ -512,6 +578,13 @@ public class GalleryView extends ViewGroup {
     private int index = INVALID_INDEX;
     private int type = INVALID_TYPE;
 
+    // The pinned of All valid attached page is true.
+    // If the attached page is invalid, namely,
+    // notifyPageChanged() or notifyPageSetChanged() is called,
+    // the pinned is false.
+    // In layout, the pinned of all attached page are set to false at the beginning,
+    // pining a page to set the pinned to true.
+    // Remove the pages whose pinned is false.
     boolean pinned = false;
 
     public Page(View view) {
