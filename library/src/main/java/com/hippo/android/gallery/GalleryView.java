@@ -326,6 +326,10 @@ public class GalleryView extends ViewGroup {
       // Get from unpinned attached page
       for (Page page : pages) {
         if (page.getIndex() == index) {
+          // One index one page, break if the index fit but the type not
+          if (adapter.getPageViewType(index) != page.getType()) {
+            break;
+          }
           page.pinned = true;
           return page;
         }
