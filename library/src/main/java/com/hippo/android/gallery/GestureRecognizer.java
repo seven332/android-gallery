@@ -101,7 +101,7 @@ class GestureRecognizer {
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
       if (!scaling) {
-        listener.onScroll(distanceX, distanceY, e2.getX() - e1.getX(), e2.getY() - e1.getY(), e2.getX(), e2.getY());
+        listener.onScroll(-distanceX, -distanceY, e2.getX() - e1.getX(), e2.getY() - e1.getY(), e2.getX(), e2.getY());
       }
       return true;
     }

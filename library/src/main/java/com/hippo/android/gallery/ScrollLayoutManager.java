@@ -247,7 +247,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     }
 
     flingAnimation.cancel();
-    flingAnimation.setStartVelocity(-velocity)
+    flingAnimation.setStartVelocity(velocity)
         .setMinValue(-Float.MAX_VALUE)
         .setMaxValue(Float.MAX_VALUE)
         .start();

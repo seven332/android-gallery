@@ -120,8 +120,8 @@ public class VerticalScrollLayout extends BaseScrollLayout {
 
   @Override
   public void scrollBy(int dx, int dy, int[] result) {
-    result[0] = -dy;
-    result[1] = -dx;
+    result[0] = dy;
+    result[1] = dx;
   }
 
   @Override

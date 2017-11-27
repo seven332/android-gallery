@@ -123,8 +123,8 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public void scrollBy(int dx, int dy, int[] result) {
-    result[0] = dx;
-    result[1] = -dy;
+    result[0] = -dx;
+    result[1] = dy;
   }
 
   @Override
