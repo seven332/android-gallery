@@ -368,11 +368,11 @@ public class GalleryView extends ViewGroup {
       }
 
       // Bind and attach
-      pages.put(page.getIndex(), page);
       page.pinned = true;
 
       view.addView(page.view);
       adapter.bindPage(page, index);
+      pages.put(page.getIndex(), page);
 
       return page;
     }
