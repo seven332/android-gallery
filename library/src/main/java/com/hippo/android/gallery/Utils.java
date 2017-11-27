@@ -65,6 +65,11 @@ final class Utils {
     return x;
   }
 
+  @Nullable
+  public static Photo asPhoto(GalleryView.Page page) {
+    return page != null ? asPhoto(page.view) : null;
+  }
+
   /**
    * Returns the view as photo. Returns {@code null} if the view isn't a photo or it's disabled.
    */

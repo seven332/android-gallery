@@ -85,7 +85,7 @@ public interface Photo {
    * @param dx the distance to offset, positive for right to left
    * @param dy the distance to offset, positive for bottom to top
    */
-  void offset(float dx, float dy);
+  void offset(float dx, float dy, float[] remain);
 
   /**
    * Set start position for the content of the photo.

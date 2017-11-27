@@ -417,6 +417,24 @@ public class GalleryView extends ViewGroup {
       return adapter.getPageCount();
     }
 
+    /**
+     * Gets the page with the specified index.
+     *
+     * @throws IllegalStateException if called during layout.
+     */
+    public Page getPageAt(int index) {
+      if (inLayout) {
+        throw new IllegalStateException("Cannot call getPageAt() in layout");
+      }
+
+      Page page = pages.get(index);
+      if (page != null && page.pinned) {
+        return page;
+      } else {
+        return null;
+      }
+    }
+
     private void notifyPageChanged(int index) {
       Page page = pages.get(index);
       if (page != null) {

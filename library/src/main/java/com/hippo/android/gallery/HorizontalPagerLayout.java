@@ -30,8 +30,12 @@ public class HorizontalPagerLayout extends BasePagerLayout {
   }
 
   @Override
-  public int scrollPage(int offset, int dx, int dy) {
-    return offset - dx;
+  public int scrollPage(int offset, int dx, int dy, int[] remain) {
+    int range = getPageRange();
+    int newOffset = Utils.clamp(offset + dx, -range, range);
+    remain[0] = dx - (newOffset - offset);
+    remain[1] = 0;
+    return newOffset;
   }
 
   @Override
