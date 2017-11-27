@@ -31,9 +31,9 @@ import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 public class GalleryView extends ViewGroup {
@@ -248,7 +248,8 @@ public class GalleryView extends ViewGroup {
     private static final int MAX_PAGE = 5;
 
     // Pages which are attached to GalleryView
-    private List<Page> pages = new LinkedList<>();
+    @SuppressLint("UseSparseArrays")
+    private Map<Integer, Page> pages = new HashMap<>();
     // Page cache, key is page type
     private SparseArray<Stack<Page>> cache = new SparseArray<>();
 
@@ -281,7 +282,8 @@ public class GalleryView extends ViewGroup {
     void startLayout() {
       inLayout = true;
 
-      for (Iterator<Page> iterator = pages.iterator(); iterator.hasNext();) {
+      Iterator<Page> iterator = pages.values().iterator();
+      while (iterator.hasNext()) {
         Page page = iterator.next();
         if (page.pinned) {
           // Mark the page unpinned if it's pinned
@@ -295,9 +297,10 @@ public class GalleryView extends ViewGroup {
     }
 
     void endLayout() {
-      // Remove all unpinned pages
-      for (Iterator<Page> iterator = pages.iterator(); iterator.hasNext();) {
+      Iterator<Page> iterator = pages.values().iterator();
+      while (iterator.hasNext()) {
         Page page = iterator.next();
+        // Remove all unpinned pages
         if (!page.pinned) {
           unpinPageInternal(page);
           iterator.remove();
@@ -342,22 +345,17 @@ public class GalleryView extends ViewGroup {
       }
 
       // Get from unpinned attached page
-      for (Page page : pages) {
-        if (page.getIndex() == index) {
-          // One index one page, break if the index fit but the type not
-          if (adapter.getPageType(index) != page.getType()) {
-            break;
-          }
-          page.pinned = true;
-          return page;
-        }
+      Page page = pages.get(index);
+      if (page != null && adapter.getPageType(index) == page.getType()) {
+        page.pinned = true;
+        return page;
       }
 
       // The page isn't attached.
       // Get the page, bind it and attach it.
 
       // Get from cache
-      Page page = null;
+      page = null;
       int type = adapter.getPageType(index);
       Stack<Page> stack = cache.get(type);
       if (stack != null && !stack.empty()) {
@@ -370,7 +368,7 @@ public class GalleryView extends ViewGroup {
       }
 
       // Bind and attach
-      pages.add(page);
+      pages.put(page.getIndex(), page);
       page.pinned = true;
 
       view.addView(page.view);
@@ -392,7 +390,7 @@ public class GalleryView extends ViewGroup {
       }
 
       unpinPageInternal(page);
-      pages.remove(page);
+      pages.remove(page.getIndex());
     }
 
     /**
@@ -420,18 +418,16 @@ public class GalleryView extends ViewGroup {
     }
 
     private void notifyPageChanged(int index) {
-      for (Page page : pages) {
-        if (page.getIndex() == index) {
-          page.pinned = false;
-          view.requestLayout();
-          break;
-        }
+      Page page = pages.get(index);
+      if (page != null) {
+        page.pinned = false;
+        view.requestLayout();
       }
     }
 
     private void notifyPageSetChanged() {
       if (!pages.isEmpty()) {
-        for (Page page : pages) {
+        for (Page page : pages.values()) {
           page.pinned = false;
         }
         view.requestLayout();
