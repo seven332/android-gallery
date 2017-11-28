@@ -389,8 +389,8 @@ public class GalleryView extends ViewGroup {
         throw new IllegalStateException("Don't unset adapter in layout");
       }
 
-      unpinPageInternal(page);
       pages.remove(page.getIndex());
+      unpinPageInternal(page);
     }
 
     /**
