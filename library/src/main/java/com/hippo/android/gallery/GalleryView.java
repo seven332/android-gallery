@@ -49,6 +49,9 @@ public class GalleryView extends ViewGroup {
   @Nullable
   private LayoutManager layoutManager;
 
+  // Whether the GalleryView is in layout
+  private boolean inLayout;
+
   public GalleryView(Context context) {
     super(context);
     init(context);
@@ -160,6 +163,14 @@ public class GalleryView extends ViewGroup {
     dispatchThawSelfOnly(container);
   }
 
+  @Override
+  public void requestLayout() {
+    // Block requestLayout() if it isn't in layout
+    if (!inLayout) {
+      super.requestLayout();
+    }
+  }
+
   private GestureRecognizer.Listener listener = new GestureRecognizer.Listener() {
     @Override
     public void onSingleTapUp(float x, float y) {
@@ -258,9 +269,6 @@ public class GalleryView extends ViewGroup {
     @Nullable
     private Adapter adapter;
 
-    // Whether the GalleryView is in layout
-    private boolean inLayout;
-
     Nest(GalleryView view) {
       this.view = view;
     }
@@ -269,7 +277,7 @@ public class GalleryView extends ViewGroup {
      * Layout the GalleryView.
      */
     public void layout(LayoutManager layoutManager, int width, int height) {
-      if (inLayout) {
+      if (view.inLayout) {
         Log.e(LOG_TAG, "Cannot layout GalleryView recursively");
         return;
       }
@@ -280,7 +288,7 @@ public class GalleryView extends ViewGroup {
     }
 
     void startLayout() {
-      inLayout = true;
+      view.inLayout = true;
 
       Iterator<Page> iterator = pages.values().iterator();
       while (iterator.hasNext()) {
@@ -307,7 +315,7 @@ public class GalleryView extends ViewGroup {
         }
       }
 
-      inLayout = false;
+      view.inLayout = false;
     }
 
     // pages still keeps the page
@@ -336,7 +344,7 @@ public class GalleryView extends ViewGroup {
      */
     @NonNull
     public Page pinPage(int index) {
-      if (!inLayout) {
+      if (!view.inLayout) {
         throw new IllegalStateException("Cannot only call pinPage() in layout");
       }
 
@@ -381,7 +389,7 @@ public class GalleryView extends ViewGroup {
      * Unpin the page.
      */
     public void unpinPage(Page page) {
-      if (!inLayout) {
+      if (!view.inLayout) {
         throw new IllegalStateException("Cannot only call unpinPage() in layout");
       }
 
@@ -423,7 +431,7 @@ public class GalleryView extends ViewGroup {
      * @throws IllegalStateException if called during layout.
      */
     public Page getPageAt(int index) {
-      if (inLayout) {
+      if (view.inLayout) {
         throw new IllegalStateException("Cannot call getPageAt() in layout");
       }
 
