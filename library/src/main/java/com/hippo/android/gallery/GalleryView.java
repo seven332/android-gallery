@@ -90,6 +90,15 @@ public class GalleryView extends ViewGroup {
     }
   }
 
+  /**
+   * Gets the page with the specified index.
+   *
+   * @throws IllegalStateException if called during layout.
+   */
+  public Page getPageAt(int index) {
+    return nest.getPageAt(index);
+  }
+
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();

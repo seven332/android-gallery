@@ -22,6 +22,7 @@ package com.hippo.android.gallery;
 
 import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
+import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import java.util.LinkedList;
 import java.util.List;
@@ -76,6 +77,12 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   public void setScrollLayout(ScrollLayout pageLayout) {
     this.scrollLayout = pageLayout;
     this.anchorOffset = 0;
+  }
+
+  @VisibleForTesting
+  void setAnchor(int index, int offset) {
+    anchorIndex = index;
+    anchorOffset = offset;
   }
 
   // Layout next pages one by one, until first invisible page
