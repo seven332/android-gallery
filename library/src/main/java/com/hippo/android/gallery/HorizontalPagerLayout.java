@@ -30,16 +30,16 @@ public class HorizontalPagerLayout extends BasePagerLayout {
   }
 
   @Override
-  public int scrollPage(int offset, int dx, int dy, int[] remain) {
+  public float scrollPage(float offset, float dx, float dy, float[] remain) {
     int range = getPageRange();
-    int newOffset = Utils.clamp(offset + dx, -range, range);
+    float newOffset = Utils.clamp(offset + dx, -range, range);
     remain[0] = dx - (newOffset - offset);
     remain[1] = 0;
     return newOffset;
   }
 
   @Override
-  public void offsetRect(Rect rect, int offset, int position) {
+  public void offsetRect(Rect rect, float offset, int position) {
     int pageRange = getPageRange();
     switch (position) {
       case PagerLayoutManager.POSITION_PREVIOUS:
@@ -52,6 +52,6 @@ public class HorizontalPagerLayout extends BasePagerLayout {
         offset += pageRange;
         break;
     }
-    rect.offset(offset, 0);
+    rect.offset((int) offset, 0);
   }
 }

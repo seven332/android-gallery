@@ -21,13 +21,15 @@ package com.hippo.android.gallery.demo;
  */
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.util.Log;
 import com.hippo.android.gallery.Photo;
 
 public class PhotoImageView extends AppCompatImageView implements Photo {
+
+  private TransformedDrawable transformedDrawable;
 
   public PhotoImageView(Context context) {
     super(context);
@@ -38,20 +40,32 @@ public class PhotoImageView extends AppCompatImageView implements Photo {
   }
 
   @Override
+  public void setImageDrawable(@Nullable Drawable drawable) {
+    if (transformedDrawable == null) {
+      transformedDrawable = new TransformedDrawable(drawable);
+      super.setImageDrawable(transformedDrawable);
+    } else {
+      transformedDrawable.setWrappedDrawable(drawable);
+    }
+    requestLayout();
+  }
+
+  @Override
   public boolean isPhotoEnabled() {
-    // TODO
     return true;
   }
 
   @Override
   public void setVisibleRect(float left, float top, float right, float bottom) {
     // TODO
-    Log.d("TAG", left + "-" + top + "-" + right + "-" + bottom);
+    //Log.d("TAG", left + "-" + top + "-" + right + "-" + bottom);
   }
 
   @Override
   public void scale(float x, float y, float factor) {
-    // TODO
+    if (transformedDrawable != null) {
+      transformedDrawable.scale(x, y, factor);
+    }
   }
 
   @Override
@@ -60,8 +74,10 @@ public class PhotoImageView extends AppCompatImageView implements Photo {
   }
 
   @Override
-  public void offset(float dx, float dy) {
-    // TODO
+  public void offset(float dx, float dy, float[] remain) {
+    if (transformedDrawable != null) {
+      transformedDrawable.offset(dx, dy, remain);
+    }
   }
 
   @Override

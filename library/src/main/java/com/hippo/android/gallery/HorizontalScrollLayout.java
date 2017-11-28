@@ -34,20 +34,21 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void layoutAnchor(View page, int offset) {
+  public void layoutAnchor(View page, float offset) {
     measure(page);
 
-    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
-    int bottom = deviate + page.getMeasuredHeight();
-    int right = offset + page.getMeasuredWidth();
-    layout(page, offset, deviate, right, bottom);
+    int top = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int bottom = top + page.getMeasuredHeight();
+    int left = (int) offset;
+    int right = left + page.getMeasuredWidth();
+    layout(page, left, top, right, bottom);
 
-    totalLeft = offset;
+    totalLeft = left;
     totalRight = right;
   }
 
   @Override
-  public boolean canLayoutNext(View last, int offset) {
+  public boolean canLayoutNext(View last, float offset) {
     return last.getLeft() < width + offset;
   }
 
@@ -55,11 +56,11 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   public void layoutNext(View page) {
     measure(page);
 
-    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
-    int bottom = deviate + page.getMeasuredHeight();
+    int top = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int bottom = top + page.getMeasuredHeight();
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();
-    layout(page, left, deviate, right, bottom);
+    layout(page, left, top, right, bottom);
 
     totalRight = right;
   }
@@ -70,7 +71,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public boolean canLayoutPrevious(View first, int offset) {
+  public boolean canLayoutPrevious(View first, float offset) {
     return first.getRight() > offset;
   }
 
@@ -78,11 +79,11 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   public void layoutPrevious(View page) {
     measure(page);
 
-    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
-    int bottom = deviate + page.getMeasuredHeight();
+    int top = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int bottom = top + page.getMeasuredHeight();
     int right = totalLeft - interval;
     int left = right - page.getMeasuredWidth();
-    layout(page, left, deviate, right, bottom);
+    layout(page, left, top, right, bottom);
 
     totalLeft = left;
   }
@@ -119,14 +120,14 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void scrollBy(int dx, int dy, int[] result) {
-    result[0] = dx;
-    result[1] = dy;
+  public void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy, float[] result) {
+    result[0] = anchorOffset + dx;
+    result[1] = pageDeviate + dy;
   }
 
   @Override
-  public void scaleBy(int anchorOffset, int pageDeviate, int x, int y, float factor, int[] result) {
-    result[0] = x - (int) ((x - anchorOffset) * factor);
-    result[1] = y - (int) ((y - pageDeviate) * factor);
+  public void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result) {
+    result[0] = x - ((x - anchorOffset) * factor);
+    result[1] = y - ((y - pageDeviate) * factor);
   }
 }

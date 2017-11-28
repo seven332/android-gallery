@@ -29,7 +29,7 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
   protected int width;
   protected int height;
   protected float scale;
-  protected int deviate;
+  protected float deviate;
   protected int interval;
 
   private boolean widthFixed;
@@ -43,7 +43,7 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
   }
 
   @Override
-  public void start(int width, int height, float scale, int deviate, int interval) {
+  public void start(int width, int height, float scale, float deviate, int interval) {
     this.width = width;
     this.height = height;
     this.scale = scale;

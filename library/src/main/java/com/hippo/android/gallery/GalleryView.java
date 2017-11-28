@@ -189,7 +189,7 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
       if (layoutManager != null) {
-        layoutManager.scrollBy((int) dx, (int) dy);
+        layoutManager.scrollBy(dx, dy);
       }
     }
 
@@ -206,7 +206,7 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onScale(float focusX, float focusY, float scale) {
       if (layoutManager != null) {
-        layoutManager.scaleBy((int) focusX, (int) focusY, scale);
+        layoutManager.scaleBy(focusX, focusY, scale);
       }
     }
 
@@ -216,14 +216,14 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onDown(float x, float y) {
       if (layoutManager != null) {
-        layoutManager.down((int) x, (int) y);
+        layoutManager.down(x, y);
       }
     }
 
     @Override
     public void onUp(float x, float y) {
       if (layoutManager != null) {
-        layoutManager.up((int) x, (int) y);
+        layoutManager.up(x, y);
       }
     }
 
@@ -476,13 +476,13 @@ public class GalleryView extends ViewGroup {
       }
     }
 
-    public void scrollBy(int dx, int dy) {
+    public void scrollBy(float dx, float dy) {
       if (nest != null) {
         scrollBy(nest, dx, dy);
       }
     }
 
-    public void scaleBy(int x, int y, float factor) {
+    public void scaleBy(float x, float y, float factor) {
       if (nest != null) {
         scaleBy(nest, x, y, factor);
       }
@@ -494,13 +494,13 @@ public class GalleryView extends ViewGroup {
       }
     }
 
-    public void down(int x, int y) {
+    public void down(float x, float y) {
       if (nest != null) {
         down(nest, x, y);
       }
     }
 
-    public void up(int x, int y) {
+    public void up(float x, float y) {
       if (nest != null) {
         up(nest, x, y);
       }
@@ -508,15 +508,15 @@ public class GalleryView extends ViewGroup {
 
     protected abstract void layout(Nest nest, int width, int height);
 
-    protected abstract void scrollBy(Nest nest, int dx, int dy);
+    protected abstract void scrollBy(Nest nest, float dx, float dy);
 
-    protected abstract void scaleBy(Nest nest, int x, int y, float factor);
+    protected abstract void scaleBy(Nest nest, float x, float y, float factor);
 
     protected abstract void fling(Nest nest, float velocityX, float velocityY);
 
-    protected abstract void down(Nest nest, int x, int y);
+    protected abstract void down(Nest nest, float x, float y);
 
-    protected abstract void up(Nest nest, int x, int y);
+    protected abstract void up(Nest nest, float x, float y);
 
     protected abstract void cancelAnimations();
   }

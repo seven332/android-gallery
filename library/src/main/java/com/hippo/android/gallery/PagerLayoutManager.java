@@ -51,7 +51,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   // The offset of pages
   // From previous to next is positive
   // From next To previous is negative
-  private int pageOffset = 0;
+  private float pageOffset = 0;
 
   @Photo.ScaleType
   private int scaleType = Photo.SCALE_TYPE_FIT;
@@ -59,8 +59,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   @Photo.StartPosition
   private int startPosition = Photo.START_POSITION_TOP_LEFT;
 
-  private int[] remain1 = new int[2];
-  private float[] remain2 = new float[2];
+  private float[] remain = new float[2];
 
   private PagerLayout pagerLayout;
 
@@ -117,32 +116,33 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scrollBy(GalleryView.Nest nest, int dx, int dy) {
+  public void scrollBy(GalleryView.Nest nest, float dx, float dy) {
     boolean needLayout = false;
 
     while (dx != 0 && dy != 0) {
-      // Offset page only if pageOffset == 0
       if (pageOffset == 0) {
+        // Offset the photo of the current page
         Photo photo = Utils.asPhoto(nest.getPageAt(currentIndex));
         if (photo != null) {
-          photo.offset(dx, dy, remain2);
-          dx = (int) remain2[0];
-          dy = (int) remain2[1];
+          photo.offset(dx, dy, remain);
+          dx = remain[0];
+          dy = remain[1];
         }
       }
 
-      int oldPageOffset = pageOffset;
-      pageOffset = pagerLayout.scrollPage(pageOffset, dx, dy, remain1);
+      // Offset all pages
+      float oldPageOffset = pageOffset;
+      pageOffset = pagerLayout.scrollPage(pageOffset, dx, dy, remain);
+      dx = remain[0];
+      dy = remain[1];
 
+      // Ensure pageRange is in [-getPageRange(), getPageRange()], or the behavior is undefined
       int pageRange = pagerLayout.getPageRange();
       if (pageOffset > pageRange || pageOffset < -pageRange) {
         throw new IllegalStateException("scrollPage() return value must be in [-getPageRange(), getPageRange()]");
       }
 
-      dx = remain1[0];
-      dy = remain1[1];
-
-      // Need layout if pageOffset changes
+      // Only need layout if pageOffset changes
       if (pageOffset != oldPageOffset) {
         needLayout = true;
       }
@@ -172,7 +172,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scaleBy(GalleryView.Nest nest, int x, int y, float factor) {
+  public void scaleBy(GalleryView.Nest nest, float x, float y, float factor) {
     // Scale only works when pageOffset == 0
     if (pageOffset != 0) {
       return;
@@ -191,10 +191,10 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {}
 
   @Override
-  protected void down(GalleryView.Nest nest, int x, int y) {}
+  protected void down(GalleryView.Nest nest, float x, float y) {}
 
   @Override
-  protected void up(GalleryView.Nest nest, int x, int y) {}
+  protected void up(GalleryView.Nest nest, float x, float y) {}
 
   @Override
   protected void cancelAnimations() {}
@@ -206,11 +206,11 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
     int getPageRange();
 
-    void layoutPage(View page, int offset, @Position int position);
+    void layoutPage(View page, float offset, @Position int position);
 
     /**
      * @return must in [-getPageRange(), getPageRange()]
      */
-    int scrollPage(int offset, int dx, int dy, int[] remain);
+    float scrollPage(float offset, float dx, float dy, float[] remain);
   }
 }

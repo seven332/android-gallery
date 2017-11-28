@@ -34,21 +34,21 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void layoutAnchor(View page, int offset) {
+  public void layoutAnchor(View page, float offset) {
     measure(page);
 
-    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
-    int right = deviate + page.getMeasuredWidth();
-    int bottom = height - offset;
+    int left = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int right = left + page.getMeasuredWidth();
+    int bottom = height - (int) offset;
     int top = bottom - page.getMeasuredHeight();
-    layout(page, deviate, top, right, bottom);
+    layout(page, left, top, right, bottom);
 
     totalTop = top;
     totalBottom = bottom;
   }
 
   @Override
-  public boolean canLayoutNext(View last, int offset) {
+  public boolean canLayoutNext(View last, float offset) {
     return last.getBottom() > -offset;
   }
 
@@ -56,11 +56,11 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   public void layoutNext(View page) {
     measure(page);
 
-    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
-    int right = deviate + page.getMeasuredWidth();
+    int left = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int right = left + page.getMeasuredWidth();
     int bottom = totalTop - interval;
     int top = bottom - page.getMeasuredHeight();
-    layout(page, deviate, top, right, bottom);
+    layout(page, left, top, right, bottom);
 
     totalTop = top;
   }
@@ -71,7 +71,7 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public boolean canLayoutPrevious(View first, int offset) {
+  public boolean canLayoutPrevious(View first, float offset) {
     return first.getTop() < height - offset;
   }
 
@@ -79,11 +79,11 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   public void layoutPrevious(View page) {
     measure(page);
 
-    int deviate = Utils.asPhoto(page) != null ? this.deviate : 0;
-    int right = deviate + page.getMeasuredWidth();
+    int left = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int right = left + page.getMeasuredWidth();
     int top = totalBottom + interval;
     int bottom = top + page.getMeasuredHeight();
-    layout(page, deviate, top, right, bottom);
+    layout(page, left, top, right, bottom);
 
     totalBottom = bottom;
   }
@@ -122,14 +122,14 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void scrollBy(int dx, int dy, int[] result) {
-    result[0] = -dy;
-    result[1] = dx;
+  public void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy, float[] result) {
+    result[0] = anchorOffset - dy;
+    result[1] = pageDeviate + dx;
   }
 
   @Override
-  public void scaleBy(int anchorOffset, int pageDeviate, int x, int y, float factor, int[] result) {
-    result[0] = (height - y) - (int) (((height - y) - anchorOffset) * factor);
-    result[1] = x - (int) ((x - pageDeviate) * factor);
+  public void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result) {
+    result[0] = (height - y) - (((height - y) - anchorOffset) * factor);
+    result[1] = x - ((x - pageDeviate) * factor);
   }
 }

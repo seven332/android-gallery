@@ -34,7 +34,7 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
   private int widthMeasureSpec;
   private int heightMeasureSpec;
 
-  private Rect temp = new Rect();
+  private Rect rect = new Rect();
 
   @Override
   public void start(int width, int height, int interval, int scaleType, int startPosition) {
@@ -57,7 +57,7 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
 
     Photo photo = Utils.asPhoto(view);
     if (photo != null) {
-      Rect rect = temp;
+      Rect rect = this.rect;
       rect.left = -left;
       rect.top = -top;
       rect.right = width - left;
@@ -72,15 +72,15 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
   }
 
   @Override
-  public void layoutPage(View page, int offset, @PagerLayoutManager.Position int position) {
+  public void layoutPage(View page, float offset, @PagerLayoutManager.Position int position) {
     measure(page);
 
-    Rect rect = temp;
+    Rect rect = this.rect;
     rect.set(0, 0, width, height);
     offsetRect(rect, offset, position);
 
     layout(page, rect.left, rect.top, rect.right, rect.bottom);
   }
 
-  public abstract void offsetRect(Rect rect, int offset, @PagerLayoutManager.Position int position);
+  public abstract void offsetRect(Rect rect, float offset, @PagerLayoutManager.Position int position);
 }

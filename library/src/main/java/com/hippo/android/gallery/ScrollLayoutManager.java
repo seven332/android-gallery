@@ -36,7 +36,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   private int anchorIndex = 0;
 
   // First anchor page offset
-  private int anchorOffset = 0;
+  private float anchorOffset = 0;
 
   // The interval between pages
   private int pageInterval = 0;
@@ -46,9 +46,9 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   private float pageScale = 1.0f;
 
   // The offset against scroll direction
-  private int pageDeviate;
+  private float pageDeviate;
 
-  private int[] temp = new int[2];
+  private float[] temp = new float[2];
 
   private ScrollLayout scrollLayout;
 
@@ -161,7 +161,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
     // Ensure page scale and deviate in the range
     pageScale = Utils.clamp(pageScale, SCALE_MIN, SCALE_MAX);
-    pageDeviate = Utils.clamp(pageDeviate, (int) (-(pageScale - 1.0f) * width), 0);
+    pageDeviate = Utils.clamp(pageDeviate, -(pageScale - 1.0f) * width, 0);
 
     scrollLayout.start(width, height, pageScale, pageDeviate, pageInterval);
 
@@ -211,15 +211,16 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scrollBy(GalleryView.Nest nest, int dx, int dy) {
-    scrollLayout.scrollBy(dx, dy, temp);
+  public void scrollBy(GalleryView.Nest nest, float dx, float dy) {
+    scrollLayout.scrollBy(anchorOffset, pageDeviate, dx, dy, temp);
+    anchorOffset = temp[0];
+    pageDeviate = temp[1];
     // It's hard to fix anchorOffset, let layout() fix it
-    anchorOffset += temp[0];
-    pageDeviate += temp[1];
     nest.layout(this, nest.getWidth(), nest.getHeight());
   }
 
-  public void scaleBy(GalleryView.Nest nest, int x, int y, float factor) {
+  @Override
+  public void scaleBy(GalleryView.Nest nest, float x, float y, float factor) {
     float oldPageScale = pageScale;
     pageScale = Utils.clamp(factor * pageScale, SCALE_MIN, SCALE_MAX);
 
@@ -254,12 +255,12 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  protected void down(GalleryView.Nest nest, int x, int y) {
+  protected void down(GalleryView.Nest nest, float x, float y) {
     cancelAnimations();
   }
 
   @Override
-  protected void up(GalleryView.Nest nest, int x, int y) {}
+  protected void up(GalleryView.Nest nest, float x, float y) {}
 
   @Override
   protected void cancelAnimations() {
@@ -270,15 +271,17 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
     /**
      * Starts new layout turn.
+     *
+     * @param deviate this param is used to layout view, {@code int} is enough
      */
-    void start(int width, int height, float scale, int deviate, int interval);
+    void start(int width, int height, float scale, float deviate, int interval);
 
     /**
      * Layout the anchor page.
      *
      * @param offset the offset of the page to the baseline.
      */
-    void layoutAnchor(View page, int offset);
+    void layoutAnchor(View page, float offset);
 
     /**
      * Returns {@code true} if a page can be layout after the current last page.
@@ -286,7 +289,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
      * @param last current last page
      * @param offset the offset to correct the baseline
      */
-    boolean canLayoutNext(View last, int offset);
+    boolean canLayoutNext(View last, float offset);
 
     /**
      * Layout the page as a next page.
@@ -306,7 +309,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
      * @param first current first view
      * @param offset the offset to correct the baseline
      */
-    boolean canLayoutPrevious(View first, int offset);
+    boolean canLayoutPrevious(View first, float offset);
 
     /**
      * Layout the page as a previous page.
@@ -344,13 +347,13 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
      * @param result a two-size array to store the offset of
      *               anchorOffset and pageDeviate
      */
-    void scrollBy(int dx, int dy, int[] result);
+    void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy, float[] result);
 
     /**
      * Apply scale to current layout state.
      *
      * @param result a two-size to store new anchorOffset and pageDeviate
      */
-    void scaleBy(int anchorOffset, int pageDeviate, int x, int y, float factor, int[] result);
+    void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result);
   }
 }
