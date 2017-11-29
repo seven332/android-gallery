@@ -58,7 +58,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     public void setValue(ScrollLayoutManager slm, float value) {
       float d = value - slm.lastFling;
       slm.lastFling = value;
-      slm.scrollBy((int) (d * slm.flingScaleX), (int) (d * slm.flingScaleY));
+      slm.scrollBy(d * slm.flingScaleX, d * slm.flingScaleY);
     }
     @Override
     public float getValue(ScrollLayoutManager slm) {
