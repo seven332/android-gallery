@@ -52,6 +52,6 @@ public class HorizontalPagerLayout extends BasePagerLayout {
         offset += pageRange;
         break;
     }
-    rect.offset((int) offset, 0);
+    rect.offset(Utils.toPixelOffset(offset), 0);
   }
 }

@@ -78,6 +78,10 @@ public class GalleryView extends ViewGroup {
     }
   }
 
+  public LayoutManager getLayoutManager() {
+    return layoutManager;
+  }
+
   public void setAdapter(@Nullable Adapter adapter) {
     Adapter oldAdapter = nest.adapter;
     if (oldAdapter != null) {
@@ -88,6 +92,10 @@ public class GalleryView extends ViewGroup {
     if (adapter != null) {
       adapter.attach(nest);
     }
+  }
+
+  public Adapter getAdapter() {
+    return nest.adapter;
   }
 
   /**

@@ -37,9 +37,9 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   public void layoutAnchor(View page, float offset) {
     measure(page);
 
-    int left = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int left = Utils.asPhoto(page) != null ? Utils.toPixelOffset(deviate) : 0;
     int right = left + page.getMeasuredWidth();
-    int top = (int) offset;
+    int top = Utils.toPixelOffset(offset);
     int bottom = top + page.getMeasuredHeight();
     layout(page, left, top, right, bottom);
 
@@ -56,7 +56,7 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   public void layoutNext(View page) {
     measure(page);
 
-    int left = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int left = Utils.asPhoto(page) != null ? Utils.toPixelOffset(deviate) : 0;
     int right = left + page.getMeasuredWidth();
     int top = totalBottom + interval;
     int bottom = top + page.getMeasuredHeight();
@@ -79,7 +79,7 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   public void layoutPrevious(View page) {
     measure(page);
 
-    int left = Utils.asPhoto(page) != null ? (int) this.deviate : 0;
+    int left = Utils.asPhoto(page) != null ? Utils.toPixelOffset(deviate) : 0;
     int right = left + page.getMeasuredWidth();
     int bottom = totalTop - interval;
     int top = bottom - page.getMeasuredHeight();
