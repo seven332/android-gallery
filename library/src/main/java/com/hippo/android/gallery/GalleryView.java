@@ -67,9 +67,14 @@ public class GalleryView extends ViewGroup {
   }
 
   public void setLayoutManager(@Nullable LayoutManager layoutManager) {
+    if (inLayout) {
+      throw new IllegalStateException("Can't set LayoutManager during layout");
+    }
+
     LayoutManager oldLayoutManager = this.layoutManager;
     if (oldLayoutManager != null) {
       oldLayoutManager.detach();
+      nest.reset();
     }
 
     this.layoutManager = layoutManager;
@@ -78,14 +83,20 @@ public class GalleryView extends ViewGroup {
     }
   }
 
+  @Nullable
   public LayoutManager getLayoutManager() {
     return layoutManager;
   }
 
   public void setAdapter(@Nullable Adapter adapter) {
+    if (inLayout) {
+      throw new IllegalStateException("Can't set Adapter during layout");
+    }
+
     Adapter oldAdapter = nest.adapter;
     if (oldAdapter != null) {
       oldAdapter.detach();
+      nest.reset();
     }
 
     nest.adapter = adapter;
@@ -94,6 +105,7 @@ public class GalleryView extends ViewGroup {
     }
   }
 
+  @Nullable
   public Adapter getAdapter() {
     return nest.adapter;
   }
@@ -136,7 +148,7 @@ public class GalleryView extends ViewGroup {
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     if (layoutManager == null) {
-      Log.e(LOG_TAG, "No layout manager attached; skipping layout");
+      Log.e(LOG_TAG, "Cannot layout without a LayoutManager set");
       return;
     }
     nest.layout(layoutManager, r - l, b - t);
@@ -151,8 +163,7 @@ public class GalleryView extends ViewGroup {
   @Override
   public void scrollBy(int dx, int dy) {
     if (layoutManager == null) {
-      Log.e(LOG_TAG, "Cannot scroll without a LayoutManager set. "
-          + "Call setLayoutManager with a non-null argument.");
+      Log.e(LOG_TAG, "Cannot scroll without a LayoutManager set");
       return;
     }
     layoutManager.scrollBy(nest, dx, dy);
@@ -290,12 +301,24 @@ public class GalleryView extends ViewGroup {
       this.view = view;
     }
 
+    // Remove all page, clear cache
+    private void reset() {
+      view.removeAllViews();
+      pages.clear();
+      cache.clear();
+    }
+
     /**
      * Layout the GalleryView.
      */
-    public void layout(LayoutManager layoutManager, int width, int height) {
+    public void layout(@NonNull LayoutManager layoutManager, int width, int height) {
       if (view.inLayout) {
         Log.e(LOG_TAG, "Cannot layout GalleryView recursively");
+        return;
+      }
+
+      if (adapter == null) {
+        Log.e(LOG_TAG, "Cannot layout without a Adapter set");
         return;
       }
 
@@ -531,6 +554,10 @@ public class GalleryView extends ViewGroup {
       }
     }
 
+    /**
+     * Layout a GalleryView through the Nest.
+     * It's sure that width > 0, height > 0 and page count > 0.
+     */
     protected abstract void layout(Nest nest, int width, int height);
 
     protected abstract void scrollBy(Nest nest, float dx, float dy);
