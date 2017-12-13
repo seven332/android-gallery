@@ -81,15 +81,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void layout(GalleryView.Nest nest, int width, int height) {
-    if (width <= 0 || height <= 0) {
-      return;
-    }
-
-    // Check page count
     int pageCount = nest.getPageCount();
-    if (pageCount == 0) {
-      return;
-    }
 
     // Ensure current index in the range
     int newIndex = Utils.clamp(currentIndex, 0, nest.getPageCount() - 1);

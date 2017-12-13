@@ -323,7 +323,9 @@ public class GalleryView extends ViewGroup {
       }
 
       startLayout();
-      layoutManager.layout(this, width, height);
+      if (width > 0 && height > 0 && adapter.getPageCount() > 0) {
+        layoutManager.layout(this, width, height);
+      }
       endLayout();
     }
 
