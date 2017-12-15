@@ -100,8 +100,11 @@ class GestureRecognizer {
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-      if (!scaling) {
-        listener.onScroll(-distanceX, -distanceY, e2.getX() - e1.getX(), e2.getY() - e1.getY(), e2.getX(), e2.getY());
+      // Scroll action is easier caught than Scale action
+      // Only catch scroll action when no scaling and point count is one
+      if (!scaling && e1.getPointerCount() == 1 && e2.getPointerCount() == 1) {
+        listener.onScroll(-distanceX, -distanceY, e2.getX() - e1.getX(), e2.getY() - e1.getY(),
+            e2.getX(), e2.getY());
       }
       return true;
     }
