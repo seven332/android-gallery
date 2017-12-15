@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package com.hippo.android.gallery;
+package com.hippo.android.gallery.util;
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+/*
+ * Created by Hippo on 2017/12/15.
  */
-public class ExampleUnitTest {
 
-  @Test
-  public void addition_isCorrect() throws Exception {
-    assertEquals(4, 2 + 2);
-  }
+import android.graphics.Point;
+import android.graphics.Rect;
+
+public class NoOp implements Transformer {
+
+  @Override
+  public void setUp(int width, int height) {}
+
+  @Override
+  public void transformOffset(Point point) {}
+
+  @Override
+  public void transformPoint(Point point) {}
+
+  @Override
+  public void transformRect(Rect rect) {}
 }

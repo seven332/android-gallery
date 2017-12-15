@@ -22,8 +22,16 @@ package com.hippo.android.gallery;
 
 import static org.junit.Assert.assertEquals;
 
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
+import com.hippo.android.gallery.util.AxisSwap;
+import com.hippo.android.gallery.util.HorizontalFlip;
+import com.hippo.android.gallery.util.NoOp;
+import com.hippo.android.gallery.util.Transformer;
+import com.hippo.android.gallery.util.TransformerChain;
+import com.hippo.android.gallery.util.VerticalFlip;
 import com.hippo.android.gallery.util.View1;
 import com.hippo.android.gallery.util.View2;
 import java.util.Collections;
@@ -32,11 +40,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class ScrollLayoutManagerTest {
 
@@ -46,9 +54,74 @@ public class ScrollLayoutManagerTest {
 
   private GalleryView galleryView;
 
+  private ScrollLayoutManager.ScrollLayout scrollLayout = new ReversedHorizontalScrollLayout();
+  private Transformer transformer = new TransformerChain(new AxisSwap(), new HorizontalFlip());
+
+  private Rect rect = new Rect();
+  private Point point = new Point();
+
+  @ParameterizedRobolectricTestRunner.Parameters(name = "{index}-{2}")
+  public static List<Object[]> data() {
+    List<Object[]> parameters = new LinkedList<>();
+
+    parameters.add(new Object[]{
+        new VerticalScrollLayout(),
+        new NoOp(),
+        VerticalScrollLayout.class.getSimpleName(),
+    });
+
+    parameters.add(new Object[]{
+        new ReversedVerticalScrollLayout(),
+        new VerticalFlip(),
+        ReversedVerticalScrollLayout.class.getSimpleName(),
+    });
+
+    parameters.add(new Object[]{
+        new HorizontalScrollLayout(),
+        new HorizontalFlip(),
+        HorizontalScrollLayout.class.getSimpleName(),
+    });
+
+    parameters.add(new Object[]{
+        new ReversedHorizontalScrollLayout(),
+        new TransformerChain(new AxisSwap(), new HorizontalFlip()),
+        HorizontalScrollLayout.class.getSimpleName(),
+    });
+
+    return parameters;
+  }
+
+  public ScrollLayoutManagerTest(
+      ScrollLayoutManager.ScrollLayout scrollLayout,
+      Transformer transformer,
+      String testName
+  ) {
+    this.scrollLayout = new VerticalScrollLayout();
+    this.transformer = new NoOp();
+  }
+
   @Before
   public void setup() {
     galleryView = new GalleryView(RuntimeEnvironment.application);
+    transformer.setUp(GALLERY_SIZE, GALLERY_SIZE);
+  }
+
+  private PageState newPageState(int index, int left, int top, int right, int bottom) {
+    rect.set(left, top, right, bottom);
+    transformer.transformRect(rect);
+    return new PageState(index, rect.left, rect.top, rect.right, rect.bottom);
+  }
+
+  private void offsetPageState(PageState state, int dx, int dy) {
+    point.set(dx, dy);
+    transformer.transformOffset(point);
+    state.offset(point.x, point.y);
+  }
+
+  private void scrollView(View view, int dx, int dy) {
+    point.set(dx, dy);
+    transformer.transformOffset(point);
+    view.scrollBy(point.x, point.y);
   }
 
   @Test
@@ -76,8 +149,8 @@ public class ScrollLayoutManagerTest {
       layout(params);
 
       List<PageState> states = new LinkedList<>();
-      states.add(new PageState(0, 0, 0, GALLERY_SIZE, 50));
-      states.add(new PageState(1, 0, 60, GALLERY_SIZE, 110));
+      states.add(newPageState(0, 0, 0, GALLERY_SIZE, 50));
+      states.add(newPageState(1, 0, 60, GALLERY_SIZE, 110));
       assertPages(states);
     }
   }
@@ -114,7 +187,7 @@ public class ScrollLayoutManagerTest {
       for (int j = 0; firstIndex + j < 5; j++) {
         int top = firstOffset + j * (params.pageSize + params.pageInterval);
         int bottom = top + params.pageSize;
-        states.add(new PageState(firstIndex + j, 0, top, GALLERY_SIZE, bottom));
+        states.add(newPageState(firstIndex + j, 0, top, GALLERY_SIZE, bottom));
         if (top >= params.gallerySize) {
           break;
         }
@@ -132,47 +205,47 @@ public class ScrollLayoutManagerTest {
     layout(params);
 
     List<PageState> states = new LinkedList<>();
-    states.add(new PageState(0, 0, -70, GALLERY_SIZE, -20));
-    states.add(new PageState(1, 0, -10, GALLERY_SIZE, 40));
-    states.add(new PageState(2, 0, 50, GALLERY_SIZE, 100));
-    states.add(new PageState(3, 0, 110, GALLERY_SIZE, 160));
-    states.add(new PageState(4, 0, 170, GALLERY_SIZE, 220));
+    states.add(newPageState(0, 0, -70, GALLERY_SIZE, -20));
+    states.add(newPageState(1, 0, -10, GALLERY_SIZE, 40));
+    states.add(newPageState(2, 0, 50, GALLERY_SIZE, 100));
+    states.add(newPageState(3, 0, 110, GALLERY_SIZE, 160));
+    states.add(newPageState(4, 0, 170, GALLERY_SIZE, 220));
     assertPages(states);
 
-    galleryView.scrollBy(0, 40);
+    scrollView(galleryView, 0, 40);
     for (PageState state : states) {
-      state.offset(0, 40);
+      offsetPageState(state, 0, 40);
     }
     states.remove(states.size() - 1);
     assertPages(states);
 
-    galleryView.scrollBy(0, -140);
+    scrollView(galleryView, 0, -140);
     for (PageState state : states) {
-      state.offset(0, -140);
+      offsetPageState(state, 0, -140);
     }
     states.remove(0);
     states.remove(0);
-    states.add(new PageState(4, 0, 70, GALLERY_SIZE, 120));
-    states.add(new PageState(5, 0, 130, GALLERY_SIZE, 180));
-    states.add(new PageState(6, 0, 190, GALLERY_SIZE, 240));
+    states.add(newPageState(4, 0, 70, GALLERY_SIZE, 120));
+    states.add(newPageState(5, 0, 130, GALLERY_SIZE, 180));
+    states.add(newPageState(6, 0, 190, GALLERY_SIZE, 240));
     assertPages(states);
 
-    galleryView.scrollBy(0, -140);
+    scrollView(galleryView, 0, -140);
     for (PageState state : states) {
-      state.offset(0, -140);
+      offsetPageState(state, 0, -140);
     }
     states.remove(0);
     states.remove(0);
-    states.add(new PageState(7, 0, 110, GALLERY_SIZE, 160));
+    states.add(newPageState(7, 0, 110, GALLERY_SIZE, 160));
     assertPages(states);
 
-    galleryView.scrollBy(0, -10);
+    scrollView(galleryView, 0, -10);
     for (PageState state : states) {
-      state.offset(0, -10);
+      offsetPageState(state, 0, -10);
     }
     assertPages(states);
 
-    galleryView.scrollBy(0, -10);
+    scrollView(galleryView, 0, -10);
     assertPages(states);
   }
 
@@ -216,7 +289,7 @@ public class ScrollLayoutManagerTest {
   private void layout(TestParameters params) {
     ScrollLayoutManager layoutManager = new ScrollLayoutManager();
     layoutManager.setPageInterval(params.pageInterval);
-    layoutManager.setScrollLayout(new VerticalScrollLayout());
+    layoutManager.setScrollLayout(scrollLayout);
     layoutManager.setAnchor(params.anchorIndex, params.anchorOffset);
 
     galleryView.setLayoutManager(layoutManager);
