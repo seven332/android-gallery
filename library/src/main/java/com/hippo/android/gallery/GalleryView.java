@@ -520,6 +520,11 @@ public class GalleryView extends ViewGroup {
       cancelAnimations();
     }
 
+    @Nullable
+    public Nest getNest() {
+      return nest;
+    }
+
     public void layout(int width, int height) {
       if (nest != null) {
         layout(nest, width, height);

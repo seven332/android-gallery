@@ -20,19 +20,15 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/8/28.
  */
 
+import android.content.Context;
+import android.support.animation.FloatPropertyCompat;
+import android.support.animation.SpringAnimation;
 import android.support.annotation.IntDef;
 import android.view.View;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 public class PagerLayoutManager extends GalleryView.LayoutManager {
-
-  // SCALE_MIN MUST BE 1.0f
-  private static final float SCALE_MIN = 1.0f;
-  private static final float SCALE_MAX = 3.0f;
-
-  public static final float NO_SCALE = 0.0f;
-  public static final int NO_OFFSET = Integer.MIN_VALUE;
 
   @IntDef({POSITION_PREVIOUS, POSITION_CURRENT, POSITION_NEXT})
   @Retention(RetentionPolicy.SOURCE)
@@ -42,16 +38,30 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   public static final int POSITION_CURRENT = 1;
   public static final int POSITION_NEXT = 2;
 
+  public static final int TURNING_THRESHOLD_DP = 32;
+
   // Current page index
   private int currentIndex = 0;
 
   // The interval between pages
   private int pageInterval = 0;
 
-  // The offset of pages
-  // From previous to next is positive
-  // From next To previous is negative
-  private float pageOffset = 0;
+  /*
+   * The offset of pages
+   * From previous to next is positive
+   * From next To previous is negative
+   */
+  private float pageOffset = 0.0f;
+
+  /*
+   * The threshold for turing page.
+   * It's checked when the finger up.
+   * If pageOffset is larger than turningThreshold,
+   * turn to previous page.
+   * If pageOffset is smaller than -turningThreshold,
+   * turn to next page.
+   */
+  private final float turningThreshold;
 
   @Photo.ScaleType
   private int scaleType = Photo.SCALE_TYPE_FIT;
@@ -62,6 +72,24 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   private float[] remain = new float[2];
 
   private PagerLayout pagerLayout;
+
+  public static final FloatPropertyCompat<PagerLayoutManager> PAGE_OFFSET =
+      new FloatPropertyCompat<PagerLayoutManager>("pageOffset") {
+        @Override
+        public float getValue(PagerLayoutManager plm) {
+          return plm.pageOffset;
+        }
+        @Override
+        public void setValue(PagerLayoutManager plm, float value) {
+          plm.setPageOffset(value);
+        }
+  };
+  private SpringAnimation turningAnimation = new SpringAnimation(this, PAGE_OFFSET, 0.0f);
+
+  public PagerLayoutManager(Context context) {
+    turningThreshold = context.getResources().getDisplayMetrics().density * TURNING_THRESHOLD_DP;
+    turningAnimation.getSpring().setDampingRatio(1.0f);
+  }
 
   public void setPageInterval(int pageInterval) {
     this.pageInterval = pageInterval;
@@ -107,12 +135,72 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     }
   }
 
+  /*
+   * Returns true if a page is selected.
+   * Namely pageOffset is 0.
+   * It's hard to make a float to be 0.0f. So convert it to int,
+   * and compare it with 0.
+   */
+  private boolean isPageSelected() {
+    return (int) pageOffset == 0;
+  }
+
+  /*
+   * Handle page turning and fix PageOffset to make it in range.
+   */
+  private void fixPageOffset(GalleryView.Nest nest) {
+    int pageRange = pagerLayout.getPageRange();
+
+    // Try to turn to previous page
+    while (pageOffset >= pageRange && currentIndex > 0) {
+      currentIndex -= 1;
+      pageOffset -= pageRange;
+    }
+
+    // Turn to next page
+    while (pageOffset <= -pageRange && currentIndex < nest.getPageCount() - 1) {
+      currentIndex += 1;
+      pageOffset += pageRange;
+    }
+
+    // Ensure page offset in range
+    if (currentIndex == 0 && pageOffset > 0.0f) {
+      pageOffset = 0.0f;
+    } else if (currentIndex == nest.getPageCount() - 1 && pageOffset < 0.0f) {
+      pageOffset = 0.0f;
+    }
+  }
+
+  /*
+   * Set PageOffset directly. The value out of (-pageRange, pageRange) will be
+   * treat as page turning.
+   *
+   * TurningAnimation require accurate PageOffset value at the end of the animation.
+   * It's hard to set PageOffset accurately through scrollBy().
+   * setPageOffset() works fine.
+   */
+  private void setPageOffset(float newPageOffset) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) {
+      return;
+    }
+
+    float oldPageOffset = pageOffset;
+    pageOffset = newPageOffset;
+    fixPageOffset(nest);
+
+    // Only need layout if pageOffset changes
+    if (pageOffset != oldPageOffset) {
+      nest.layout(this, nest.getWidth(), nest.getHeight());
+    }
+  }
+
   @Override
   public void scrollBy(GalleryView.Nest nest, float dx, float dy) {
     boolean needLayout = false;
 
-    while (dx != 0 && dy != 0) {
-      if (pageOffset == 0) {
+    while (dx != 0.0f && dy != 0.0f) {
+      if (isPageSelected()) {
         // Offset the photo of the current page
         Photo photo = Utils.asPhoto(nest.getPageAt(currentIndex));
         if (photo != null) {
@@ -122,39 +210,18 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
         }
       }
 
-      // Offset all pages
       float oldPageOffset = pageOffset;
+
+      // Offset all pages
       pageOffset = pagerLayout.scrollPage(pageOffset, dx, dy, remain);
       dx = remain[0];
       dy = remain[1];
 
-      // Ensure pageRange is in [-getPageRange(), getPageRange()], or the behavior is undefined
-      int pageRange = pagerLayout.getPageRange();
-      if (pageOffset > pageRange || pageOffset < -pageRange) {
-        throw new IllegalStateException("scrollPage() return value must be in [-getPageRange(), getPageRange()]");
-      }
+      fixPageOffset(nest);
 
       // Only need layout if pageOffset changes
       if (pageOffset != oldPageOffset) {
         needLayout = true;
-      }
-
-      // Turn to previous page
-      while (pageOffset >= pageRange && currentIndex > 0) {
-        currentIndex -= 1;
-        pageOffset -= pageRange;
-      }
-      // Turn to next page
-      while (pageOffset <= -pageRange && currentIndex < nest.getPageCount() - 1) {
-        currentIndex += 1;
-        pageOffset += pageRange;
-      }
-
-      // Fix page offset
-      if (currentIndex == 0 && pageOffset > 0) {
-        pageOffset = 0;
-      } else if (currentIndex == nest.getPageCount() - 1 && pageOffset < 0) {
-        pageOffset = 0;
       }
     }
 
@@ -165,31 +232,58 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void scaleBy(GalleryView.Nest nest, float x, float y, float factor) {
-    // Scale only works when pageOffset == 0
-    if (pageOffset != 0) {
-      return;
-    }
-
-    GalleryView.Page page = nest.getPageAt(currentIndex);
-    if (page != null) {
-      Photo photo = Utils.asPhoto(page.view);
-      if (photo != null) {
-        photo.scale(x, y, factor);
+    if (isPageSelected()) {
+      GalleryView.Page page = nest.getPageAt(currentIndex);
+      if (page != null) {
+        Photo photo = Utils.asPhoto(page.view);
+        if (photo != null) {
+          photo.scale(x, y, factor);
+        }
       }
     }
   }
 
   @Override
-  public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {}
+  public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {
+    if (pageOffset == 0 && Utils.asPhoto(nest.getPageAt(currentIndex)) != null) {
+      // TODO
+    }
+  }
 
   @Override
-  protected void down(GalleryView.Nest nest, float x, float y) {}
+  protected void down(GalleryView.Nest nest, float x, float y) {
+    cancelAnimations();
+  }
 
   @Override
-  protected void up(GalleryView.Nest nest, float x, float y) {}
+  protected void up(GalleryView.Nest nest, float x, float y) {
+    if (isPageSelected()) {
+      return;
+    }
+
+    float finalPageOffset;
+    int pageRange = pagerLayout.getPageRange();
+    int pageCount = nest.getPageCount();
+
+    if (pageOffset >= turningThreshold && currentIndex > 0) {
+      // Turn to previous page
+      finalPageOffset = pageRange;
+    } else if (pageOffset <= -turningThreshold && currentIndex < pageCount - 1) {
+      // Turn to next page
+      finalPageOffset = -pageRange;
+    } else {
+      // Keep current page
+      finalPageOffset = 0.0f;
+    }
+
+    turningAnimation.setStartValue(pageOffset);
+    turningAnimation.animateToFinalPosition(finalPageOffset);
+  }
 
   @Override
-  protected void cancelAnimations() {}
+  protected void cancelAnimations() {
+    turningAnimation.cancel();
+  }
 
   public interface PagerLayout {
 
