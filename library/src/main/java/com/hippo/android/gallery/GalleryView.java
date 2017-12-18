@@ -151,7 +151,7 @@ public class GalleryView extends ViewGroup {
       Log.e(LOG_TAG, "Cannot layout without a LayoutManager set");
       return;
     }
-    nest.layout(layoutManager, r - l, b - t);
+    nest.layout(layoutManager);
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -166,7 +166,7 @@ public class GalleryView extends ViewGroup {
       Log.e(LOG_TAG, "Cannot scroll without a LayoutManager set");
       return;
     }
-    layoutManager.scrollBy(nest, dx, dy);
+    layoutManager.scroll(dx, dy);
   }
 
   @Override
@@ -228,7 +228,7 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
       if (layoutManager != null) {
-        layoutManager.scrollBy(dx, dy);
+        layoutManager.scroll(dx, dy);
       }
     }
 
@@ -245,7 +245,7 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onScale(float focusX, float focusY, float scale) {
       if (layoutManager != null) {
-        layoutManager.scaleBy(focusX, focusY, scale);
+        layoutManager.scale(focusX, focusY, scale);
       }
     }
 
@@ -309,9 +309,10 @@ public class GalleryView extends ViewGroup {
     }
 
     /**
-     * Layout the GalleryView.
+     * Layout the GalleryView attached to this Nest.
+     * The GalleryView should be measured.
      */
-    public void layout(@NonNull LayoutManager layoutManager, int width, int height) {
+    public void layout(@NonNull LayoutManager layoutManager) {
       if (view.inLayout) {
         Log.e(LOG_TAG, "Cannot layout GalleryView recursively");
         return;
@@ -322,9 +323,12 @@ public class GalleryView extends ViewGroup {
         return;
       }
 
+      int width = view.getWidth();
+      int height = view.getHeight();
+
       startLayout();
       if (width > 0 && height > 0 && adapter.getPageCount() > 0) {
-        layoutManager.layout(this, width, height);
+        layoutManager.layout(width, height);
       }
       endLayout();
     }
@@ -444,20 +448,6 @@ public class GalleryView extends ViewGroup {
     }
 
     /**
-     * Returns the width of the {@link GalleryView}.
-     */
-    public int getWidth() {
-      return view.getWidth();
-    }
-
-    /**
-     * Returns the height of the {@link GalleryView}.
-     */
-    public int getHeight() {
-      return view.getHeight();
-    }
-
-    /**
      * Returns the count of pages.
      */
     public int getPageCount() {
@@ -520,63 +510,68 @@ public class GalleryView extends ViewGroup {
       cancelAnimations();
     }
 
+    /**
+     * Returns the Nest of attached GalleryView.
+     * Returns {@code null} if the LayoutManager isn't attached to a GalleryView.
+     */
     @Nullable
     public Nest getNest() {
       return nest;
     }
 
-    public void layout(int width, int height) {
-      if (nest != null) {
-        layout(nest, width, height);
-      }
-    }
-
-    public void scrollBy(float dx, float dy) {
-      if (nest != null) {
-        scrollBy(nest, dx, dy);
-      }
-    }
-
-    public void scaleBy(float x, float y, float factor) {
-      if (nest != null) {
-        scaleBy(nest, x, y, factor);
-      }
-    }
-
-    public void fling(float velocityX, float velocityY) {
-      if (nest != null) {
-        fling(nest, velocityX, velocityY);
-      }
-    }
-
-    public void down(float x, float y) {
-      if (nest != null) {
-        down(nest, x, y);
-      }
-    }
-
-    public void up(float x, float y) {
-      if (nest != null) {
-        up(nest, x, y);
-      }
-    }
+    /**
+     * Lays the GalleryView attached to LayoutManager.
+     * It's sure that width > 0, height > 0 and page count > 0.
+     *
+     * @param width the width of the GalleryView
+     * @param height the height of the GalleryView
+     */
+    protected abstract void layout(int width, int height);
 
     /**
-     * Layout a GalleryView through the Nest.
-     * It's sure that width > 0, height > 0 and page count > 0.
+     * Scrolls the GalleryView attached to LayoutManager.
+     *
+     * @param dx left to right is positive
+     * @param dy top to bottom is positive
      */
-    protected abstract void layout(Nest nest, int width, int height);
+    protected abstract void scroll(float dx, float dy);
 
-    protected abstract void scrollBy(Nest nest, float dx, float dy);
+    /**
+     * Scales the GalleryView attached to LayoutManager.
+     *
+     * @param x the x of the center point
+     * @param y the y of the center point
+     * @param factor the factor of the scaling
+     */
+    protected abstract void scale(float x, float y, float factor);
 
-    protected abstract void scaleBy(Nest nest, float x, float y, float factor);
+    /**
+     * Flings the GalleryView attached to LayoutManager.
+     *
+     * @param velocityX the velocity in horizontal direction
+     * @param velocityY the velocity in vertical direction
+     */
+    protected abstract void fling(float velocityX, float velocityY);
 
-    protected abstract void fling(Nest nest, float velocityX, float velocityY);
+    /**
+     * The first point of a touch event flow is down.
+     *
+     * @param x the x of the point
+     * @param y the y of the point
+     */
+    protected abstract void down(float x, float y);
 
-    protected abstract void down(Nest nest, float x, float y);
+    /**
+     * The last point of a touch event flow is up.
+     *
+     * @param x the x of the point
+     * @param y the y of the point
+     */
+    protected abstract void up(float x, float y);
 
-    protected abstract void up(Nest nest, float x, float y);
-
+    /**
+     * Cancel all animations of the LayoutManager.
+     */
     protected abstract void cancelAnimations();
   }
 

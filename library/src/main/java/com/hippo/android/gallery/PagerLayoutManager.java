@@ -25,6 +25,7 @@ import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
 import android.support.animation.SpringAnimation;
 import android.support.annotation.IntDef;
+import android.support.annotation.Nullable;
 import android.view.View;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -39,7 +40,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   public static final int POSITION_CURRENT = 1;
   public static final int POSITION_NEXT = 2;
 
-  public static final int TURNING_THRESHOLD_DP = 32;
+  public static final int TURNING_THRESHOLD_DP = 48;
 
   // Current page index
   private int currentIndex = 0;
@@ -93,7 +94,8 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
         public void setValue(PagerLayoutManager plm, float value) {
           float d = value - plm.lastFling;
           plm.lastFling = value;
-          plm.scrollPage(plm.getNest(), d * plm.flingScaleX, d * plm.flingScaleY);
+          // Fling animation should only be applied to the page, not the whole GalleryView
+          plm.scrollPage(d * plm.flingScaleX, d * plm.flingScaleY);
         }
         @Override
         public float getValue(PagerLayoutManager slm) {
@@ -127,7 +129,10 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void layout(GalleryView.Nest nest, int width, int height) {
+  public void layout(int width, int height) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
     int pageCount = nest.getPageCount();
 
     // Ensure current index in the range
@@ -162,6 +167,14 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
    */
   private boolean isPageSelected() {
     return (int) pageOffset == 0;
+  }
+
+  /*
+   * Returns the photo if current page is selected and is photo.
+   */
+  @Nullable
+  private Photo getSelectedPhoto(GalleryView.Nest nest) {
+    return isPageSelected() ? Utils.asPhoto(nest.getPageAt(currentIndex)) : null;
   }
 
   /*
@@ -200,9 +213,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
    */
   private void setPageOffset(float newPageOffset) {
     GalleryView.Nest nest = getNest();
-    if (nest == null) {
-      return;
-    }
+    if (nest == null) return;
 
     float oldPageOffset = pageOffset;
     pageOffset = newPageOffset;
@@ -210,23 +221,24 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
     // Only need layout if pageOffset changes
     if (pageOffset != oldPageOffset) {
-      nest.layout(this, nest.getWidth(), nest.getHeight());
+      nest.layout(this);
     }
   }
 
   @Override
-  public void scrollBy(GalleryView.Nest nest, float dx, float dy) {
+  public void scroll(float dx, float dy) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
     boolean needLayout = false;
 
     while (dx != 0.0f && dy != 0.0f) {
-      if (isPageSelected()) {
-        // Offset the photo of the current page
-        Photo photo = Utils.asPhoto(nest.getPageAt(currentIndex));
-        if (photo != null) {
-          photo.offset(dx, dy, remain);
-          dx = remain[0];
-          dy = remain[1];
-        }
+      // Offset current selected photo
+      Photo photo = getSelectedPhoto(nest);
+      if (photo != null) {
+        photo.offset(dx, dy, remain);
+        dx = remain[0];
+        dy = remain[1];
       }
 
       float oldPageOffset = pageOffset;
@@ -245,65 +257,69 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     }
 
     if (needLayout) {
-      nest.layout(this, nest.getWidth(), nest.getHeight());
+      nest.layout(this);
     }
   }
 
   @Override
-  public void scaleBy(GalleryView.Nest nest, float x, float y, float factor) {
-    if (isPageSelected()) {
-      GalleryView.Page page = nest.getPageAt(currentIndex);
-      if (page != null) {
-        Photo photo = Utils.asPhoto(page.view);
-        if (photo != null) {
-          photo.scale(x, y, factor);
-        }
-      }
-    }
+  public void scale(float x, float y, float factor) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+    Photo photo = getSelectedPhoto(nest);
+    if (photo == null) return;
+
+    photo.scale(x, y, factor);
   }
 
-  private void scrollPage(GalleryView.Nest nest, float dx, float dy) {
-    if (isPageSelected()) {
-      Photo photo = Utils.asPhoto(nest.getPageAt(currentIndex));
-      if (photo != null) {
-        photo.offset(dx, dy, remain);
-      }
-    }
-  }
+  /*
+   * Scrolls selected page directly.
+   * Used by fling animation.
+   */
+  private void scrollPage(float dx, float dy) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+    Photo photo = getSelectedPhoto(nest);
+    if (photo == null) return;
 
-  @Override
-  public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {
-    if (isPageSelected() && Utils.asPhoto(nest.getPageAt(currentIndex)) != null) {
-      float velocity;
-      lastFling = 0.0f;
-      if (Math.abs(velocityX) > Math.abs(velocityY)) {
-        velocity = velocityX;
-        flingScaleX = 1.0f;
-        flingScaleY = velocityY / velocityX;
-      } else {
-        velocity = velocityY;
-        flingScaleY = 1.0f;
-        flingScaleX = velocityX / velocityY;
-      }
-
-      flingAnimation.cancel();
-      flingAnimation.setStartVelocity(velocity)
-          .setMinValue(-Float.MAX_VALUE)
-          .setMaxValue(Float.MAX_VALUE)
-          .start();
-    }
+    photo.offset(dx, dy, remain);
   }
 
   @Override
-  protected void down(GalleryView.Nest nest, float x, float y) {
+  public void fling(float velocityX, float velocityY) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+    Photo photo = getSelectedPhoto(nest);
+    if (photo == null) return;
+
+    float velocity;
+    lastFling = 0.0f;
+    if (Math.abs(velocityX) > Math.abs(velocityY)) {
+      velocity = velocityX;
+      flingScaleX = 1.0f;
+      flingScaleY = velocityY / velocityX;
+    } else {
+      velocity = velocityY;
+      flingScaleY = 1.0f;
+      flingScaleX = velocityX / velocityY;
+    }
+
+    flingAnimation.cancel();
+    flingAnimation.setStartVelocity(velocity)
+        .setMinValue(-Float.MAX_VALUE)
+        .setMaxValue(Float.MAX_VALUE)
+        .start();
+  }
+
+  @Override
+  protected void down(float x, float y) {
     cancelAnimations();
   }
 
   @Override
-  protected void up(GalleryView.Nest nest, float x, float y) {
-    if (isPageSelected()) {
-      return;
-    }
+  protected void up(float x, float y) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+    if (isPageSelected()) return;
 
     float finalPageOffset;
     int pageRange = pagerLayout.getPageRange();

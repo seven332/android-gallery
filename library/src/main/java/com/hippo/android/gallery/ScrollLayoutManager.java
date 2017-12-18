@@ -58,7 +58,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     public void setValue(ScrollLayoutManager slm, float value) {
       float d = value - slm.lastFling;
       slm.lastFling = value;
-      slm.scrollBy(d * slm.flingScaleX, d * slm.flingScaleY);
+      slm.scroll(d * slm.flingScaleX, d * slm.flingScaleY);
     }
     @Override
     public float getValue(ScrollLayoutManager slm) {
@@ -148,7 +148,10 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void layout(GalleryView.Nest nest, int width, int height) {
+  public void layout(int width, int height) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
     // Ensure anchor index in the range
     int newIndex = Utils.clamp(anchorIndex, 0, nest.getPageCount() - 1);
     if (anchorIndex != newIndex) {
@@ -208,16 +211,22 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  public void scrollBy(GalleryView.Nest nest, float dx, float dy) {
+  public void scroll(float dx, float dy) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
     scrollLayout.scrollBy(anchorOffset, pageDeviate, dx, dy, temp);
     anchorOffset = temp[0];
     pageDeviate = temp[1];
     // It's hard to fix anchorOffset, let layout() fix it
-    nest.layout(this, nest.getWidth(), nest.getHeight());
+    nest.layout(this);
   }
 
   @Override
-  public void scaleBy(GalleryView.Nest nest, float x, float y, float factor) {
+  public void scale(float x, float y, float factor) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
     float oldPageScale = pageScale;
     pageScale = Utils.clamp(factor * pageScale, SCALE_MIN, SCALE_MAX);
 
@@ -226,12 +235,15 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
       scrollLayout.scaleBy(anchorOffset, pageDeviate, x, y, pageScale / oldPageScale, temp);
       anchorOffset = temp[0];
       pageDeviate = temp[1];
-      nest.layout(this, nest.getWidth(), nest.getHeight());
+      nest.layout(this);
     }
   }
 
   @Override
-  public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {
+  public void fling(float velocityX, float velocityY) {
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
     float velocity;
     lastFling = 0.0f;
     if (Math.abs(velocityX) > Math.abs(velocityY)) {
@@ -252,12 +264,12 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   }
 
   @Override
-  protected void down(GalleryView.Nest nest, float x, float y) {
+  protected void down(float x, float y) {
     cancelAnimations();
   }
 
   @Override
-  protected void up(GalleryView.Nest nest, float x, float y) {}
+  protected void up(float x, float y) {}
 
   @Override
   protected void cancelAnimations() {
