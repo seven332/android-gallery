@@ -21,6 +21,7 @@ package com.hippo.android.gallery;
  */
 
 import android.content.Context;
+import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
 import android.support.animation.SpringAnimation;
 import android.support.annotation.IntDef;
@@ -85,6 +86,24 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
         }
   };
   private SpringAnimation turningAnimation = new SpringAnimation(this, PAGE_OFFSET, 0.0f);
+
+  public static final FloatPropertyCompat<PagerLayoutManager> SCROLL_BY =
+      new FloatPropertyCompat<PagerLayoutManager>("scrollBy") {
+        @Override
+        public void setValue(PagerLayoutManager plm, float value) {
+          float d = value - plm.lastFling;
+          plm.lastFling = value;
+          plm.scrollPage(plm.getNest(), d * plm.flingScaleX, d * plm.flingScaleY);
+        }
+        @Override
+        public float getValue(PagerLayoutManager slm) {
+          return slm.lastFling;
+        }
+      };
+  private float flingScaleX;
+  private float flingScaleY;
+  private float lastFling;
+  private FlingAnimation flingAnimation = new FlingAnimation(this, SCROLL_BY);
 
   public PagerLayoutManager(Context context) {
     turningThreshold = context.getResources().getDisplayMetrics().density * TURNING_THRESHOLD_DP;
@@ -243,10 +262,35 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     }
   }
 
+  private void scrollPage(GalleryView.Nest nest, float dx, float dy) {
+    if (isPageSelected()) {
+      Photo photo = Utils.asPhoto(nest.getPageAt(currentIndex));
+      if (photo != null) {
+        photo.offset(dx, dy, remain);
+      }
+    }
+  }
+
   @Override
   public void fling(GalleryView.Nest nest, float velocityX, float velocityY) {
-    if (pageOffset == 0 && Utils.asPhoto(nest.getPageAt(currentIndex)) != null) {
-      // TODO
+    if (isPageSelected() && Utils.asPhoto(nest.getPageAt(currentIndex)) != null) {
+      float velocity;
+      lastFling = 0.0f;
+      if (Math.abs(velocityX) > Math.abs(velocityY)) {
+        velocity = velocityX;
+        flingScaleX = 1.0f;
+        flingScaleY = velocityY / velocityX;
+      } else {
+        velocity = velocityY;
+        flingScaleY = 1.0f;
+        flingScaleX = velocityX / velocityY;
+      }
+
+      flingAnimation.cancel();
+      flingAnimation.setStartVelocity(velocity)
+          .setMinValue(-Float.MAX_VALUE)
+          .setMaxValue(Float.MAX_VALUE)
+          .start();
     }
   }
 
@@ -283,6 +327,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   @Override
   protected void cancelAnimations() {
     turningAnimation.cancel();
+    flingAnimation.cancel();
   }
 
   public interface PagerLayout {
