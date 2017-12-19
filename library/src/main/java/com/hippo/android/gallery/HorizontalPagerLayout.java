@@ -32,7 +32,21 @@ public class HorizontalPagerLayout extends BasePagerLayout {
   @Override
   public float scrollPage(float offset, float dx, float dy, float[] remain) {
     int range = getPageRange();
-    float newOffset = Utils.clamp(offset + dx, -range, range);
+
+    float leftBound;
+    float rightBound;
+    if (offset > 0.0f) {
+      leftBound = 0.0f;
+      rightBound = range;
+    } else if (offset < 0.0f) {
+      leftBound = -range;
+      rightBound = 0.0f;
+    } else {
+      leftBound = -range;
+      rightBound = range;
+    }
+
+    float newOffset = Utils.clamp(offset + dx, leftBound, rightBound);
     remain[0] = dx - (newOffset - offset);
     remain[1] = 0;
     return newOffset;
