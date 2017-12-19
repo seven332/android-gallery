@@ -702,8 +702,14 @@ public class GalleryView extends ViewGroup {
     }
   }
 
+  /**
+   * Page of a GalleryView, the base element to lay.
+   */
   public static class Page {
 
+    /**
+     * The view of this Page.
+     */
     public final View view;
 
     private int index = INVALID_INDEX;
@@ -724,10 +730,18 @@ public class GalleryView extends ViewGroup {
       this.view = view;
     }
 
+    /**
+     * Returns the index of this Page.
+     * It's valid from {@link Adapter#onBindPage(Page)} to {@link Adapter#onUnbindPage(Page)}.
+     */
     public int getIndex() {
       return index;
     }
 
+    /**
+     * Returns the type of this Page.
+     * It's valid until the page destroyed.
+     */
     public int getType() {
       return type;
     }
