@@ -26,11 +26,17 @@ import android.support.animation.FloatPropertyCompat;
 import android.support.animation.SpringAnimation;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * PagerLayoutManager lays pages like {@code ViewPager}.
+ */
 public class PagerLayoutManager extends GalleryView.LayoutManager {
+
+  private static final String LOG_TAG = "PagerLayoutManager";
 
   @IntDef({POSITION_PREVIOUS, POSITION_CURRENT, POSITION_NEXT})
   @Retention(RetentionPolicy.SOURCE)
@@ -51,7 +57,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   /*
    * The offset of pages
    * From previous to next is positive
-   * From next To previous is negative
+   * From next to previous is negative
    */
   private float pageOffset = 0.0f;
 
@@ -71,6 +77,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   @Photo.StartPosition
   private int startPosition = Photo.START_POSITION_TOP_LEFT;
 
+  // Stores the remain offset x and y
   private float[] remain = new float[2];
 
   private PagerLayout pagerLayout;
@@ -112,24 +119,69 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     turningAnimation.getSpring().setDampingRatio(1.0f);
   }
 
+  /**
+   * Sets the interval between pages.
+   * Negative value is treated as {@code 0}.
+   */
   public void setPageInterval(int pageInterval) {
-    this.pageInterval = pageInterval;
+    this.pageInterval = Math.max(0, pageInterval);
+
+    /*
+     * Changing page interval changes page range.
+     * It might make the final value of turning animation
+     * mismatch page range.
+     *
+     * Canceling animation and resetting page offset to 0.0f
+     * should avoid it.
+     */
+    cancelAnimations();
+    pageOffset = 0.0f;
+
+    requestLayout();
   }
 
+  /**
+   * Sets scale type for each photo page.
+   */
   public void setScaleType(@Photo.ScaleType int scaleType) {
     this.scaleType = scaleType;
+    // TODO Apply scale type to all photo pages.
   }
 
+  /**
+   * Sets start position for each photo page.
+   */
   public void setStartPosition(@Photo.StartPosition int startPosition) {
     this.startPosition = startPosition;
+    // TODO Apply start position to all photo pages.
   }
 
+  /**
+   * Sets PagerLayout to this PagerLayoutManager.
+   *
+   * @throws IllegalStateException if the GalleryView it attached to is in layout.
+   */
   public void setPagerLayout(PagerLayout pagerLayout) {
+    if (isInLayout()) throw new IllegalStateException();
+
     this.pagerLayout = pagerLayout;
+
+    /*
+     * Reset state.
+     */
+    cancelAnimations();
+    pageOffset = 0.0f;
+
+    requestLayout();
   }
 
   @Override
   public void layout(int width, int height) {
+    if (pagerLayout == null) {
+      Log.e(LOG_TAG, "Cannot layout without a PagerLayout set");
+      return;
+    }
+
     GalleryView.Nest nest = getNest();
     if (nest == null) return;
 
@@ -143,6 +195,9 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     }
 
     pagerLayout.start(width, height, pageInterval, scaleType, startPosition);
+
+    // Ensure page offset in the range
+    fixPageOffset(nest);
 
     // Layout current page
     GalleryView.Page current = nest.pinPage(currentIndex);
@@ -227,6 +282,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void scroll(float dx, float dy) {
+    if (pagerLayout == null) return;
     GalleryView.Nest nest = getNest();
     if (nest == null) return;
 
@@ -286,6 +342,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void fling(float velocityX, float velocityY) {
+    if (pagerLayout == null) return;
     GalleryView.Nest nest = getNest();
     if (nest == null) return;
     Photo photo = getSelectedPhoto(nest);
@@ -317,6 +374,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   protected void up(float x, float y) {
+    if (pagerLayout == null) return;
     GalleryView.Nest nest = getNest();
     if (nest == null) return;
     if (isPageSelected()) return;
@@ -346,17 +404,46 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     flingAnimation.cancel();
   }
 
+  /**
+   * PagerLayout handle single page laying.
+   */
   public interface PagerLayout {
 
+    /**
+     * Starts a new layout turn.
+     */
     void start(int width, int height, int interval,
         @Photo.ScaleType int scaleType, @Photo.StartPosition int startPosition);
 
+    /**
+     * Returns the page range.
+     *
+     * The page offset must be in [-getPageRange(), getPageRange()].
+     */
     int getPageRange();
 
+    /**
+     * Lays a single page.
+     *
+     * @param page the page to lay
+     * @param offset the offset of the page,
+     *               positive if the page move to next page position,
+     *               negative if the page move to previous page position
+     * @param position one of {@link #POSITION_PREVIOUS}, {@link #POSITION_CURRENT}
+     *                 or {@link #POSITION_NEXT}
+     */
     void layoutPage(View page, float offset, @Position int position);
 
     /**
-     * @return must in [-getPageRange(), getPageRange()]
+     * Updates the page offset. The new page offset must be in
+     * [-getPageRange(), getPageRange()]. So it's not necessary to consume all
+     * dx and dy. Store the remain dx and dy to remain array.
+     *
+     * @param offset the origin offset
+     * @param dx the delta x
+     * @param dy the delta y
+     * @param remain a two-length array, the remain delta x and y
+     * @return new page offset, must in [-getPageRange(), getPageRange()]
      */
     float scrollPage(float offset, float dx, float dy, float[] remain);
   }

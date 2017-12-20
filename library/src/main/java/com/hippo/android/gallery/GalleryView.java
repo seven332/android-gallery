@@ -552,6 +552,23 @@ public class GalleryView extends ViewGroup {
     protected abstract void layout(int width, int height);
 
     /**
+     * Requests layout for the GalleryView attached to this LayoutManager.
+     */
+    protected void requestLayout() {
+      if (nest != null) {
+        nest.view.requestLayout();
+      }
+    }
+
+    /**
+     * Returns {@code true} if this LayoutManager is attached to a GalleryView,
+     * and the GalleryView is in layout.
+     */
+    protected boolean isInLayout() {
+      return nest != null && nest.view.inLayout;
+    }
+
+    /**
      * Scrolls the GalleryView attached to LayoutManager.
      *
      * @param dx left to right is positive
