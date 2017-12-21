@@ -144,10 +144,11 @@ public class GalleryView extends ViewGroup {
   @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
-    /*
-     * The GalleryView is detached from the window.
-     * It's the good to reset the nest to clear all page.
-     */
+    // Stop animations to avoid laying anymore
+    if (layoutManager != null) {
+      layoutManager.cancelAnimations();
+    }
+    // Reset nest to avoid memory leak
     nest.reset();
   }
 
