@@ -25,6 +25,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
+import android.widget.ImageView;
 import com.hippo.android.gallery.Photo;
 
 public class PhotoImageView extends AppCompatImageView implements Photo {
@@ -32,11 +33,12 @@ public class PhotoImageView extends AppCompatImageView implements Photo {
   private TransformedDrawable transformedDrawable;
 
   public PhotoImageView(Context context) {
-    super(context);
+    this(context, null);
   }
 
   public PhotoImageView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
+    setScaleType(ImageView.ScaleType.FIT_XY);
   }
 
   @Override

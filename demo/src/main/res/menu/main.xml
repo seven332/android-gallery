@@ -15,8 +15,14 @@
   ~ limitations under the License.
   -->
 
-<com.hippo.android.gallery.GalleryView
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:id="@+id/gallery_view"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"/>
+<menu
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <item
+    android:id="@+id/action_settings"
+    android:icon="@drawable/ic_settings_white_24dp"
+    android:title="Settings"
+    app:showAsAction="always"/>
+
+</menu>

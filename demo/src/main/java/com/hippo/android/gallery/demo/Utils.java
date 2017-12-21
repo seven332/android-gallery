@@ -20,6 +20,8 @@ package com.hippo.android.gallery.demo;
  * Created by Hippo on 2017/11/4.
  */
 
+import android.content.Context;
+
 final class Utils {
 
   /**
@@ -40,5 +42,31 @@ final class Utils {
       if (x < bound2) return bound2;
     }
     return x;
+  }
+
+  /**
+   * Converts dp value to pix value.
+   *
+   * @param context the context
+   * @param dp the dp value to convert
+   * @return the pix value
+   * @throws NullPointerException if {@code context == null}
+   */
+  public static int dp2pix(Context context, float dp) throws NullPointerException {
+    if (context == null) throw new NullPointerException("context == null");
+    return (int) (dp * context.getResources().getDisplayMetrics().density + 0.5f);
+  }
+
+  /**
+   * Converts pix value to dp value.
+   *
+   * @param context the context
+   * @param pix the pix value to convert
+   * @return the dp value
+   * @throws NullPointerException if {@code context == null}
+   */
+  public static float pix2dp(Context context, int pix) throws NullPointerException {
+    if (context == null) throw new NullPointerException("context == null");
+    return pix / context.getResources().getDisplayMetrics().density;
   }
 }

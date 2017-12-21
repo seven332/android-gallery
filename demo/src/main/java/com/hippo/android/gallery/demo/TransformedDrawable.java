@@ -123,14 +123,12 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
 
   @Override
   public int getIntrinsicWidth() {
-    // Need view width in setBounds()
-    return -1;
+    return dWidth;
   }
 
   @Override
   public int getIntrinsicHeight() {
-    // Need view height in setBounds()
-    return -1;
+    return dHeight;
   }
 
   @Override

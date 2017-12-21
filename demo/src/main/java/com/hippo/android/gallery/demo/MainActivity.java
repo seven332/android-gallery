@@ -18,8 +18,12 @@ package com.hippo.android.gallery.demo;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -27,8 +31,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.hippo.android.gallery.GalleryView;
-import com.hippo.android.gallery.ReversedHorizontalScrollLayout;
-import com.hippo.android.gallery.ScrollLayoutManager;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,26 +42,43 @@ public class MainActivity extends AppCompatActivity {
       "http://www.gstatic.com/webp/gallery/5.jpg",
   };
 
+  private GalleryView view;
+  private GalleryViewStyle style = new GalleryViewStyle();
+
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    ScrollLayoutManager layoutManager = new ScrollLayoutManager();
-    layoutManager.setScrollLayout(new ReversedHorizontalScrollLayout());
-    layoutManager.setPageInterval((int) (24 * getResources().getDisplayMetrics().density));
+    view = findViewById(R.id.gallery_view);
+    view.setAdapter(new Adapter(getLayoutInflater()));
 
-//    PagerLayoutManager layoutManager = new PagerLayoutManager();
-//    layoutManager.setPagerLayout(new HorizontalPagerLayout());
-//    layoutManager.setPageInterval((int) (24 * getResources().getDisplayMetrics().density));
-//    layoutManager.setScaleType(PagerLayoutManager.SCALE_FIT_HEIGHT);
-
-    GalleryView galleryView = findViewById(R.id.gallery_view);
-    galleryView.setLayoutManager(layoutManager);
-    galleryView.setAdapter(new Adapter(getLayoutInflater()));
+    style.apply(view);
   }
 
-  private static class Adapter extends GalleryView.Adapter {
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.main, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.action_settings:
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        GalleryViewStyleView view = new GalleryViewStyleView(this);
+        view.setStyle(MainActivity.this.view, style);
+        dialog.setContentView(view);
+        dialog.show();
+        return true;
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
+  private static class Adapter extends com.hippo.android.gallery.GalleryView.Adapter {
 
     private static final int TYPE_IMAGE = 0;
     private static final int TYPE_TEXT = 1;
@@ -112,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public int getPageViewType(int index) {
+    public int getPageType(int index) {
       return index % 2 == 0 ? TYPE_IMAGE : TYPE_TEXT;
     }
   }
