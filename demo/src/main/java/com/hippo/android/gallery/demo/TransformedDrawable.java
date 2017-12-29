@@ -90,12 +90,22 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
 
   public void setScaleType(int scaleType) {
     this.scaleType = scaleType;
-    // TODO
+
+    Rect bounds = getBounds();
+    if (!bounds.isEmpty() && drawable != null) {
+      resetLayout(bounds);
+      invalidateSelf();
+    }
   }
 
   public void setStartPosition(int startPosition) {
     this.startPosition = startPosition;
-    // TODO
+
+    Rect bounds = getBounds();
+    if (!bounds.isEmpty() && drawable != null) {
+      resetLayout(bounds);
+      invalidateSelf();
+    }
   }
 
   public void offset(float dx, float dy, float[] remain) {

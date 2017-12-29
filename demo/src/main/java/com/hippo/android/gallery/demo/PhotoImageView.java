@@ -30,7 +30,7 @@ import com.hippo.android.gallery.Photo;
 
 public class PhotoImageView extends AppCompatImageView implements Photo {
 
-  private TransformedDrawable transformedDrawable;
+  private final TransformedDrawable transformedDrawable = new TransformedDrawable(null);
 
   public PhotoImageView(Context context) {
     this(context, null);
@@ -39,16 +39,12 @@ public class PhotoImageView extends AppCompatImageView implements Photo {
   public PhotoImageView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
     setScaleType(ImageView.ScaleType.FIT_XY);
+    super.setImageDrawable(transformedDrawable);
   }
 
   @Override
   public void setImageDrawable(@Nullable Drawable drawable) {
-    if (transformedDrawable == null) {
-      transformedDrawable = new TransformedDrawable(drawable);
-      super.setImageDrawable(transformedDrawable);
-    } else {
-      transformedDrawable.setWrappedDrawable(drawable);
-    }
+    transformedDrawable.setWrappedDrawable(drawable);
     requestLayout();
   }
 
@@ -65,25 +61,21 @@ public class PhotoImageView extends AppCompatImageView implements Photo {
 
   @Override
   public void scale(float x, float y, float factor) {
-    if (transformedDrawable != null) {
-      transformedDrawable.scale(x, y, factor);
-    }
+    transformedDrawable.scale(x, y, factor);
   }
 
   @Override
   public void setScaleType(int scaleType) {
-    // TODO
+    transformedDrawable.setScaleType(scaleType);
   }
 
   @Override
   public void offset(float dx, float dy, float[] remain) {
-    if (transformedDrawable != null) {
-      transformedDrawable.offset(dx, dy, remain);
-    }
+    transformedDrawable.offset(dx, dy, remain);
   }
 
   @Override
   public void setStartPosition(int startPosition) {
-    // TODO
+    transformedDrawable.setStartPosition(startPosition);
   }
 }
