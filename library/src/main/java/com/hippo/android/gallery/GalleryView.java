@@ -31,6 +31,8 @@ import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -307,6 +309,14 @@ public class GalleryView extends ViewGroup {
       this.view = view;
     }
 
+    /**
+     * Returns an unmodifiable collection of all attached page.
+     */
+    public Collection<Page> getPages() {
+      if (view.inLayout) throw new IllegalStateException("Can't get pages during laying");
+      return Collections.unmodifiableCollection(pages.values());
+    }
+
     // Remove all page, clear cache
     private void reset() {
       if (view.inLayout) throw new IllegalStateException("Can't reset Nest during laying");
@@ -406,6 +416,22 @@ public class GalleryView extends ViewGroup {
       } else {
         adapter.destroyPage(page);
       }
+    }
+
+    /**
+     * Returns {@code true} if the view of the page is attached.
+     */
+    public boolean containPage(int index) {
+      if (!view.inLayout) {
+        throw new IllegalStateException("Cannot only call containPage() in layout");
+      }
+
+      if (adapter == null) {
+        throw new IllegalStateException("Don't unset adapter in layout");
+      }
+
+      Page page = pages.get(index);
+      return page != null && adapter.getPageType(index) == page.getType();
     }
 
     /**

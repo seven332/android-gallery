@@ -147,18 +147,46 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
   /**
    * Sets scale type for each photo page.
+   *
+   * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
   public void setScaleType(@Photo.ScaleType int scaleType) {
+    if (isInLayout()) throw new IllegalStateException("Can't set scale type during layout");
+
+    if (this.scaleType == scaleType) return;
     this.scaleType = scaleType;
-    // TODO Apply scale type to all photo pages.
+
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
+    for (GalleryView.Page page : nest.getPages()) {
+      Photo photo = Utils.asPhoto(page);
+      if (photo == null) continue;
+
+      photo.setScaleType(scaleType);
+    }
   }
 
   /**
    * Sets start position for each photo page.
+   *
+   * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
   public void setStartPosition(@Photo.StartPosition int startPosition) {
+    if (isInLayout()) throw new IllegalStateException("Can't set start position during layout");
+
+    if (this.startPosition == startPosition) return;
     this.startPosition = startPosition;
-    // TODO Apply start position to all photo pages.
+
+    GalleryView.Nest nest = getNest();
+    if (nest == null) return;
+
+    for (GalleryView.Page page : nest.getPages()) {
+      Photo photo = Utils.asPhoto(page);
+      if (photo == null) continue;
+
+      photo.setStartPosition(startPosition);
+    }
   }
 
   /**
@@ -167,7 +195,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
    * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
   public void setPagerLayout(PagerLayout pagerLayout) {
-    if (isInLayout()) throw new IllegalStateException();
+    if (isInLayout()) throw new IllegalStateException("Can't set pager layout during layout");
 
     if (this.pagerLayout != pagerLayout) {
       this.pagerLayout = pagerLayout;
@@ -180,6 +208,20 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
 
       requestLayout();
     }
+  }
+
+  private GalleryView.Page pinPage(GalleryView.Nest nest, int index) {
+    boolean reset = !nest.containPage(index);
+
+    GalleryView.Page page = nest.pinPage(index);
+
+    Photo photo = Utils.asPhoto(page);
+    if (reset && photo != null) {
+      photo.setScaleType(scaleType);
+      photo.setStartPosition(startPosition);
+    }
+
+    return page;
   }
 
   @Override
@@ -207,16 +249,16 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
     fixPageOffset(nest);
 
     // Layout current page
-    GalleryView.Page current = nest.pinPage(currentIndex);
+    GalleryView.Page current = pinPage(nest, currentIndex);
     pagerLayout.layoutPage(current.view, pageOffset, POSITION_CURRENT);
     // Layout previous page
     if (currentIndex > 0) {
-      GalleryView.Page previous = nest.pinPage(currentIndex - 1);
+      GalleryView.Page previous = pinPage(nest, currentIndex - 1);
       pagerLayout.layoutPage(previous.view, pageOffset, POSITION_PREVIOUS);
     }
     // Layout next page
     if (currentIndex < pageCount - 1) {
-      GalleryView.Page next = nest.pinPage(currentIndex + 1);
+      GalleryView.Page next = pinPage(nest, currentIndex + 1);
       pagerLayout.layoutPage(next.view, pageOffset, POSITION_NEXT);
     }
   }
