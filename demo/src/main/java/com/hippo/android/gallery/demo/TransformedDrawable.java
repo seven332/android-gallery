@@ -32,6 +32,7 @@ import java.util.Arrays;
 
 public class TransformedDrawable extends Drawable implements Drawable.Callback {
 
+  @Nullable
   private Drawable drawable;
 
   @Photo.ScaleType
@@ -39,8 +40,14 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
   @Photo.StartPosition
   private int startPosition = Photo.START_POSITION_TOP_LEFT;
 
-  private int dWidth;
-  private int dHeight;
+  // Actual intrinsic width of drawable
+  private int aDWidth;
+  // Actual intrinsic height of drawable
+  private int aDHeight;
+  // Virtual intrinsic width of drawable
+  private int vDWidth;
+  // Virtual intrinsic height of drawable
+  private int vDHeight;
 
   private float offsetX;
   private float offsetY;
@@ -65,15 +72,20 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
     }
 
     this.drawable = drawable;
-    this.dWidth = 0;
-    this.dHeight = 0;
-    this.valid = false;
 
     if (drawable != null) {
+      aDWidth = drawable.getIntrinsicWidth();
+      aDHeight = drawable.getIntrinsicHeight();
+      valid = true;
       drawable.setCallback(this);
       onBoundsChange(getBounds());
-      invalidateSelf();
+    } else {
+      aDWidth = 0;
+      aDHeight = 0;
+      valid = false;
     }
+
+    invalidateSelf();
   }
 
   public void setScaleType(int scaleType) {
@@ -123,12 +135,12 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
 
   @Override
   public int getIntrinsicWidth() {
-    return dWidth;
+    return aDWidth;
   }
 
   @Override
   public int getIntrinsicHeight() {
-    return dHeight;
+    return aDHeight;
   }
 
   @Override
@@ -138,22 +150,15 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
     }
 
     if (bounds.isEmpty()) {
-      dWidth = 0;
-      dHeight = 0;
       valid = false;
     } else {
-      dWidth = drawable.getIntrinsicWidth();
-      dHeight = drawable.getIntrinsicHeight();
-      if (dWidth <= 0 || dHeight <= 0) {
-        dWidth = bounds.width();
-        dHeight = bounds.height();
-      }
       valid = true;
+      vDWidth = aDWidth > 0 ? aDWidth : bounds.width();
+      vDHeight = aDHeight > 0 ? aDHeight : bounds.height();
+
+      drawable.setBounds(0, 0, vDWidth, vDHeight);
+      resetLayout(bounds);
     }
-
-    drawable.setBounds(0, 0, dWidth, dHeight);
-
-    resetLayout(bounds);
   }
 
   // Reset offset and scale to fit
@@ -164,8 +169,8 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
 
     int vWidth = bounds.width();
     int vHeight = bounds.height();
-    int dWidth = this.dWidth;
-    int dHeight = this.dHeight;
+    int dWidth = this.vDWidth;
+    int dHeight = this.vDHeight;
 
     float wScale = (float) vWidth / (float) dWidth;
     float hScale = (float) vHeight / (float) dHeight;
@@ -237,8 +242,8 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
   private void fixOffset() {
     int vWidth = getBounds().width();
     int vHeight = getBounds().height();
-    float tWidth = dWidth * scale;
-    float tHeight = dHeight * scale;
+    float tWidth = vDWidth * scale;
+    float tHeight = vDHeight * scale;
 
     if (tWidth > vWidth) {
       offsetX = Utils.clamp(offsetX, vWidth - tWidth, 0);
@@ -255,7 +260,7 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
 
   @Override
   public void draw(@NonNull Canvas canvas) {
-    if (valid) {
+    if (valid && drawable != null) {
       int saved = canvas.save();
       canvas.translate(offsetX, offsetY);
       canvas.scale(scale, scale);
@@ -282,12 +287,6 @@ public class TransformedDrawable extends Drawable implements Drawable.Callback {
   public int getOpacity() {
     return PixelFormat.TRANSLUCENT;
   }
-
-
-
-
-
-
 
   @Override
   public void invalidateDrawable(@NonNull Drawable who) {
