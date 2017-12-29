@@ -27,6 +27,9 @@ import android.view.View;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * ScrollLayoutManager lays pages like {@code ScrollView}.
+ */
 public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   // SCALE_MIN MUST BE 1.0f
@@ -70,13 +73,31 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
   private float lastFling;
   private FlingAnimation flingAnimation = new FlingAnimation(this, SCROLL_BY);
 
+  /**
+   * Sets the interval between pages.
+   * Negative value is treated as {@code 0}.
+   */
   public void setPageInterval(int pageInterval) {
-    this.pageInterval = pageInterval;
+    pageInterval = Math.max(0, pageInterval);
+
+    if (this.pageInterval != pageInterval) {
+      this.pageInterval = pageInterval;
+      requestLayout();
+    }
   }
 
+  /**
+   * Sets ScrollLayout to this ScrollLayoutManager.
+   *
+   * @throws IllegalStateException if the GalleryView it attached to is in layout.
+   */
   public void setScrollLayout(ScrollLayout pageLayout) {
-    this.scrollLayout = pageLayout;
-    this.anchorOffset = 0;
+    if (isInLayout()) throw new IllegalStateException();
+
+    if (this.scrollLayout != pageLayout) {
+      this.scrollLayout = pageLayout;
+      requestLayout();
+    }
   }
 
   @VisibleForTesting
@@ -85,7 +106,10 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     anchorOffset = offset;
   }
 
-  // Layout next pages one by one, until first invisible page
+  /*
+   * Layout next pages one by one,
+   * until first invisible page.
+   */
   private void layoutNextPages(GalleryView.Nest nest, LinkedList<GalleryView.Page> pages) {
     int pageCount = nest.getPageCount();
     int nextIndex = pages.getLast().getIndex();
@@ -110,7 +134,10 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     }
   }
 
-  // Layout previous pages one by one, until first invisible page
+  /*
+   * Layout previous pages one by one,
+   * until first invisible page.
+   */
   private void layoutPreviousPages(GalleryView.Nest nest, LinkedList<GalleryView.Page> pages, int nextBlank) {
     int previousIndex = pages.getFirst().getIndex();
 
@@ -276,6 +303,9 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     flingAnimation.cancel();
   }
 
+  /**
+   * ScrollLayout handle single page laying.
+   */
   public interface ScrollLayout {
 
     /**

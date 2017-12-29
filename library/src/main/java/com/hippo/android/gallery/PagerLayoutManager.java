@@ -69,6 +69,7 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
    * If pageOffset is smaller than -turningThreshold,
    * turn to next page.
    */
+  // TODO Add setTurningThreshold()?
   private final float turningThreshold;
 
   @Photo.ScaleType
@@ -124,20 +125,24 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
    * Negative value is treated as {@code 0}.
    */
   public void setPageInterval(int pageInterval) {
-    this.pageInterval = Math.max(0, pageInterval);
+    pageInterval = Math.max(0, pageInterval);
 
-    /*
-     * Changing page interval changes page range.
-     * It might make the final value of turning animation
-     * mismatch page range.
-     *
-     * Canceling animation and resetting page offset to 0.0f
-     * should avoid it.
-     */
-    cancelAnimations();
-    pageOffset = 0.0f;
+    if (this.pageInterval != pageInterval) {
+      this.pageInterval = pageInterval;
 
-    requestLayout();
+      /*
+       * Changing page interval changes page range.
+       * It might make the final value of turning animation
+       * mismatch page range.
+       *
+       * Canceling animation and resetting page offset to 0.0f
+       * should avoid it.
+       */
+      cancelAnimations();
+      pageOffset = 0.0f;
+
+      requestLayout();
+    }
   }
 
   /**
@@ -164,15 +169,17 @@ public class PagerLayoutManager extends GalleryView.LayoutManager {
   public void setPagerLayout(PagerLayout pagerLayout) {
     if (isInLayout()) throw new IllegalStateException();
 
-    this.pagerLayout = pagerLayout;
+    if (this.pagerLayout != pagerLayout) {
+      this.pagerLayout = pagerLayout;
 
-    /*
-     * Reset state.
-     */
-    cancelAnimations();
-    pageOffset = 0.0f;
+      /*
+       * Reset state.
+       */
+      cancelAnimations();
+      pageOffset = 0.0f;
 
-    requestLayout();
+      requestLayout();
+    }
   }
 
   @Override
