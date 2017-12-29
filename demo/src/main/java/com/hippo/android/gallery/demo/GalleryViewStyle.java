@@ -42,16 +42,98 @@ public class GalleryViewStyle {
   public static final int PAGER_LAYOUT_HORIZONTAL = 0;
   public static final int PAGER_LAYOUT_REVERSED_HORIZONTAL = 1;
 
-  public int layoutManager = LAYOUT_MANAGER_SCROLL;
-  public int scrollLayout = SCROLL_LAYOUT_VERTICAL;
-  public int pagerLayout = PAGER_LAYOUT_HORIZONTAL;
-  public int pageInterval = 0;
-  public int scaleType = Photo.SCALE_TYPE_FIT;
-  public int startPosition = Photo.START_POSITION_TOP_LEFT;
+  private int layoutManager = LAYOUT_MANAGER_SCROLL;
+  private int scrollLayout = SCROLL_LAYOUT_VERTICAL;
+  private int pagerLayout = PAGER_LAYOUT_HORIZONTAL;
+  private int pageInterval = 0;
+  private int scaleType = Photo.SCALE_TYPE_FIT;
+  private int startPosition = Photo.START_POSITION_TOP_LEFT;
+
+  private boolean changed = true;
+
+  public boolean isChanged() {
+    return changed;
+  }
+
+  public int getLayoutManager() {
+    return layoutManager;
+  }
+
+  public void setLayoutManager(int layoutManager) {
+    if (this.layoutManager != layoutManager) {
+      this.layoutManager = layoutManager;
+      changed = true;
+    }
+  }
+
+  public int getScrollLayout() {
+    return scrollLayout;
+  }
+
+  public void setScrollLayout(int scrollLayout) {
+    if (this.scrollLayout != scrollLayout) {
+      this.scrollLayout = scrollLayout;
+      changed = true;
+    }
+  }
+
+  public int getPagerLayout() {
+    return pagerLayout;
+  }
+
+  public void setPagerLayout(int pagerLayout) {
+    if (this.pagerLayout != pagerLayout) {
+      this.pagerLayout = pagerLayout;
+      changed = true;
+    }
+  }
+
+  public int getPageInterval() {
+    return pageInterval;
+  }
+
+  public void setPageInterval(int pageInterval) {
+    if (this.pageInterval != pageInterval) {
+      this.pageInterval = pageInterval;
+      changed = true;
+    }
+  }
+
+  public int getScaleType() {
+    return scaleType;
+  }
+
+  public void setScaleType(int scaleType) {
+    if (this.scaleType != scaleType) {
+      this.scaleType = scaleType;
+      changed = true;
+    }
+  }
+
+  public int getStartPosition() {
+    return startPosition;
+  }
+
+  public void setStartPosition(int startPosition) {
+    if (this.startPosition != startPosition) {
+      this.startPosition = startPosition;
+      changed = true;
+    }
+  }
 
   public void apply(GalleryView view) {
+    if (!isChanged()) return;
+
+    changed = false;
+    GalleryView.LayoutManager lm = view.getLayoutManager();
     if (layoutManager == LAYOUT_MANAGER_SCROLL) {
-      ScrollLayoutManager slm = new ScrollLayoutManager();
+      ScrollLayoutManager slm;
+      if (lm instanceof ScrollLayoutManager) {
+        slm = (ScrollLayoutManager) lm;
+      } else {
+        slm = new ScrollLayoutManager();
+      }
+
       switch (scrollLayout) {
         case SCROLL_LAYOUT_VERTICAL:
           slm.setScrollLayout(new VerticalScrollLayout());
@@ -66,7 +148,13 @@ public class GalleryViewStyle {
       slm.setPageInterval(pageInterval);
       view.setLayoutManager(slm);
     } else {
-      PagerLayoutManager plm = new PagerLayoutManager(view.getContext());
+      PagerLayoutManager plm;
+      if (lm instanceof PagerLayoutManager) {
+        plm = (PagerLayoutManager) lm;
+      } else {
+        plm = new PagerLayoutManager(view.getContext());
+      }
+
       switch (pagerLayout) {
         case PAGER_LAYOUT_HORIZONTAL:
           plm.setPagerLayout(new HorizontalPagerLayout());

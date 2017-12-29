@@ -135,17 +135,17 @@ public class GalleryViewStyleView extends NestedScrollView {
         startPositionText.setVisibility(VISIBLE);
         startPosition.setVisibility(VISIBLE);
       }
-      style.layoutManager = getKeyByValue(LAYOUT_MANAGER_MAP, checkedId);
+      style.setLayoutManager(getKeyByValue(LAYOUT_MANAGER_MAP, checkedId));
       style.apply(view);
     });
 
     scrollLayout.setOnCheckedChangeListener((group, checkedId) -> {
-      style.scrollLayout = getKeyByValue(SCROLL_LAYOUT_MAP, checkedId);
+      style.setScrollLayout(getKeyByValue(SCROLL_LAYOUT_MAP, checkedId));
       style.apply(view);
     });
 
     pagerLayout.setOnCheckedChangeListener((group, checkedId) -> {
-      style.pagerLayout = getKeyByValue(PAGER_LAYOUT_MAP, checkedId);
+      style.setPagerLayout(getKeyByValue(PAGER_LAYOUT_MAP, checkedId));
       style.apply(view);
     });
 
@@ -154,7 +154,7 @@ public class GalleryViewStyleView extends NestedScrollView {
       @Override
       public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         pageIntervalValue.setText(progress + "dp");
-        style.pageInterval = Utils.dp2pix(seekBar.getContext(), progress);
+        style.setPageInterval(Utils.dp2pix(seekBar.getContext(), progress));
         style.apply(view);
       }
       @Override
@@ -164,12 +164,12 @@ public class GalleryViewStyleView extends NestedScrollView {
     });
 
     scaleType.setOnCheckedChangeListener((group, checkedId) -> {
-      style.scaleType = getKeyByValue(SCALE_TYPE_MAP, checkedId);
+      style.setScaleType(getKeyByValue(SCALE_TYPE_MAP, checkedId));
       style.apply(view);
     });
 
     startPosition.setOnCheckedChangeListener((group, checkedId) -> {
-      style.startPosition = getKeyByValue(START_POSITION_MAP, checkedId);
+      style.setStartPosition(getKeyByValue(START_POSITION_MAP, checkedId));
       style.apply(view);
     });
   }
@@ -178,11 +178,11 @@ public class GalleryViewStyleView extends NestedScrollView {
     this.view = view;
     this.style = style;
 
-    layoutManager.check(getValueByKey(LAYOUT_MANAGER_MAP, style.layoutManager));
-    scrollLayout.check(getValueByKey(SCROLL_LAYOUT_MAP, style.scrollLayout));
-    pagerLayout.check(getValueByKey(PAGER_LAYOUT_MAP, style.pagerLayout));
-    pageInterval.setProgress((int) Utils.pix2dp(view.getContext(), style.pageInterval));
-    scaleType.check(getValueByKey(SCALE_TYPE_MAP, style.scaleType));
-    startPosition.check(getValueByKey(START_POSITION_MAP, style.startPosition));
+    layoutManager.check(getValueByKey(LAYOUT_MANAGER_MAP, style.getLayoutManager()));
+    scrollLayout.check(getValueByKey(SCROLL_LAYOUT_MAP, style.getScrollLayout()));
+    pagerLayout.check(getValueByKey(PAGER_LAYOUT_MAP, style.getPagerLayout()));
+    pageInterval.setProgress((int) Utils.pix2dp(view.getContext(), style.getPageInterval()));
+    scaleType.check(getValueByKey(SCALE_TYPE_MAP, style.getScaleType()));
+    startPosition.check(getValueByKey(START_POSITION_MAP, style.getStartPosition()));
   }
 }
