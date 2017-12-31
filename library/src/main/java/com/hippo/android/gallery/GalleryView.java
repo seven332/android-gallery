@@ -23,36 +23,28 @@ package com.hippo.android.gallery;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
 
 public class GalleryView extends ViewGroup {
 
+  public static final int INVALID_INDEX = -1;
+  public static final int INVALID_TYPE = -1;
+
   private static final String LOG_TAG = "GalleryView";
 
-  private static final int INVALID_INDEX = -1;
-  private static final int INVALID_TYPE = -1;
-
-  private Nest nest = new Nest(this);
+  private GalleryNest nest = new GalleryNest(this);
   private GestureRecognizer gestureRecognizer;
 
   @Nullable
-  private LayoutManager layoutManager;
+  private GalleryLayoutManager layoutManager;
 
   // Whether the GalleryView is in layout
-  private boolean inLayout;
+  boolean inLayout;
 
   public GalleryView(Context context) {
     super(context);
@@ -74,11 +66,11 @@ public class GalleryView extends ViewGroup {
    *
    * @throws IllegalStateException if it called during laying
    */
-  public void setLayoutManager(@Nullable LayoutManager layoutManager) {
+  public void setLayoutManager(@Nullable GalleryLayoutManager layoutManager) {
     if (inLayout) throw new IllegalStateException("Can't set LayoutManager during laying");
     if (this.layoutManager == layoutManager) return;
 
-    LayoutManager oldLayoutManager = this.layoutManager;
+    GalleryLayoutManager oldLayoutManager = this.layoutManager;
     if (oldLayoutManager != null) {
       oldLayoutManager.cancelAnimations();
       oldLayoutManager.detach();
@@ -93,10 +85,10 @@ public class GalleryView extends ViewGroup {
   }
 
   /**
-   * Returns the LayoutManager set in {@link #setLayoutManager(LayoutManager)}.
+   * Returns the LayoutManager set in {@link #setLayoutManager(GalleryLayoutManager)}.
    */
   @Nullable
-  public LayoutManager getLayoutManager() {
+  public GalleryLayoutManager getLayoutManager() {
     return layoutManager;
   }
 
@@ -106,11 +98,11 @@ public class GalleryView extends ViewGroup {
    *
    * @throws IllegalStateException if it called during laying
    */
-  public void setAdapter(@Nullable Adapter adapter) {
+  public void setAdapter(@Nullable GalleryAdapter adapter) {
     if (inLayout) throw new IllegalStateException("Can't set Adapter during laying");
     if (nest.adapter == adapter) return;
 
-    Adapter oldAdapter = nest.adapter;
+    GalleryAdapter oldAdapter = nest.adapter;
     if (oldAdapter != null) {
       if (layoutManager != null) {
         layoutManager.cancelAnimations();
@@ -127,10 +119,10 @@ public class GalleryView extends ViewGroup {
   }
 
   /**
-   * Returns the Adapter set in {@link #setAdapter(Adapter)}.
+   * Returns the Adapter set in {@link #setAdapter(GalleryAdapter)}.
    */
   @Nullable
-  public Adapter getAdapter() {
+  public GalleryAdapter getAdapter() {
     return nest.adapter;
   }
 
@@ -139,7 +131,7 @@ public class GalleryView extends ViewGroup {
    * Returns {@code null} if the GalleryView is in laying.
    */
   @Nullable
-  public Page getPageAt(int index) {
+  public GalleryPage getPageAt(int index) {
     return nest.getPageAt(index);
   }
 
@@ -288,511 +280,4 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onPointerUp(float x, float y) {}
   };
-
-  public static class Nest {
-
-    private static final int MAX_PAGE = 5;
-
-    // Pages which are attached to GalleryView
-    @SuppressLint("UseSparseArrays")
-    private Map<Integer, Page> pages = new HashMap<>();
-    // Page cache, key is page type
-    @SuppressLint("UseSparseArrays")
-    private Map<Integer, Stack<Page>> cache = new HashMap<>();
-
-    private final GalleryView view;
-
-    @Nullable
-    private Adapter adapter;
-
-    Nest(GalleryView view) {
-      this.view = view;
-    }
-
-    /**
-     * Returns an unmodifiable collection of all attached page.
-     */
-    public Collection<Page> getPages() {
-      if (view.inLayout) throw new IllegalStateException("Can't get pages during laying");
-      return Collections.unmodifiableCollection(pages.values());
-    }
-
-    // Remove all page, clear cache
-    private void reset() {
-      if (view.inLayout) throw new IllegalStateException("Can't reset Nest during laying");
-
-      // Remove all views attached the GalleryView
-      view.removeAllViews();
-
-      if (adapter != null) {
-        // Unbind and destroy all attached page
-        for (Page page : pages.values()) {
-          adapter.unbindPage(page);
-          adapter.destroyPage(page);
-        }
-        pages.clear();
-
-        // Destroy all cached page
-        for (Stack<Page> stack : cache.values()) {
-          for (Page page : stack) {
-            adapter.destroyPage(page);
-          }
-        }
-        cache.clear();
-      }
-    }
-
-    /**
-     * Layout the GalleryView attached to this Nest.
-     * The GalleryView should be measured.
-     */
-    public void layout(@NonNull LayoutManager layoutManager) {
-      if (view.inLayout) {
-        Log.e(LOG_TAG, "Cannot layout GalleryView recursively");
-        return;
-      }
-
-      if (adapter == null) {
-        Log.e(LOG_TAG, "Cannot layout without a Adapter set");
-        return;
-      }
-
-      int width = view.getWidth();
-      int height = view.getHeight();
-
-      startLayout();
-      if (width > 0 && height > 0 && adapter.getPageCount() > 0) {
-        layoutManager.layout(width, height);
-      }
-      endLayout();
-    }
-
-    private void startLayout() {
-      view.inLayout = true;
-
-      Iterator<Page> iterator = pages.values().iterator();
-      while (iterator.hasNext()) {
-        Page page = iterator.next();
-        if (page.pinned) {
-          // Mark the page unpinned if it's pinned
-          page.pinned = false;
-        } else {
-          // Unpin the page if it's not pinned
-          unpinPageInternal(page);
-          iterator.remove();
-        }
-      }
-    }
-
-    private void endLayout() {
-      Iterator<Page> iterator = pages.values().iterator();
-      while (iterator.hasNext()) {
-        Page page = iterator.next();
-        // Remove all unpinned pages
-        if (!page.pinned) {
-          unpinPageInternal(page);
-          iterator.remove();
-        }
-      }
-
-      view.inLayout = false;
-    }
-
-    // pages still keeps the page
-    private void unpinPageInternal(Page page) {
-      page.pinned = false;
-      view.removeView(page.view);
-      //noinspection ConstantConditions
-      adapter.unbindPage(page);
-
-      Stack<Page> stack = cache.get(page.getType());
-      if (stack == null) {
-        stack = new Stack<>();
-        cache.put(page.getType(), stack);
-      }
-
-      if (stack.size() < MAX_PAGE) {
-        stack.push(page);
-      } else {
-        adapter.destroyPage(page);
-      }
-    }
-
-    /**
-     * Returns {@code true} if the view of the page is attached.
-     */
-    public boolean containPage(int index) {
-      if (!view.inLayout) {
-        throw new IllegalStateException("Cannot only call containPage() in layout");
-      }
-
-      if (adapter == null) {
-        throw new IllegalStateException("Don't unset adapter in layout");
-      }
-
-      Page page = pages.get(index);
-      return page != null && adapter.getPageType(index) == page.getType();
-    }
-
-    /**
-     * Pins the page with the the index to gallery.
-     * If the page is already pinned, just return it.
-     */
-    @NonNull
-    public Page pinPage(int index) {
-      if (!view.inLayout) {
-        throw new IllegalStateException("Cannot only call pinPage() in layout");
-      }
-
-      if (adapter == null) {
-        throw new IllegalStateException("Don't unset adapter in layout");
-      }
-
-      // Get from unpinned attached page
-      Page page = pages.get(index);
-      if (page != null && adapter.getPageType(index) == page.getType()) {
-        page.pinned = true;
-        return page;
-      }
-
-      /*
-       * The page isn't attached.
-       * Get the page, bind it and attach it.
-       */
-
-      // Get from cache
-      page = null;
-      int type = adapter.getPageType(index);
-      Stack<Page> stack = cache.get(type);
-      if (stack != null && !stack.empty()) {
-        page = stack.pop();
-      }
-
-      // Create page
-      if (page == null) {
-        page = adapter.createPage(view, type);
-      }
-
-      // Bind and attach
-      page.pinned = true;
-
-      view.addView(page.view);
-      adapter.bindPage(page, index);
-      pages.put(page.getIndex(), page);
-
-      return page;
-    }
-
-    /**
-     * Unpin the page.
-     */
-    public void unpinPage(Page page) {
-      if (!view.inLayout) {
-        throw new IllegalStateException("Cannot only call unpinPage() in layout");
-      }
-
-      if (adapter == null) {
-        throw new IllegalStateException("Don't unset adapter in layout");
-      }
-
-      pages.remove(page.getIndex());
-      unpinPageInternal(page);
-    }
-
-    /**
-     * Returns the count of pages.
-     */
-    public int getPageCount() {
-      if (adapter == null) {
-        throw new IllegalStateException("Can only call getPageCount() in layout");
-      }
-      return adapter.getPageCount();
-    }
-
-    /**
-     * Returns the page with the specified index.
-     * Returns {@code null} if the GalleryView is in laying.
-     */
-    @Nullable
-    public Page getPageAt(int index) {
-      if (view.inLayout) return null;
-
-      Page page = pages.get(index);
-      return page != null && page.pinned ? page : null;
-    }
-
-    private void notifyPageChanged(int index) {
-      if (view.inLayout) return;
-      Page page = pages.get(index);
-      if (page == null) return;
-
-      page.pinned = false;
-      view.requestLayout();
-    }
-
-    private void notifyPageSetChanged() {
-      if (view.inLayout) return;
-      if (pages.isEmpty()) return;
-
-      for (Page page : pages.values()) {
-        page.pinned = false;
-      }
-      view.requestLayout();
-    }
-  }
-
-  /**
-   * LayoutManager handles page layout and touch events.
-   */
-  public static abstract class LayoutManager {
-
-    @Nullable
-    private Nest nest;
-
-    private void attach(Nest nest) {
-      if (this.nest != null) {
-        throw new IllegalStateException("This LayoutManager is already attached to a GalleryView.");
-      }
-      this.nest = nest;
-    }
-
-    private void detach() {
-      this.nest = null;
-    }
-
-    /**
-     * Returns the Nest of attached GalleryView.
-     * Returns {@code null} if the LayoutManager isn't attached to a GalleryView.
-     */
-    @Nullable
-    public Nest getNest() {
-      return nest;
-    }
-
-    /**
-     * Lays the GalleryView attached to LayoutManager.
-     * It's sure that width > 0, height > 0 and page count > 0.
-     *
-     * @param width the width of the GalleryView
-     * @param height the height of the GalleryView
-     */
-    protected abstract void layout(int width, int height);
-
-    /**
-     * Requests layout for the GalleryView attached to this LayoutManager.
-     */
-    protected void requestLayout() {
-      if (nest != null) {
-        nest.view.requestLayout();
-      }
-    }
-
-    /**
-     * Returns {@code true} if this LayoutManager is attached to a GalleryView,
-     * and the GalleryView is in layout.
-     */
-    protected boolean isInLayout() {
-      return nest != null && nest.view.inLayout;
-    }
-
-    /**
-     * Scrolls the GalleryView attached to LayoutManager.
-     *
-     * @param dx left to right is positive
-     * @param dy top to bottom is positive
-     */
-    protected abstract void scroll(float dx, float dy);
-
-    /**
-     * Scales the GalleryView attached to LayoutManager.
-     *
-     * @param x the x of the center point
-     * @param y the y of the center point
-     * @param factor the factor of the scaling
-     */
-    protected abstract void scale(float x, float y, float factor);
-
-    /**
-     * Flings the GalleryView attached to LayoutManager.
-     *
-     * @param velocityX the velocity in horizontal direction
-     * @param velocityY the velocity in vertical direction
-     */
-    protected abstract void fling(float velocityX, float velocityY);
-
-    /**
-     * The first point of a touch event flow is down.
-     *
-     * @param x the x of the point
-     * @param y the y of the point
-     */
-    protected abstract void down(float x, float y);
-
-    /**
-     * The last point of a touch event flow is up.
-     *
-     * @param x the x of the point
-     * @param y the y of the point
-     */
-    protected abstract void up(float x, float y);
-
-    /**
-     * Cancel all animations of the LayoutManager.
-     */
-    protected abstract void cancelAnimations();
-  }
-
-  /**
-   * Adapter handles Page creation, destroying, binding and unbinding.
-   */
-  public static abstract class Adapter {
-
-    @Nullable
-    private Nest nest;
-
-    private void attach(Nest nest) {
-      if (this.nest != null) {
-        throw new IllegalStateException("This Adapter is already attached to a GalleryView.");
-      }
-      this.nest = nest;
-    }
-
-    private void detach() {
-      this.nest = null;
-    }
-
-    private Page createPage(GalleryView parent, int type) {
-      Page page = onCreatePage(parent, type);
-      page.type = type;
-      return page;
-    }
-
-    /**
-     * Creates a Page of the specified type.
-     */
-    public abstract Page onCreatePage(GalleryView parent, int type);
-
-    private void destroyPage(Page page) {
-      onDestroyPage(page);
-      page.type = INVALID_TYPE;
-    }
-
-    /**
-     * Destroys the Page.
-     *
-     * The index of the Page is invalid.
-     * The type of the Page is valid.
-     */
-    public abstract void onDestroyPage(Page page);
-
-    private void bindPage(Page page, int index) {
-      page.index = index;
-      onBindPage(page);
-    }
-
-    /**
-     * Binds the Page.
-     *
-     * The view of the page is already attached to the GalleryView.
-     *
-     * The index of the Page is valid.
-     * The type of the Page is valid.
-     */
-    public abstract void onBindPage(Page page);
-
-    private void unbindPage(Page page) {
-      onUnbindPage(page);
-      page.index = INVALID_INDEX;
-    }
-
-    /**
-     * Unbinds the Page.
-     *
-     * The view of the page is already detached from the GalleryView.
-     *
-     * The index of the Page is valid.
-     * The type of the Page is valid.
-     */
-    public abstract void onUnbindPage(Page page);
-
-    /**
-     * Returns the total count of all pages.
-     */
-    public abstract int getPageCount();
-
-    /**
-     * Returns the type of the page with the specified index.
-     */
-    public int getPageType(int index) {
-      return 0;
-    }
-
-    /**
-     * Notifies the page with the specified index is changed.
-     */
-    public final void notifyPageChanged(int index) {
-      if (nest != null) {
-        nest.notifyPageChanged(index);
-      }
-    }
-
-    /**
-     * Notifies all pages might be changed.
-     */
-    public final void notifyPageSetChanged() {
-      if (nest != null) {
-        nest.notifyPageSetChanged();
-      }
-    }
-  }
-
-  /**
-   * Page of a GalleryView, the base element to lay.
-   */
-  public static class Page {
-
-    /**
-     * The view of this Page.
-     */
-    public final View view;
-
-    private int index = INVALID_INDEX;
-    private int type = INVALID_TYPE;
-
-    /*
-     * The pinned of All valid attached page is true.
-     * If the attached page is invalid, namely,
-     * notifyPageChanged() or notifyPageSetChanged() is called,
-     * the pinned is false.
-     * In layout, the pinned of all attached page are set to false at the beginning,
-     * pining a page to set the pinned to true.
-     * Remove the pages whose pinned is false.
-     */
-    boolean pinned = false;
-
-    public Page(View view) {
-      this.view = view;
-    }
-
-    /**
-     * Returns the index of this Page.
-     * It's valid from {@link Adapter#onBindPage(Page)} to {@link Adapter#onUnbindPage(Page)}.
-     */
-    public int getIndex() {
-      return index;
-    }
-
-    /**
-     * Returns the type of this Page.
-     * It's valid until the page destroyed.
-     */
-    public int getType() {
-      return type;
-    }
-
-    @Override
-    public String toString() {
-      return "Page{" + Integer.toHexString(hashCode()) + " index=" + index + ", type=" + type + "}";
-    }
-  }
 }

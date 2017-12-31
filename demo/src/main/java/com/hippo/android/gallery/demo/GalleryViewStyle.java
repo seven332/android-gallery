@@ -20,6 +20,7 @@ package com.hippo.android.gallery.demo;
  * Created by Hippo on 2017/12/20.
  */
 
+import com.hippo.android.gallery.GalleryLayoutManager;
 import com.hippo.android.gallery.GalleryView;
 import com.hippo.android.gallery.HorizontalPagerLayout;
 import com.hippo.android.gallery.HorizontalScrollLayout;
@@ -125,7 +126,7 @@ public class GalleryViewStyle {
     if (!isChanged()) return;
 
     changed = false;
-    GalleryView.LayoutManager lm = view.getLayoutManager();
+    GalleryLayoutManager lm = view.getLayoutManager();
     if (layoutManager == LAYOUT_MANAGER_SCROLL) {
       ScrollLayoutManager slm;
       if (lm instanceof ScrollLayoutManager) {

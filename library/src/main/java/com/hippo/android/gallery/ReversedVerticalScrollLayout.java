@@ -94,10 +94,10 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void offsetPages(List<GalleryView.Page> pages, int offset) {
+  public void offsetPages(List<GalleryPage> pages, int offset) {
     int actualOffset = -offset;
 
-    for (GalleryView.Page page : pages) {
+    for (GalleryPage page : pages) {
       page.view.offsetTopAndBottom(actualOffset);
     }
 

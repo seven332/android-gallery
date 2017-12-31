@@ -30,6 +30,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+import com.hippo.android.gallery.GalleryAdapter;
+import com.hippo.android.gallery.GalleryPage;
 import com.hippo.android.gallery.GalleryView;
 
 public class MainActivity extends AppCompatActivity {
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  private static class Adapter extends com.hippo.android.gallery.GalleryView.Adapter {
+  private static class Adapter extends GalleryAdapter {
 
     private static final int TYPE_IMAGE = 0;
     private static final int TYPE_TEXT = 1;
@@ -90,21 +92,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public GalleryView.Page onCreatePage(GalleryView parent, int type) {
+    public GalleryPage onCreatePage(GalleryView parent, int type) {
       View view;
       if (type == TYPE_IMAGE) {
         view = inflater.inflate(R.layout.page_image, parent, false);
       } else {
         view = inflater.inflate(R.layout.page_text, parent, false);
       }
-      return new GalleryView.Page(view);
+      return new GalleryPage(view);
     }
 
     @Override
-    public void onDestroyPage(GalleryView.Page page) {}
+    public void onDestroyPage(GalleryPage page) {}
 
     @Override
-    public void onBindPage(GalleryView.Page page) {
+    public void onBindPage(GalleryPage page) {
       if (page.getType() == TYPE_IMAGE) {
         ImageView imageView = page.view.findViewById(R.id.image);
 
@@ -123,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onUnbindPage(GalleryView.Page page) {}
+    public void onUnbindPage(GalleryPage page) {}
 
     @Override
     public int getPageCount() {

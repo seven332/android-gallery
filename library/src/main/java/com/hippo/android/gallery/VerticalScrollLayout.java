@@ -94,8 +94,8 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void offsetPages(List<GalleryView.Page> pages, int offset) {
-    for (GalleryView.Page page : pages) {
+  public void offsetPages(List<GalleryPage> pages, int offset) {
+    for (GalleryPage page : pages) {
       page.view.offsetTopAndBottom(offset);
     }
 

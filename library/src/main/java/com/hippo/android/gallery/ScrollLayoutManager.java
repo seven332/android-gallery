@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * ScrollLayoutManager lays pages like {@code ScrollView}.
  */
-public class ScrollLayoutManager extends GalleryView.LayoutManager {
+public class ScrollLayoutManager extends GalleryLayoutManager {
 
   // SCALE_MIN MUST BE 1.0f
   private static final float SCALE_MIN = 1.0f;
@@ -110,12 +110,12 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
    * Layout next pages one by one,
    * until first invisible page.
    */
-  private void layoutNextPages(GalleryView.Nest nest, LinkedList<GalleryView.Page> pages) {
+  private void layoutNextPages(GalleryNest nest, LinkedList<GalleryPage> pages) {
     int pageCount = nest.getPageCount();
     int nextIndex = pages.getLast().getIndex();
 
     while (++nextIndex < pageCount && scrollLayout.canLayoutNext(pages.getLast().view, 0)) {
-      GalleryView.Page nextPage = nest.pinPage(nextIndex);
+      GalleryPage nextPage = nest.pinPage(nextIndex);
       pages.addLast(nextPage);
       scrollLayout.layoutNext(nextPage.view);
 
@@ -138,11 +138,11 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
    * Layout previous pages one by one,
    * until first invisible page.
    */
-  private void layoutPreviousPages(GalleryView.Nest nest, LinkedList<GalleryView.Page> pages, int nextBlank) {
+  private void layoutPreviousPages(GalleryNest nest, LinkedList<GalleryPage> pages, int nextBlank) {
     int previousIndex = pages.getFirst().getIndex();
 
     while (--previousIndex >= 0 && scrollLayout.canLayoutPrevious(pages.getFirst().view, nextBlank)) {
-      GalleryView.Page previousPage = nest.pinPage(previousIndex);
+      GalleryPage previousPage = nest.pinPage(previousIndex);
       pages.addFirst(previousPage);
       scrollLayout.layoutPrevious(previousPage.view);
 
@@ -161,7 +161,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     }
   }
 
-  private void adjustPagesPosition(int nextBlank, int previousOffset, LinkedList<GalleryView.Page> pages) {
+  private void adjustPagesPosition(int nextBlank, int previousOffset, LinkedList<GalleryPage> pages) {
     int pageOffset = 0;
     if (previousOffset > 0) {
       // There is blank in previous area.
@@ -176,7 +176,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void layout(int width, int height) {
-    GalleryView.Nest nest = getNest();
+    GalleryNest nest = getNest();
     if (nest == null) return;
 
     // Ensure anchor index in the range
@@ -192,12 +192,12 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
     scrollLayout.start(width, height, pageScale, pageDeviate, pageInterval);
 
-    LinkedList<GalleryView.Page> pages = new LinkedList<>();
+    LinkedList<GalleryPage> pages = new LinkedList<>();
 
     /*
      * 1. Layout anchor page
      */
-    GalleryView.Page anchorPage = nest.pinPage(anchorIndex);
+    GalleryPage anchorPage = nest.pinPage(anchorIndex);
     pages.add(anchorPage);
     scrollLayout.layoutAnchor(anchorPage.view, anchorOffset);
 
@@ -228,7 +228,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     /*
      * 6. Update anchorIndex and anchorOffset
      */
-    for (GalleryView.Page page : pages) {
+    for (GalleryPage page : pages) {
       if (scrollLayout.canBeAnchor(page.view)) {
         anchorIndex = page.getIndex();
         anchorOffset = scrollLayout.getAnchorOffset(page.view);
@@ -239,7 +239,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void scroll(float dx, float dy) {
-    GalleryView.Nest nest = getNest();
+    GalleryNest nest = getNest();
     if (nest == null) return;
 
     scrollLayout.scrollBy(anchorOffset, pageDeviate, dx, dy, temp);
@@ -251,7 +251,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void scale(float x, float y, float factor) {
-    GalleryView.Nest nest = getNest();
+    GalleryNest nest = getNest();
     if (nest == null) return;
 
     float oldPageScale = pageScale;
@@ -268,7 +268,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
 
   @Override
   public void fling(float velocityX, float velocityY) {
-    GalleryView.Nest nest = getNest();
+    GalleryNest nest = getNest();
     if (nest == null) return;
 
     float velocity;
@@ -363,7 +363,7 @@ public class ScrollLayoutManager extends GalleryView.LayoutManager {
     /**
      * Offset all pages.
      */
-    void offsetPages(List<GalleryView.Page> pages, int offset);
+    void offsetPages(List<GalleryPage> pages, int offset);
 
     /**
      * Whether the page can be a anchor.
