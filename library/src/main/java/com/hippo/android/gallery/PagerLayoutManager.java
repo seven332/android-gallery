@@ -416,13 +416,12 @@ public class PagerLayoutManager extends GalleryLayoutManager {
         .start();
   }
 
-  @Override
-  protected void down(float x, float y) {
-    cancelAnimations();
-  }
+  /**
+   * Starts a animation to turn to next or previous page, or turn back to the original page.
+   */
+  public void startTurningAnimation() {
+    if (isInLayout()) throw new IllegalStateException("Can't start turning animation during layout");
 
-  @Override
-  protected void up(float x, float y) {
     if (pagerLayout == null) return;
     GalleryNest nest = getNest();
     if (nest == null) return;

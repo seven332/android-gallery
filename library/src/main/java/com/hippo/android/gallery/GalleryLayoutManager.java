@@ -102,22 +102,6 @@ public abstract class GalleryLayoutManager {
   protected abstract void fling(float velocityX, float velocityY);
 
   /**
-   * The first point of a touch event flow is down.
-   *
-   * @param x the x of the point
-   * @param y the y of the point
-   */
-  protected abstract void down(float x, float y);
-
-  /**
-   * The last point of a touch event flow is up.
-   *
-   * @param x the x of the point
-   * @param y the y of the point
-   */
-  protected abstract void up(float x, float y);
-
-  /**
    * Cancel all animations of the LayoutManager.
    */
   protected abstract void cancelAnimations();

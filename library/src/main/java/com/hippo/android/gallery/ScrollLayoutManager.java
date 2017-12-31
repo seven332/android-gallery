@@ -291,14 +291,6 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
-  protected void down(float x, float y) {
-    cancelAnimations();
-  }
-
-  @Override
-  protected void up(float x, float y) {}
-
-  @Override
   protected void cancelAnimations() {
     flingAnimation.cancel();
   }

@@ -30,6 +30,9 @@ import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 
+/**
+ * GalleryView displays pages like a gallery.
+ */
 public class GalleryView extends ViewGroup {
 
   public static final int INVALID_INDEX = -1;
@@ -42,6 +45,8 @@ public class GalleryView extends ViewGroup {
 
   @Nullable
   private GalleryLayoutManager layoutManager;
+  @Nullable
+  private GalleryGestureHandler gestureHandler;
 
   // Whether the GalleryView is in layout
   boolean inLayout;
@@ -90,6 +95,21 @@ public class GalleryView extends ViewGroup {
   @Nullable
   public GalleryLayoutManager getLayoutManager() {
     return layoutManager;
+  }
+
+  /**
+   * Set a GalleryGestureHandler to handle gestures.
+   */
+  public void setGestureHandler(@Nullable GalleryGestureHandler gestureHandler) {
+    this.gestureHandler = gestureHandler;
+  }
+
+  /**
+   * Returns the GalleryGestureHandler set in {@link #setGestureHandler(GalleryGestureHandler)}.
+   */
+  @Nullable
+  public GalleryGestureHandler getGestureHandler() {
+    return gestureHandler;
   }
 
   /**
@@ -216,68 +236,108 @@ public class GalleryView extends ViewGroup {
 
   private GestureRecognizer.Listener listener = new GestureRecognizer.Listener() {
     @Override
-    public void onSingleTapUp(float x, float y) {}
+    public void onSingleTapUp(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onSingleTapUp(GalleryView.this, x, y);
+      }
+    }
 
     @Override
-    public void onSingleTapConfirmed(float x, float y) {}
+    public void onSingleTapConfirmed(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onSingleTapConfirmed(GalleryView.this, x, y);
+      }
+    }
 
     @Override
-    public void onDoubleTap(float x, float y) {}
+    public void onDoubleTap(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onDoubleTap(GalleryView.this, x, y);
+      }
+    }
 
     @Override
-    public void onDoubleTapConfirmed(float x, float y) {}
+    public void onDoubleTapConfirmed(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onDoubleTapConfirmed(GalleryView.this, x, y);
+      }
+    }
 
     @Override
-    public void onLongPress(float x, float y) {}
+    public void onLongPress(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onLongPress(GalleryView.this, x, y);
+      }
+    }
 
     @Override
     public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
-      if (layoutManager != null) {
-        layoutManager.scroll(dx, dy);
+      if (gestureHandler != null) {
+        gestureHandler.onScroll(GalleryView.this, dx, dy, totalX, totalY, x, y);
       }
     }
 
     @Override
     public void onFling(float velocityX, float velocityY) {
-      if (layoutManager != null) {
-        layoutManager.fling(velocityX, velocityY);
+      if (gestureHandler != null) {
+        gestureHandler.onFling(GalleryView.this, velocityX, velocityY);
       }
     }
 
     @Override
-    public void onScaleBegin(float focusX, float focusY) {}
+    public void onScaleBegin(float focusX, float focusY) {
+      if (gestureHandler != null) {
+        gestureHandler.onScaleBegin(GalleryView.this, focusX, focusY);
+      }
+    }
 
     @Override
     public void onScale(float focusX, float focusY, float scale) {
-      if (layoutManager != null) {
-        layoutManager.scale(focusX, focusY, scale);
+      if (gestureHandler != null) {
+        gestureHandler.onScale(GalleryView.this, focusX, focusY, scale);
       }
     }
 
     @Override
-    public void onScaleEnd() {}
+    public void onScaleEnd() {
+      if (gestureHandler != null) {
+        gestureHandler.onScaleEnd(GalleryView.this);
+      }
+    }
 
     @Override
     public void onDown(float x, float y) {
-      if (layoutManager != null) {
-        layoutManager.down(x, y);
+      if (gestureHandler != null) {
+        gestureHandler.onDown(GalleryView.this, x, y);
       }
     }
 
     @Override
     public void onUp(float x, float y) {
-      if (layoutManager != null) {
-        layoutManager.up(x, y);
+      if (gestureHandler != null) {
+        gestureHandler.onUp(GalleryView.this, x, y);
       }
     }
 
     @Override
-    public void onCancel() {}
+    public void onCancel() {
+      if (gestureHandler != null) {
+        gestureHandler.onCancel(GalleryView.this);
+      }
+    }
 
     @Override
-    public void onPointerDown(float x, float y) {}
+    public void onPointerDown(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onPointerDown(GalleryView.this, x, y);
+      }
+    }
 
     @Override
-    public void onPointerUp(float x, float y) {}
+    public void onPointerUp(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onPointerUp(GalleryView.this, x, y);
+      }
+    }
   };
 }
