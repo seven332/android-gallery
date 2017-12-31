@@ -22,7 +22,7 @@ package com.hippo.android.gallery;
 
 import android.view.MotionEvent;
 
-public class DownUpDetector {
+class DownUpDetector {
 
   public interface DownUpListener {
     void onDown(float x, float y);
