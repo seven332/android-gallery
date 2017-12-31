@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+import com.hippo.android.gallery.BaseGestureHandler;
 import com.hippo.android.gallery.GalleryAdapter;
 import com.hippo.android.gallery.GalleryPage;
 import com.hippo.android.gallery.GalleryView;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     view = findViewById(R.id.gallery_view);
     view.setAdapter(new Adapter(getLayoutInflater()));
+    view.setGestureHandler(new BaseGestureHandler());
 
     style.apply(view);
   }
