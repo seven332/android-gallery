@@ -291,7 +291,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
-  protected void cancelAnimations() {
+  public void cancelAnimations() {
     flingAnimation.cancel();
   }
 

@@ -447,7 +447,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
-  protected void cancelAnimations() {
+  public void cancelAnimations() {
     turningAnimation.cancel();
     flingAnimation.cancel();
   }
