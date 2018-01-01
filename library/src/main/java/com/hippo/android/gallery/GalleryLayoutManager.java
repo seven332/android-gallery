@@ -28,17 +28,17 @@ import android.support.annotation.Nullable;
 public abstract class GalleryLayoutManager {
 
   @Nullable
-  private GalleryNest nest;
+  private GalleryView view;
 
-  void attach(GalleryNest nest) {
-    if (this.nest != null) {
+  void attach(GalleryView view) {
+    if (this.view != null) {
       throw new IllegalStateException("This LayoutManager is already attached to a GalleryView.");
     }
-    this.nest = nest;
+    this.view = view;
   }
 
   void detach() {
-    this.nest = null;
+    this.view = null;
   }
 
   /**
@@ -46,8 +46,8 @@ public abstract class GalleryLayoutManager {
    * Returns {@code null} if the LayoutManager isn't attached to a GalleryView.
    */
   @Nullable
-  public GalleryNest getNest() {
-    return nest;
+  public GalleryView getGalleryView() {
+    return view;
   }
 
   /**
@@ -63,8 +63,8 @@ public abstract class GalleryLayoutManager {
    * Requests layout for the GalleryView attached to this LayoutManager.
    */
   public void requestLayout() {
-    if (nest != null) {
-      nest.view.requestLayout();
+    if (view != null) {
+      view.requestLayout();
     }
   }
 
@@ -73,7 +73,7 @@ public abstract class GalleryLayoutManager {
    * and the GalleryView is in layout.
    */
   public boolean isInLayout() {
-    return nest != null && nest.view.inLayout;
+    return view != null && view.isInLayout2();
   }
 
   /**

@@ -156,10 +156,10 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (this.scaleType == scaleType) return;
     this.scaleType = scaleType;
 
-    GalleryNest nest = getNest();
-    if (nest == null) return;
+    GalleryView view = getGalleryView();
+    if (view == null) return;
 
-    for (GalleryPage page : nest.getPages()) {
+    for (GalleryPage page : view.getPages()) {
       Photo photo = Utils.asPhoto(page);
       if (photo == null) continue;
 
@@ -178,10 +178,10 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (this.startPosition == startPosition) return;
     this.startPosition = startPosition;
 
-    GalleryNest nest = getNest();
-    if (nest == null) return;
+    GalleryView view = getGalleryView();
+    if (view == null) return;
 
-    for (GalleryPage page : nest.getPages()) {
+    for (GalleryPage page : view.getPages()) {
       Photo photo = Utils.asPhoto(page);
       if (photo == null) continue;
 
@@ -210,10 +210,10 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     }
   }
 
-  private GalleryPage pinPage(GalleryNest nest, int index) {
-    boolean reset = !nest.containPage(index);
+  private GalleryPage pinPage(GalleryView view, int index) {
+    boolean reset = !view.isViewAttached(index);
 
-    GalleryPage page = nest.pinPage(index);
+    GalleryPage page = view.pinPage(index);
 
     Photo photo = Utils.asPhoto(page);
     if (reset && photo != null) {
@@ -231,13 +231,13 @@ public class PagerLayoutManager extends GalleryLayoutManager {
       return;
     }
 
-    GalleryNest nest = getNest();
-    if (nest == null) return;
+    GalleryView view = getGalleryView();
+    if (view == null) return;
 
-    int pageCount = nest.getPageCount();
+    int pageCount = view.getPageCount();
 
     // Ensure current index in the range
-    int newIndex = Utils.clamp(currentIndex, 0, nest.getPageCount() - 1);
+    int newIndex = Utils.clamp(currentIndex, 0, view.getPageCount() - 1);
     if (currentIndex != newIndex) {
       currentIndex = newIndex;
       pageOffset = 0;
@@ -246,19 +246,19 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     pagerLayout.start(width, height, pageInterval, scaleType, startPosition);
 
     // Ensure page offset in the range
-    fixPageOffset(nest);
+    fixPageOffset(view);
 
     // Layout current page
-    GalleryPage current = pinPage(nest, currentIndex);
+    GalleryPage current = pinPage(view, currentIndex);
     pagerLayout.layoutPage(current.view, pageOffset, POSITION_CURRENT);
     // Layout previous page
     if (currentIndex > 0) {
-      GalleryPage previous = pinPage(nest, currentIndex - 1);
+      GalleryPage previous = pinPage(view, currentIndex - 1);
       pagerLayout.layoutPage(previous.view, pageOffset, POSITION_PREVIOUS);
     }
     // Layout next page
     if (currentIndex < pageCount - 1) {
-      GalleryPage next = pinPage(nest, currentIndex + 1);
+      GalleryPage next = pinPage(view, currentIndex + 1);
       pagerLayout.layoutPage(next.view, pageOffset, POSITION_NEXT);
     }
   }
@@ -277,14 +277,14 @@ public class PagerLayoutManager extends GalleryLayoutManager {
    * Returns the photo if current page is selected and is photo.
    */
   @Nullable
-  private Photo getSelectedPhoto(GalleryNest nest) {
-    return isPageSelected() ? Utils.asPhoto(nest.getPageAt(currentIndex)) : null;
+  private Photo getSelectedPhoto(GalleryView view) {
+    return isPageSelected() ? Utils.asPhoto(view.getPageAt(currentIndex)) : null;
   }
 
   /*
    * Handle page turning and fix PageOffset to make it in range.
    */
-  private void fixPageOffset(GalleryNest nest) {
+  private void fixPageOffset(GalleryView view) {
     int pageRange = pagerLayout.getPageRange();
 
     // Try to turn to previous page
@@ -294,7 +294,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     }
 
     // Turn to next page
-    while (pageOffset <= -pageRange && currentIndex < nest.getPageCount() - 1) {
+    while (pageOffset <= -pageRange && currentIndex < view.getPageCount() - 1) {
       currentIndex += 1;
       pageOffset += pageRange;
     }
@@ -302,7 +302,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     // Ensure page offset in range
     if (currentIndex == 0 && pageOffset > 0.0f) {
       pageOffset = 0.0f;
-    } else if (currentIndex == nest.getPageCount() - 1 && pageOffset < 0.0f) {
+    } else if (currentIndex == view.getPageCount() - 1 && pageOffset < 0.0f) {
       pageOffset = 0.0f;
     }
   }
@@ -316,30 +316,30 @@ public class PagerLayoutManager extends GalleryLayoutManager {
    * setPageOffset() works fine.
    */
   private void setPageOffset(float newPageOffset) {
-    GalleryNest nest = getNest();
-    if (nest == null) return;
+    GalleryView view = getGalleryView();
+    if (view == null) return;
 
     float oldPageOffset = pageOffset;
     pageOffset = newPageOffset;
-    fixPageOffset(nest);
+    fixPageOffset(view);
 
     // Only need layout if pageOffset changes
     if (pageOffset != oldPageOffset) {
-      nest.layout(this);
+      view.layout();
     }
   }
 
   @Override
   public void scroll(float dx, float dy) {
     if (pagerLayout == null) return;
-    GalleryNest nest = getNest();
-    if (nest == null) return;
+    GalleryView view = getGalleryView();
+    if (view == null) return;
 
     boolean needLayout = false;
 
     while (dx != 0.0f && dy != 0.0f) {
       // Offset current selected photo
-      Photo photo = getSelectedPhoto(nest);
+      Photo photo = getSelectedPhoto(view);
       if (photo != null) {
         photo.offset(dx, dy, remain);
         dx = remain[0];
@@ -353,7 +353,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
       dx = remain[0];
       dy = remain[1];
 
-      fixPageOffset(nest);
+      fixPageOffset(view);
 
       // Only need layout if pageOffset changes
       if (pageOffset != oldPageOffset) {
@@ -362,15 +362,15 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     }
 
     if (needLayout) {
-      nest.layout(this);
+      view.layout();
     }
   }
 
   @Override
   public void scale(float x, float y, float factor) {
-    GalleryNest nest = getNest();
-    if (nest == null) return;
-    Photo photo = getSelectedPhoto(nest);
+    GalleryView view = getGalleryView();
+    if (view == null) return;
+    Photo photo = getSelectedPhoto(view);
     if (photo == null) return;
 
     photo.scale(x, y, factor);
@@ -381,9 +381,9 @@ public class PagerLayoutManager extends GalleryLayoutManager {
    * Used by fling animation.
    */
   private void scrollPage(float dx, float dy) {
-    GalleryNest nest = getNest();
-    if (nest == null) return;
-    Photo photo = getSelectedPhoto(nest);
+    GalleryView view = getGalleryView();
+    if (view == null) return;
+    Photo photo = getSelectedPhoto(view);
     if (photo == null) return;
 
     photo.offset(dx, dy, remain);
@@ -392,9 +392,9 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   @Override
   public void fling(float velocityX, float velocityY) {
     if (pagerLayout == null) return;
-    GalleryNest nest = getNest();
-    if (nest == null) return;
-    Photo photo = getSelectedPhoto(nest);
+    GalleryView view = getGalleryView();
+    if (view == null) return;
+    Photo photo = getSelectedPhoto(view);
     if (photo == null) return;
 
     float velocity;
@@ -423,13 +423,13 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (isInLayout()) throw new IllegalStateException("Can't start turning animation during layout");
 
     if (pagerLayout == null) return;
-    GalleryNest nest = getNest();
-    if (nest == null) return;
+    GalleryView view = getGalleryView();
+    if (view == null) return;
     if (isPageSelected()) return;
 
     float finalPageOffset;
     int pageRange = pagerLayout.getPageRange();
-    int pageCount = nest.getPageCount();
+    int pageCount = view.getPageCount();
 
     if (pageOffset >= turningThreshold && currentIndex > 0) {
       // Turn to previous page

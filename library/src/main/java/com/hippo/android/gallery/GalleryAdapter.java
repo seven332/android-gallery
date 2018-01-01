@@ -28,17 +28,17 @@ import android.support.annotation.Nullable;
 public abstract class GalleryAdapter {
 
   @Nullable
-  private GalleryNest nest;
+  private GalleryView view;
 
-  void attach(GalleryNest nest) {
-    if (this.nest != null) {
+  void attach(GalleryView view) {
+    if (this.view != null) {
       throw new IllegalStateException("This Adapter is already attached to a GalleryView.");
     }
-    this.nest = nest;
+    this.view = view;
   }
 
   void detach() {
-    this.nest = null;
+    this.view = null;
   }
 
   GalleryPage createPage(GalleryView parent, int type) {
@@ -111,8 +111,8 @@ public abstract class GalleryAdapter {
    * Notifies the page with the specified index is changed.
    */
   public final void notifyPageChanged(int index) {
-    if (nest != null) {
-      nest.notifyPageChanged(index);
+    if (view != null) {
+      view.notifyPageChanged(index);
     }
   }
 
@@ -120,8 +120,8 @@ public abstract class GalleryAdapter {
    * Notifies all pages might be changed.
    */
   public final void notifyPageSetChanged() {
-    if (nest != null) {
-      nest.notifyPageSetChanged();
+    if (view != null) {
+      view.notifyPageSetChanged();
     }
   }
 }
