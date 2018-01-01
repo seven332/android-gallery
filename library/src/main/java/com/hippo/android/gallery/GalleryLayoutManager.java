@@ -62,7 +62,7 @@ public abstract class GalleryLayoutManager {
   /**
    * Requests layout for the GalleryView attached to this LayoutManager.
    */
-  protected void requestLayout() {
+  public void requestLayout() {
     if (nest != null) {
       nest.view.requestLayout();
     }
@@ -72,7 +72,7 @@ public abstract class GalleryLayoutManager {
    * Returns {@code true} if this LayoutManager is attached to a GalleryView,
    * and the GalleryView is in layout.
    */
-  protected boolean isInLayout() {
+  public boolean isInLayout() {
     return nest != null && nest.view.inLayout;
   }
 
@@ -82,7 +82,7 @@ public abstract class GalleryLayoutManager {
    * @param dx left to right is positive
    * @param dy top to bottom is positive
    */
-  protected abstract void scroll(float dx, float dy);
+  public abstract void scroll(float dx, float dy);
 
   /**
    * Scales the GalleryView attached to LayoutManager.
@@ -91,7 +91,7 @@ public abstract class GalleryLayoutManager {
    * @param y the y of the center point
    * @param factor the factor of the scaling
    */
-  protected abstract void scale(float x, float y, float factor);
+  public abstract void scale(float x, float y, float factor);
 
   /**
    * Flings the GalleryView attached to LayoutManager.
@@ -99,10 +99,10 @@ public abstract class GalleryLayoutManager {
    * @param velocityX the velocity in horizontal direction
    * @param velocityY the velocity in vertical direction
    */
-  protected abstract void fling(float velocityX, float velocityY);
+  public abstract void fling(float velocityX, float velocityY);
 
   /**
    * Cancel all animations of the LayoutManager.
    */
-  protected abstract void cancelAnimations();
+  public abstract void cancelAnimations();
 }
