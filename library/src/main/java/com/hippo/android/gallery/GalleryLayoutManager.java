@@ -23,7 +23,7 @@ package com.hippo.android.gallery;
 import android.support.annotation.Nullable;
 
 /**
- * LayoutManager handles page layout and touch events.
+ * LayoutManager handles page layout and actions about layout, like scrolling and scaling.
  */
 public abstract class GalleryLayoutManager {
 
