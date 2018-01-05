@@ -243,7 +243,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
       pageOffset = 0;
     }
 
-    pagerLayout.start(width, height, pageInterval, scaleType, startPosition);
+    pagerLayout.start(width, height, pageInterval);
 
     // Ensure page offset in the range
     fixPageOffset(view);
@@ -460,8 +460,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     /**
      * Starts a new layout turn.
      */
-    void start(int width, int height, int interval,
-        @Photo.ScaleType int scaleType, @Photo.StartPosition int startPosition);
+    void start(int width, int height, int interval);
 
     /**
      * Returns the page range.

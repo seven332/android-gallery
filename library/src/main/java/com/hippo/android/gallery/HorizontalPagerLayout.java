@@ -22,6 +22,9 @@ package com.hippo.android.gallery;
 
 import android.graphics.Rect;
 
+/**
+ * Position pages horizontally, from left to right.
+ */
 public class HorizontalPagerLayout extends BasePagerLayout {
 
   @Override

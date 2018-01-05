@@ -28,8 +28,6 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
   protected int width;
   protected int height;
   protected int interval;
-  protected int scaleType;
-  protected int startPosition;
 
   private int widthMeasureSpec;
   private int heightMeasureSpec;
@@ -37,12 +35,10 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
   private Rect rect = new Rect();
 
   @Override
-  public void start(int width, int height, int interval, int scaleType, int startPosition) {
+  public void start(int width, int height, int interval) {
     this.width = width;
     this.height = height;
     this.interval = interval;
-    this.scaleType = scaleType;
-    this.startPosition = startPosition;
 
     this.widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
     this.heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY);
@@ -52,7 +48,7 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
     view.measure(widthMeasureSpec, heightMeasureSpec);
   }
 
-  protected void layout(View view, int left, int top, int right, int bottom) {
+  private void layout(View view, int left, int top, int right, int bottom) {
     view.layout(left, top, right, bottom);
 
     Photo photo = Utils.asPhoto(view);
@@ -82,5 +78,16 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
     layout(page, rect.left, rect.top, rect.right, rect.bottom);
   }
 
+  /**
+   * Offset the rectangle.
+   *
+   * @param rect the rectangle of page's position
+   * @param offset the offset of the page,
+   *               positive if the page move to next page position,
+   *               negative if the page move to previous page position
+   * @param position one of {@link PagerLayoutManager#POSITION_PREVIOUS},
+   *                 {@link PagerLayoutManager#POSITION_CURRENT} or
+   *                 {@link PagerLayoutManager#POSITION_NEXT}
+   */
   public abstract void offsetRect(Rect rect, float offset, @PagerLayoutManager.Position int position);
 }
