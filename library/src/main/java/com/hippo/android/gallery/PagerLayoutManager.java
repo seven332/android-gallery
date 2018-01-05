@@ -48,6 +48,8 @@ public class PagerLayoutManager extends GalleryLayoutManager {
 
   public static final int TURNING_THRESHOLD_DP = 48;
 
+  public static final float ERROR_FLOAT = 1e-4f;
+
   // Current page index
   private int currentIndex = 0;
 
@@ -338,7 +340,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     boolean needLayout = false;
 
     for (;;) {
-      if (dx == 0.0f && dy == 0.0f) break;
+      if (Utils.equals(dx, 0.0f, ERROR_FLOAT) && Utils.equals(dy, 0.0f, ERROR_FLOAT)) break;
 
       // Offset current selected photo
       Photo photo = getSelectedPhoto(view);
@@ -348,7 +350,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
         dy = remain[1];
       }
 
-      if (dx == 0.0f && dy == 0.0f) break;
+      if (Utils.equals(dx, 0.0f, ERROR_FLOAT) && Utils.equals(dy, 0.0f, ERROR_FLOAT)) break;
 
       float oldPageOffset = pageOffset;
 

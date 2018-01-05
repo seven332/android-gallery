@@ -305,7 +305,7 @@ public class ScrollLayoutManagerTest {
   private void assertPages(List<PageState> states) {
     assertEquals(states.size(), galleryView.getChildCount());
     for (PageState state : states) {
-      GalleryView.Page page = galleryView.getPageAt(state.index);
+      GalleryPage page = galleryView.getPageAt(state.index);
       View view = page.view;
       assertEquals(state.index, page.getIndex());
       assertEquals(state.left, view.getLeft());
@@ -315,7 +315,7 @@ public class ScrollLayoutManagerTest {
     }
   }
 
-  public static class TestAdapter extends GalleryView.Adapter {
+  public static class TestAdapter extends GalleryAdapter {
 
     private int count;
     private int size;
@@ -326,21 +326,21 @@ public class ScrollLayoutManagerTest {
     }
 
     @Override
-    public GalleryView.Page onCreatePage(GalleryView parent, int type) {
+    public GalleryPage onCreatePage(GalleryView parent, int type) {
       View view = type == 0 ? new View1(parent.getContext()) : new View2(parent.getContext());
       ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(size, size);
       view.setLayoutParams(lp);
-      return new GalleryView.Page(view);
+      return new GalleryPage(view);
     }
 
     @Override
-    public void onDestroyPage(GalleryView.Page page) {}
+    public void onDestroyPage(GalleryPage page) {}
 
     @Override
-    public void onBindPage(GalleryView.Page page) {}
+    public void onBindPage(GalleryPage page) {}
 
     @Override
-    public void onUnbindPage(GalleryView.Page page) {}
+    public void onUnbindPage(GalleryPage page) {}
 
     @Override
     public int getPageCount() {

@@ -105,4 +105,12 @@ final class Utils {
     }
     return null;
   }
+
+  /**
+   * Returns {@code true} if the arguments are equal or within the range of allowed
+   * error (inclusive).
+   */
+  public static boolean equals(float x, float y, float eps) {
+    return Math.abs(y - x) <= eps;
+  }
 }

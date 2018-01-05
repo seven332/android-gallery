@@ -56,7 +56,7 @@ public interface Photo {
    *
    * If it returns {@code false}, none of the function would be called.
    *
-   * If the return value changed, call {@link GalleryView.Adapter#notifyPageChanged(int)} first.
+   * If the return value changed, call {@link GalleryAdapter#notifyPageChanged(int)} first.
    */
   boolean isPhotoEnabled();
 
