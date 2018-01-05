@@ -337,7 +337,9 @@ public class PagerLayoutManager extends GalleryLayoutManager {
 
     boolean needLayout = false;
 
-    while (dx != 0.0f && dy != 0.0f) {
+    for (;;) {
+      if (dx == 0.0f && dy == 0.0f) break;
+
       // Offset current selected photo
       Photo photo = getSelectedPhoto(view);
       if (photo != null) {
@@ -345,6 +347,8 @@ public class PagerLayoutManager extends GalleryLayoutManager {
         dx = remain[0];
         dy = remain[1];
       }
+
+      if (dx == 0.0f && dy == 0.0f) break;
 
       float oldPageOffset = pageOffset;
 
