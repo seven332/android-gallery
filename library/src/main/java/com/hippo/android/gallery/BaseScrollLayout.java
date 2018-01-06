@@ -76,8 +76,8 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
   protected void measure(View view) {
     float scale = Utils.asPhoto(view) != null ? this.scale : 1.0f;
     ViewGroup.LayoutParams lp = view.getLayoutParams();
-    int widthMeasureSpec = getPageMeasureSpec(Utils.toPixelSize(width * scale), lp.width, widthFixed);
-    int heightMeasureSpec = getPageMeasureSpec(Utils.toPixelSize(height * scale), lp.height, heightFixed);
+    int widthMeasureSpec = getPageMeasureSpec((int) (width * scale), lp.width, widthFixed);
+    int heightMeasureSpec = getPageMeasureSpec((int) (height * scale), lp.height, heightFixed);
     view.measure(widthMeasureSpec, heightMeasureSpec);
   }
 

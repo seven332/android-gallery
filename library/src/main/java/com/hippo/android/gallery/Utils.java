@@ -66,25 +66,6 @@ final class Utils {
   }
 
   /**
-   * A offset conversion. Just convert the float to an int.
-   */
-  public static int toPixelOffset(float f) {
-    return (int) f;
-  }
-
-  /**
-   * A size conversion involves rounding the base value,
-   * and ensuring that a non-zero base value is at least one pixel in size.
-   */
-  public static int toPixelSize(float f) {
-    final int res = (int) ((f >= 0) ? (f + 0.5f) : (f - 0.5f));
-    if (res != 0) return res;
-    if (f == 0) return 0;
-    if (f > 0) return 1;
-    return -1;
-  }
-
-  /**
    * Returns the page as photo. Returns {@code null} if the view isn't a photo or it's disabled.
    */
   @Nullable

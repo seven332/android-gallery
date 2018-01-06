@@ -37,9 +37,9 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   public void layoutAnchor(View page, float offset) {
     measure(page);
 
-    int top = Utils.asPhoto(page) != null ? Utils.toPixelOffset(deviate) : 0;
+    int top = Utils.asPhoto(page) != null ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
-    int right = Utils.toPixelOffset(width - offset);
+    int right = (int) (width - offset);
     int left = right - page.getMeasuredWidth();
     layout(page, left, top, right, bottom);
 
@@ -56,7 +56,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   public void layoutNext(View page) {
     measure(page);
 
-    int top = Utils.asPhoto(page) != null ? Utils.toPixelOffset(deviate) : 0;
+    int top = Utils.asPhoto(page) != null ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
     int right = totalLeft - interval;
     int left = right - page.getMeasuredWidth();
@@ -79,7 +79,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   public void layoutPrevious(View page) {
     measure(page);
 
-    int top = Utils.asPhoto(page) != null ? Utils.toPixelOffset(deviate) : 0;
+    int top = Utils.asPhoto(page) != null ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();

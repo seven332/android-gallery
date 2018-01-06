@@ -69,6 +69,6 @@ public class ReversedHorizontalPagerLayout extends BasePagerLayout {
         offset += pageRange;
         break;
     }
-    rect.offset(Utils.toPixelOffset(-offset), 0);
+    rect.offset((int) -offset, 0);
   }
 }
