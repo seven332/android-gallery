@@ -54,10 +54,7 @@ public class PhotoImageView extends AppCompatImageView implements Photo {
   }
 
   @Override
-  public void setVisibleRect(float left, float top, float right, float bottom) {
-    // TODO
-    //Log.d("TAG", left + "-" + top + "-" + right + "-" + bottom);
-  }
+  public void setVisibleRect(int left, int top, int right, int bottom) {}
 
   @Override
   public void scale(float x, float y, float factor) {
