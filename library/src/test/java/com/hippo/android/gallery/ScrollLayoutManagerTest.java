@@ -78,14 +78,14 @@ public class ScrollLayoutManagerTest {
 
     parameters.add(new Object[]{
         new HorizontalScrollLayout(),
-        new HorizontalFlip(),
+        new AxisSwap(),
         HorizontalScrollLayout.class.getSimpleName(),
     });
 
     parameters.add(new Object[]{
         new ReversedHorizontalScrollLayout(),
         new TransformerChain(new AxisSwap(), new HorizontalFlip()),
-        HorizontalScrollLayout.class.getSimpleName(),
+        ReversedHorizontalScrollLayout.class.getSimpleName(),
     });
 
     return parameters;
@@ -96,8 +96,8 @@ public class ScrollLayoutManagerTest {
       Transformer transformer,
       String testName
   ) {
-    this.scrollLayout = new VerticalScrollLayout();
-    this.transformer = new NoOp();
+    this.scrollLayout = scrollLayout;
+    this.transformer = transformer;
   }
 
   @Before
