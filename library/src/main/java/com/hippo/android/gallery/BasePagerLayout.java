@@ -50,21 +50,7 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
 
   private void layout(View view, int left, int top, int right, int bottom) {
     view.layout(left, top, right, bottom);
-
-    Photo photo = Utils.asPhoto(view);
-    if (photo != null) {
-      Rect rect = this.rect;
-      rect.left = -left;
-      rect.top = -top;
-      rect.right = width - left;
-      rect.bottom = height - top;
-
-      if (!rect.intersect(0, 0, right - left, bottom - top)) {
-        rect.setEmpty();
-      }
-
-      photo.setVisibleRect(rect.left, rect.top, rect.right, rect.bottom);
-    }
+    Utils.updateVisibleRect(view, width, height);
   }
 
   @Override

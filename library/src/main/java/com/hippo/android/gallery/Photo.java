@@ -63,7 +63,7 @@ public interface Photo {
   /**
    * Set visible rect of the photo. The remain area should <b>NOT</b> be drawn.
    */
-  void setVisibleRect(float left, float top, float right, float bottom);
+  void setVisibleRect(int left, int top, int right, int bottom);
 
   /**
    * Scale the content of the photo.

@@ -94,4 +94,23 @@ final class Utils {
   public static boolean equals(float x, float y, float eps) {
     return Math.abs(y - x) <= eps;
   }
+
+  /**
+   * Updates it's visible rect if the view is a photo.
+   */
+  public static void updateVisibleRect(View view, int parentWidth, int parentHeight) {
+    Photo photo = Utils.asPhoto(view);
+    if (photo == null) return;
+
+    int left = Math.max(0, -view.getLeft());
+    int top = Math.max(0, -view.getTop());
+    int right = Math.min(view.getWidth(), parentWidth - view.getLeft());
+    int bottom = Math.min(view.getHeight(), parentHeight - view.getTop());
+
+    if (left < right && top < bottom) {
+      photo.setVisibleRect(left, top, right, bottom);
+    } else {
+      photo.setVisibleRect(0, 0, 0, 0);
+    }
+  }
 }
