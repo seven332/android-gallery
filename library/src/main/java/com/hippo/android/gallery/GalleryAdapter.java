@@ -112,7 +112,61 @@ public abstract class GalleryAdapter {
    */
   public final void notifyPageChanged(int index) {
     if (view != null) {
-      view.notifyPageChanged(index);
+      view.notifyPageRangeChanged(index, 1);
+    }
+  }
+
+  /**
+   * Notifies the pages in the range are changed.
+   */
+  public final void notifyPageRangeChanged(int indexStart, int itemCount) {
+    if (view != null) {
+      view.notifyPageRangeChanged(indexStart, itemCount);
+    }
+  }
+
+  /**
+   * Notifies a page is inserted to the index.
+   */
+  public final void notifyPageInserted(int index) {
+    if (view != null) {
+      view.notifyPageRangeInserted(index, 1);
+    }
+  }
+
+  /**
+   * Notifies pages are inserted to the range.
+   */
+  public final void notifyPageRangeInserted(int indexStart, int itemCount) {
+    if (view != null) {
+      view.notifyPageRangeInserted(indexStart, itemCount);
+    }
+  }
+
+  /**
+   * Notifies the page with the specified index is removed.
+   */
+  public final void notifyPageRemoved(int index) {
+    if (view != null) {
+      view.notifyPageRangeRemoved(index, 1);
+    }
+  }
+
+  /**
+   * Notifies the pages in the range are removed.
+   */
+  public final void notifyPageRangeRemoved(int indexStart, int itemCount) {
+    if (view != null) {
+      view.notifyPageRangeRemoved(indexStart, itemCount);
+    }
+  }
+
+  /**
+   * Notifies the page with the specified index is moved to another index.
+   */
+  public final void notifyPageMoved(int fromIndex, int toIndex) {
+    if (view != null) {
+      view.notifyPageMoved(fromIndex, toIndex);
     }
   }
 

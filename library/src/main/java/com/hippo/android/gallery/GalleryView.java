@@ -30,10 +30,12 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -289,16 +291,38 @@ public class GalleryView extends ViewGroup {
   private void startLayout() {
     inLayout = true;
 
+    List<GalleryPage> holder = null;
+
     Iterator<GalleryPage> iterator = pages.values().iterator();
     while (iterator.hasNext()) {
       GalleryPage page = iterator.next();
       if (page.pinned) {
-        // Mark the page unpinned if it's pinned
+        // Mark the page unpinned
         page.pinned = false;
+        // Update page index
+        if (page.newIndex != GalleryView.INVALID_INDEX) {
+          page.index = page.newIndex;
+          page.newIndex = GalleryView.INVALID_INDEX;
+          // Remove all pages which has new index, put them back to the map later.
+          // It's to avoid key conflict.
+          iterator.remove();
+          if (holder == null) {
+            holder = new ArrayList<>();
+          }
+          holder.add(page);
+        }
       } else {
         // Unpin the page if it's not pinned
         unpinPageInternal(page);
         iterator.remove();
+      }
+    }
+
+    // Put pages back to the map
+    if (holder != null) {
+      for (int i = 0, n = holder.size(); i < n; i++) {
+        GalleryPage page = holder.get(i);
+        pages.put(page.getIndex(), page);
       }
     }
   }
@@ -489,13 +513,111 @@ public class GalleryView extends ViewGroup {
     return false;
   }
 
-  void notifyPageChanged(int index) {
-    if (inLayout) return;
-    GalleryPage page = pages.get(index);
-    if (page == null) return;
+  /*
+   * notifyPageXXX() might be called multiple times continuously.
+   * newIndex should be treated as the actual index if it's not INVALID_INDEX.
+   */
+  private int getPagePendingIndex(GalleryPage page) {
+    return page.newIndex != GalleryView.INVALID_INDEX ? page.newIndex : page.index;
+  }
 
-    page.pinned = false;
-    requestLayout();
+  void notifyPageRangeChanged(int indexStart, int itemCount) {
+    if (inLayout) return;
+    if (pages.isEmpty()) return;
+    if (itemCount < 1) return;
+
+    boolean needLayout = false;
+    for (GalleryPage page : pages.values()) {
+      int pendingIndex = getPagePendingIndex(page);
+      // Marks all page in [indexStart, indexStart + itemCount) 'pinned = false'
+      if (pendingIndex >= indexStart && pendingIndex < indexStart + itemCount) {
+        page.pinned = false;
+        needLayout = true;
+      }
+    }
+
+    if (needLayout) {
+      requestLayout();
+    }
+  }
+
+  void notifyPageRangeInserted(int indexStart, int itemCount) {
+    if (inLayout) return;
+    if (pages.isEmpty()) return;
+    if (itemCount < 1) return;
+
+    boolean needLayout = false;
+    for (GalleryPage page : pages.values()) {
+      int pendingIndex = getPagePendingIndex(page);
+      // Increases all pages in [indexStart, +∞) by itemCount.
+      if (pendingIndex >= indexStart) {
+        page.newIndex = pendingIndex + itemCount;
+        needLayout = true;
+      }
+    }
+
+    if (needLayout) {
+      requestLayout();
+    }
+  }
+
+  void notifyPageRangeRemoved(int indexStart, int itemCount) {
+    if (inLayout) return;
+    if (pages.isEmpty()) return;
+    if (itemCount < 1) return;
+
+    boolean needLayout = false;
+    for (GalleryPage page : pages.values()) {
+      int pendingIndex = getPagePendingIndex(page);
+      if (pendingIndex >= indexStart + itemCount) {
+        // Decreases all pages in [indexStart + itemCount, +∞) by itemCount.
+        page.newIndex = pendingIndex - itemCount;
+        needLayout = true;
+      } else if (pendingIndex >= indexStart) {
+        // Marks all page in [indexStart, indexStart + itemCount) 'pinned = false'
+        page.pinned = false;
+        needLayout = true;
+      }
+    }
+
+    if (needLayout) {
+      requestLayout();
+    }
+  }
+
+  void notifyPageMoved(int fromIndex, int toIndex) {
+    if (inLayout) return;
+    if (pages.isEmpty()) return;
+    if (fromIndex == toIndex) return;
+
+    int minIndex;
+    int maxIndex;
+    int diff;
+    if (fromIndex < toIndex) {
+      minIndex = fromIndex;
+      maxIndex = toIndex;
+      diff = -1;
+    } else {
+      minIndex = toIndex;
+      maxIndex = fromIndex;
+      diff = 1;
+    }
+
+    boolean needLayout = false;
+    for (GalleryPage page : pages.values()) {
+      int pendingIndex = getPagePendingIndex(page);
+      if (pendingIndex == fromIndex) {
+        page.newIndex = toIndex;
+        needLayout = true;
+      } else if (pendingIndex >= minIndex && pendingIndex <= maxIndex) {
+        page.newIndex = pendingIndex + diff;
+        needLayout = true;
+      }
+    }
+
+    if (needLayout) {
+      requestLayout();
+    }
   }
 
   void notifyPageSetChanged() {
