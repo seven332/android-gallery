@@ -24,6 +24,7 @@ import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,6 +56,8 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   private float[] temp = new float[2];
 
   private ScrollLayout scrollLayout;
+
+  private AnchorSelector anchorSelector;
 
   public static final FloatPropertyCompat<ScrollLayoutManager> SCROLL_BY = new FloatPropertyCompat<ScrollLayoutManager>("scrollBy") {
     @Override
@@ -98,6 +101,13 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
       this.scrollLayout = pageLayout;
       requestLayout();
     }
+  }
+
+  /**
+   * Sets anchor selector to this ScrollLayoutManager.
+   */
+  public void setAnchorSelector(AnchorSelector anchorSelector) {
+    this.anchorSelector = anchorSelector;
   }
 
   @VisibleForTesting
@@ -174,6 +184,25 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     }
   }
 
+  private void updateAnchor(List<GalleryPage> pages) {
+    GalleryPage anchor = null;
+    if (anchorSelector != null) {
+      anchor = anchorSelector.selectAnchor(Collections.unmodifiableList(pages));
+    } else {
+      for (GalleryPage page : pages) {
+        if (scrollLayout.canBeAnchor(page.view)) {
+          anchor = page;
+          break;
+        }
+      }
+    }
+
+    if (anchor != null) {
+      anchorIndex = anchor.getIndex();
+      anchorOffset = scrollLayout.getAnchorOffset(anchor.view);
+    }
+  }
+
   @Override
   public void layout(int width, int height) {
     GalleryView view = getGalleryView();
@@ -228,13 +257,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     /*
      * 6. Update anchorIndex and anchorOffset
      */
-    for (GalleryPage page : pages) {
-      if (scrollLayout.canBeAnchor(page.view)) {
-        anchorIndex = page.getIndex();
-        anchorOffset = scrollLayout.getAnchorOffset(page.view);
-        break;
-      }
-    }
+    updateAnchor(pages);
   }
 
   @Override
@@ -386,5 +409,13 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
      * @param result a two-size to store new anchorOffset and pageDeviate
      */
     void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result);
+  }
+
+  public interface AnchorSelector {
+
+    /**
+     * Select anchor for next layout turn.
+     */
+    GalleryPage selectAnchor(List<GalleryPage> pages);
   }
 }
