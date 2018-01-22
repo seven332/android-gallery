@@ -24,19 +24,14 @@ package com.hippo.android.gallery;
  * GalleryGestureHandler handles gestures from GalleryView.
  */
 public interface GalleryGestureHandler {
-  void onSingleTapUp(GalleryView view, float x, float y);
-  void onSingleTapConfirmed(GalleryView view, float x, float y);
-  void onDoubleTap(GalleryView view, float x, float y);
-  void onDoubleTapConfirmed(GalleryView view, float x, float y);
-  void onLongPress(GalleryView view, float x, float y);
-  void onScroll(GalleryView view, float dx, float dy, float totalX, float totalY, float x, float y);
-  void onFling(GalleryView view, float velocityX, float velocityY);
-  void onScaleBegin(GalleryView view, float focusX, float focusY);
-  void onScale(GalleryView view, float focusX, float focusY, float scale);
-  void onScaleEnd(GalleryView view);
   void onDown(GalleryView view, float x, float y);
   void onUp(GalleryView view, float x, float y);
   void onCancel(GalleryView view);
-  void onPointerDown(GalleryView view, float x, float y);
-  void onPointerUp(GalleryView view, float x, float y);
+  void onSingleTap(GalleryView view, float x, float y);
+  void onDoubleTap(GalleryView view, float x, float y);
+  void onLongPress(GalleryView view, float x, float y);
+  void onScroll(GalleryView view, float dx, float dy, float totalX, float totalY, float x, float y);
+  void onFling(GalleryView view, float velocityX, float velocityY);
+  void onScale(GalleryView view, float x, float y, float scale);
+  void onRotate(GalleryView view, float x, float y, float angle);
 }

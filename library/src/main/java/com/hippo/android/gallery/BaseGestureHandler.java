@@ -26,52 +26,6 @@ package com.hippo.android.gallery;
 public class BaseGestureHandler implements GalleryGestureHandler {
 
   @Override
-  public void onSingleTapUp(GalleryView view, float x, float y) {}
-
-  @Override
-  public void onSingleTapConfirmed(GalleryView view, float x, float y) {}
-
-  @Override
-  public void onDoubleTap(GalleryView view, float x, float y) {}
-
-  @Override
-  public void onDoubleTapConfirmed(GalleryView view, float x, float y) {}
-
-  @Override
-  public void onLongPress(GalleryView view, float x, float y) {}
-
-  @Override
-  public void onScroll(GalleryView view, float dx, float dy,
-      float totalX, float totalY, float x, float y) {
-    GalleryLayoutManager layoutManager = view.getLayoutManager();
-    if (layoutManager != null) {
-      layoutManager.scroll(dx, dy);
-    }
-  }
-
-  @Override
-  public void onFling(GalleryView view, float velocityX, float velocityY) {
-    GalleryLayoutManager layoutManager = view.getLayoutManager();
-    if (layoutManager != null) {
-      layoutManager.fling(velocityX, velocityY);
-    }
-  }
-
-  @Override
-  public void onScaleBegin(GalleryView view, float focusX, float focusY) {}
-
-  @Override
-  public void onScale(GalleryView view, float focusX, float focusY, float scale) {
-    GalleryLayoutManager layoutManager = view.getLayoutManager();
-    if (layoutManager != null) {
-      layoutManager.scale(focusX, focusY, scale);
-    }
-  }
-
-  @Override
-  public void onScaleEnd(GalleryView view) {}
-
-  @Override
   public void onDown(GalleryView view, float x, float y) {
     GalleryLayoutManager layoutManager = view.getLayoutManager();
     if (layoutManager != null) {
@@ -88,11 +42,47 @@ public class BaseGestureHandler implements GalleryGestureHandler {
   }
 
   @Override
-  public void onCancel(GalleryView view) {}
+  public void onCancel(GalleryView view) {
+    GalleryLayoutManager layoutManager = view.getLayoutManager();
+    if (layoutManager instanceof PagerLayoutManager) {
+      ((PagerLayoutManager) layoutManager).startTurningAnimation();
+    }
+  }
 
   @Override
-  public void onPointerDown(GalleryView view, float x, float y) {}
+  public void onSingleTap(GalleryView view, float x, float y) {}
 
   @Override
-  public void onPointerUp(GalleryView view, float x, float y) {}
+  public void onDoubleTap(GalleryView view, float x, float y) {}
+
+  @Override
+  public void onLongPress(GalleryView view, float x, float y) {}
+
+  @Override
+  public void onScroll(GalleryView view, float dx, float dy, float totalX, float totalY, float x,
+      float y) {
+    GalleryLayoutManager layoutManager = view.getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.scroll(dx, dy);
+    }
+  }
+
+  @Override
+  public void onFling(GalleryView view, float velocityX, float velocityY) {
+    GalleryLayoutManager layoutManager = view.getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.fling(velocityX, velocityY);
+    }
+  }
+
+  @Override
+  public void onScale(GalleryView view, float x, float y, float scale) {
+    GalleryLayoutManager layoutManager = view.getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.scale(x, y, scale);
+    }
+  }
+
+  @Override
+  public void onRotate(GalleryView view, float x, float y, float angle) {}
 }

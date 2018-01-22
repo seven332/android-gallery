@@ -27,13 +27,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
 import com.hippo.android.gallery.BaseGestureHandler;
 import com.hippo.android.gallery.GalleryAdapter;
 import com.hippo.android.gallery.GalleryPage;
 import com.hippo.android.gallery.GalleryView;
+import com.hippo.android.gesture.GestureRecognizer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     view = findViewById(R.id.gallery_view);
     view.setAdapter(new Adapter(getLayoutInflater()));
     view.setGestureHandler(new BaseGestureHandler());
+    GestureRecognizer gestureRecognizer = view.getGestureRecognizer();
+    gestureRecognizer.setScaleEnabled(true);
 
     style.apply(view);
   }
@@ -116,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
             .dontTransform()
             .override(Target.SIZE_ORIGINAL);
 
-        Glide.with(inflater.getContext())
+        GlideApp.with(inflater.getContext())
             .load(IMAGE_URLS[page.getIndex() / 2])
             .apply(myOptions)
             .into(imageView);

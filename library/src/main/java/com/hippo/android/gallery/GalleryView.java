@@ -30,6 +30,7 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import com.hippo.android.gesture.GestureRecognizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,6 +83,13 @@ public class GalleryView extends ViewGroup {
 
   private void init(Context context) {
     gestureRecognizer = new GestureRecognizer(context, listener);
+  }
+
+  /**
+   * Returns the GestureRecognizer attached to this GalleryView.
+   */
+  public GestureRecognizer getGestureRecognizer() {
+    return gestureRecognizer;
   }
 
   /*
@@ -437,7 +445,8 @@ public class GalleryView extends ViewGroup {
   @SuppressLint("ClickableViewAccessibility")
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    return gestureRecognizer.onTouchEvent(event);
+    gestureRecognizer.onTouchEvent(event);
+    return true;
   }
 
   @Override
@@ -630,18 +639,32 @@ public class GalleryView extends ViewGroup {
     requestLayout();
   }
 
-  private GestureRecognizer.Listener listener = new GestureRecognizer.Listener() {
+  private GestureRecognizer.OnGestureListener listener = new GestureRecognizer.OnGestureListener() {
     @Override
-    public void onSingleTapUp(float x, float y) {
+    public void onDown(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onSingleTapUp(GalleryView.this, x, y);
+        gestureHandler.onDown(GalleryView.this, x, y);
       }
     }
 
     @Override
-    public void onSingleTapConfirmed(float x, float y) {
+    public void onUp(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onSingleTapConfirmed(GalleryView.this, x, y);
+        gestureHandler.onUp(GalleryView.this, x, y);
+      }
+    }
+
+    @Override
+    public void onCancel() {
+      if (gestureHandler != null) {
+        gestureHandler.onCancel(GalleryView.this);
+      }
+    }
+
+    @Override
+    public void onSingleTap(float x, float y) {
+      if (gestureHandler != null) {
+        gestureHandler.onSingleTap(GalleryView.this, x, y);
       }
     }
 
@@ -649,13 +672,6 @@ public class GalleryView extends ViewGroup {
     public void onDoubleTap(float x, float y) {
       if (gestureHandler != null) {
         gestureHandler.onDoubleTap(GalleryView.this, x, y);
-      }
-    }
-
-    @Override
-    public void onDoubleTapConfirmed(float x, float y) {
-      if (gestureHandler != null) {
-        gestureHandler.onDoubleTapConfirmed(GalleryView.this, x, y);
       }
     }
 
@@ -681,58 +697,16 @@ public class GalleryView extends ViewGroup {
     }
 
     @Override
-    public void onScaleBegin(float focusX, float focusY) {
+    public void onScale(float x, float y, float scale) {
       if (gestureHandler != null) {
-        gestureHandler.onScaleBegin(GalleryView.this, focusX, focusY);
+        gestureHandler.onScale(GalleryView.this, x, y, scale);
       }
     }
 
     @Override
-    public void onScale(float focusX, float focusY, float scale) {
+    public void onRotate(float x, float y, float angle) {
       if (gestureHandler != null) {
-        gestureHandler.onScale(GalleryView.this, focusX, focusY, scale);
-      }
-    }
-
-    @Override
-    public void onScaleEnd() {
-      if (gestureHandler != null) {
-        gestureHandler.onScaleEnd(GalleryView.this);
-      }
-    }
-
-    @Override
-    public void onDown(float x, float y) {
-      if (gestureHandler != null) {
-        gestureHandler.onDown(GalleryView.this, x, y);
-      }
-    }
-
-    @Override
-    public void onUp(float x, float y) {
-      if (gestureHandler != null) {
-        gestureHandler.onUp(GalleryView.this, x, y);
-      }
-    }
-
-    @Override
-    public void onCancel() {
-      if (gestureHandler != null) {
-        gestureHandler.onCancel(GalleryView.this);
-      }
-    }
-
-    @Override
-    public void onPointerDown(float x, float y) {
-      if (gestureHandler != null) {
-        gestureHandler.onPointerDown(GalleryView.this, x, y);
-      }
-    }
-
-    @Override
-    public void onPointerUp(float x, float y) {
-      if (gestureHandler != null) {
-        gestureHandler.onPointerUp(GalleryView.this, x, y);
+        gestureHandler.onRotate(GalleryView.this, x, y, angle);
       }
     }
   };

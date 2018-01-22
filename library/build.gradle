@@ -18,7 +18,6 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion "$target_sdk_version".toInteger()
-    buildToolsVersion "$build_tools_version"
 
     defaultConfig {
         minSdkVersion "$mini_sdk_version"
@@ -42,9 +41,9 @@ android {
 }
 
 dependencies {
-    compile "com.android.support:support-annotations:$support_library_version"
-    compile "com.android.support:support-dynamic-animation:$support_library_version"
-    testCompile "junit:junit:4.12"
-    testCompile "org.robolectric:robolectric:$robolectric_version"
-    testCompile "org.jooq:joor:0.9.6"
+    implementation "com.android.support:support-dynamic-animation:$support_library_version"
+    implementation "com.github.seven332:android-gesture:$android_gesture_version"
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.robolectric:robolectric:$robolectric_version"
+    testImplementation "org.jooq:joor-java-6:0.9.7"
 }
