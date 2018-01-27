@@ -47,3 +47,5 @@ dependencies {
     testImplementation "org.robolectric:robolectric:$robolectric_version"
     testImplementation "org.jooq:joor-java-6:0.9.7"
 }
+
+apply from: rootProject.file('android-maven-gradle.gradle')
