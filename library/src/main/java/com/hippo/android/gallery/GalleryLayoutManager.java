@@ -51,6 +51,17 @@ public abstract class GalleryLayoutManager {
   }
 
   /**
+   * Returns a index to represent current state.
+   * The index must be the index of a shown page.
+   */
+  public abstract int getSelectedIndex();
+
+  /**
+   * Make the page with the index is displayed in screen.
+   */
+  public abstract void setSelectedIndex(int index);
+
+  /**
    * Lays the GalleryView attached to LayoutManager.
    * It's sure that width > 0, height > 0 and page count > 0.
    *

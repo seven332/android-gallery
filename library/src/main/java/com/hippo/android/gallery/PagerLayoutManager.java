@@ -227,6 +227,31 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
+  public int getSelectedIndex() {
+    return currentIndex;
+  }
+
+  @Override
+  public void setSelectedIndex(int index) {
+    GalleryView view = getGalleryView();
+    if (view != null) {
+      index = Utils.clamp(index, 0, view.getPageCount() - 1);
+    }
+
+    if (currentIndex != index) {
+      currentIndex = index;
+
+      /*
+       * Reset state.
+       */
+      cancelAnimations();
+      pageOffset = 0.0f;
+
+      requestLayout();
+    }
+  }
+
+  @Override
   public void layout(int width, int height) {
     if (pagerLayout == null) {
       Log.e(LOG_TAG, "Cannot layout without a PagerLayout set");
@@ -239,7 +264,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     int pageCount = view.getPageCount();
 
     // Ensure current index in the range
-    int newIndex = Utils.clamp(currentIndex, 0, view.getPageCount() - 1);
+    int newIndex = Utils.clamp(currentIndex, 0, pageCount - 1);
     if (currentIndex != newIndex) {
       currentIndex = newIndex;
       pageOffset = 0;

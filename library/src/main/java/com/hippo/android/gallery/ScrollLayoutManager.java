@@ -204,6 +204,26 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
+  public int getSelectedIndex() {
+    return anchorIndex;
+  }
+
+  @Override
+  public void setSelectedIndex(int index) {
+    GalleryView view = getGalleryView();
+    if (view != null) {
+      index = Utils.clamp(index, 0, view.getPageCount() - 1);
+    }
+
+    if (anchorIndex != index) {
+      anchorIndex = index;
+      anchorOffset = 0.0f;
+      cancelAnimations();
+      requestLayout();
+    }
+  }
+
+  @Override
   public void layout(int width, int height) {
     GalleryView view = getGalleryView();
     if (view == null) return;
