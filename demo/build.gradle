@@ -43,7 +43,7 @@ android {
 }
 
 dependencies {
-    implementation project(':library')
+    implementation project(':gallery')
     implementation "com.android.support:appcompat-v7:$support_library_version"
     implementation "com.android.support:recyclerview-v7:$support_library_version"
     implementation "com.android.support:design:$support_library_version"
