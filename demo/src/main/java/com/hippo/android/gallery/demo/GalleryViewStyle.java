@@ -147,6 +147,9 @@ public class GalleryViewStyle {
           break;
       }
       slm.setPageInterval(pageInterval);
+      if (lm != null) {
+        slm.setSelectedIndex(lm.getSelectedIndex());
+      }
       view.setLayoutManager(slm);
     } else {
       PagerLayoutManager plm;
@@ -167,6 +170,9 @@ public class GalleryViewStyle {
       plm.setPageInterval(pageInterval);
       plm.setScaleType(scaleType);
       plm.setStartPosition(startPosition);
+      if (lm != null) {
+        plm.setSelectedIndex(lm.getSelectedIndex());
+      }
       view.setLayoutManager(plm);
     }
   }
