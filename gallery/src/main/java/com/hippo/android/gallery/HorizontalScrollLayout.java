@@ -37,7 +37,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   public void layoutAnchor(View page, float offset) {
     measure(page);
 
-    int top = Utils.asPhoto(page) != null ? (int) deviate : 0;
+    int top = Utils.isFlexible(page) ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
     int left = (int) offset;
     int right = left + page.getMeasuredWidth();
@@ -56,7 +56,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   public void layoutNext(View page) {
     measure(page);
 
-    int top = Utils.asPhoto(page) != null ? (int) deviate : 0;
+    int top = Utils.isFlexible(page) ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
     int left = totalRight + interval;
     int right = left + page.getMeasuredWidth();
@@ -79,7 +79,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   public void layoutPrevious(View page) {
     measure(page);
 
-    int top = Utils.asPhoto(page) != null ? (int) deviate : 0;
+    int top = Utils.isFlexible(page) ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
     int right = totalLeft - interval;
     int left = right - page.getMeasuredWidth();

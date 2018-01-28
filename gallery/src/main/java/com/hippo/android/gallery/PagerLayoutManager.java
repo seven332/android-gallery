@@ -34,7 +34,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * PagerLayoutManager lays pages like {@code ViewPager}.
  */
-public class PagerLayoutManager extends GalleryLayoutManager {
+public class PagerLayoutManager extends GalleryLayoutManager implements Transformer {
 
   private static final String LOG_TAG = "PagerLayoutManager";
 
@@ -74,11 +74,13 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   // TODO Add setTurningThreshold()?
   private final float turningThreshold;
 
-  @Photo.ScaleType
-  private int scaleType = Photo.SCALE_TYPE_FIT;
+  private float scale = 1.0f;
 
-  @Photo.StartPosition
-  private int startPosition = Photo.START_POSITION_TOP_LEFT;
+  @Transformer.ScaleType
+  private int scaleType = Transformer.SCALE_TYPE_FIT;
+
+  @Transformer.StartPosition
+  private int startPosition = Transformer.START_POSITION_TOP_LEFT;
 
   // Stores the remain offset x and y
   private float[] remain = new float[2];
@@ -148,11 +150,35 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   }
 
   /**
-   * Sets scale type for each photo page.
+   * Sets scale for each page which is transformer.
    *
    * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
-  public void setScaleType(@Photo.ScaleType int scaleType) {
+  @Override
+  public void setScale(float scale) {
+    if (isInLayout()) throw new IllegalStateException("Can't set scale during layout");
+
+    if (this.scaleType == SCALE_TYPE_FIXED && this.scale == scale) return;
+    this.scaleType = SCALE_TYPE_FIXED;
+    this.scale = scale;
+
+    GalleryView view = getGalleryView();
+    if (view == null) return;
+
+    for (GalleryPage page : view.getPages()) {
+      if (page instanceof Transformer) {
+        ((Transformer) page).setScale(scale);
+      }
+    }
+  }
+
+  /**
+   * Sets scale type for each page which is transformer.
+   *
+   * @throws IllegalStateException if the GalleryView it attached to is in layout.
+   */
+  @Override
+  public void setScaleType(@Transformer.ScaleType int scaleType) {
     if (isInLayout()) throw new IllegalStateException("Can't set scale type during layout");
 
     if (this.scaleType == scaleType) return;
@@ -162,19 +188,19 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (view == null) return;
 
     for (GalleryPage page : view.getPages()) {
-      Photo photo = Utils.asPhoto(page);
-      if (photo == null) continue;
-
-      photo.setScaleType(scaleType);
+      if (page instanceof Transformer) {
+        ((Transformer) page).setScaleType(scaleType);
+      }
     }
   }
 
   /**
-   * Sets start position for each photo page.
+   * Sets start position for each page which is transformer.
    *
    * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
-  public void setStartPosition(@Photo.StartPosition int startPosition) {
+  @Override
+  public void setStartPosition(@Transformer.StartPosition int startPosition) {
     if (isInLayout()) throw new IllegalStateException("Can't set start position during layout");
 
     if (this.startPosition == startPosition) return;
@@ -184,10 +210,9 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (view == null) return;
 
     for (GalleryPage page : view.getPages()) {
-      Photo photo = Utils.asPhoto(page);
-      if (photo == null) continue;
-
-      photo.setStartPosition(startPosition);
+      if (page instanceof Transformer) {
+        ((Transformer) page).setStartPosition(startPosition);
+      }
     }
   }
 
@@ -216,11 +241,14 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     boolean reset = !view.isViewAttached(index);
 
     GalleryPage page = view.pinPage(index);
-
-    Photo photo = Utils.asPhoto(page);
-    if (reset && photo != null) {
-      photo.setScaleType(scaleType);
-      photo.setStartPosition(startPosition);
+    if (reset && page.view instanceof Transformer) {
+      Transformer transformer = (Transformer) page.view;
+      if (scaleType == SCALE_TYPE_FIXED) {
+        transformer.setScale(scale);
+      } else {
+        transformer.setScaleType(scaleType);
+      }
+      transformer.setStartPosition(startPosition);
     }
 
     return page;
@@ -291,21 +319,27 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   }
 
   /*
-   * Returns true if a page is selected.
+   * Returns true if there is a page fit.
    * Namely pageOffset is 0.
    * It's hard to make a float to be 0.0f. So convert it to int,
    * and compare it with 0.
    */
-  private boolean isPageSelected() {
+  private boolean isPageFit() {
     return (int) pageOffset == 0;
   }
 
   /*
-   * Returns the photo if current page is selected and is photo.
+   * Returns the transformer if current fit page is a transformer.
    */
   @Nullable
-  private Photo getSelectedPhoto(GalleryView view) {
-    return isPageSelected() ? Utils.asPhoto(view.getPageAt(currentIndex)) : null;
+  private Transformer getFitTransformer(GalleryView view) {
+    if (isPageFit()) {
+      GalleryPage page = view.getPageAt(currentIndex);
+      if (page != null && page.view instanceof Transformer) {
+        return (Transformer) page.view;
+      }
+    }
+    return null;
   }
 
   /*
@@ -357,6 +391,11 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
+  public void scroll(float dx, float dy, @Nullable float[] remain) {
+    scroll(dx, dy);
+  }
+
+  @Override
   public void scroll(float dx, float dy) {
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
@@ -367,10 +406,10 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     for (;;) {
       if (Utils.equals(dx, 0.0f, ERROR_FLOAT) && Utils.equals(dy, 0.0f, ERROR_FLOAT)) break;
 
-      // Offset current selected photo
-      Photo photo = getSelectedPhoto(view);
-      if (photo != null) {
-        photo.offset(dx, dy, remain);
+      // Offset current fit transformer
+      Transformer transformer = getFitTransformer(view);
+      if (transformer != null) {
+        transformer.scroll(dx, dy, remain);
         dx = remain[0];
         dy = remain[1];
       }
@@ -398,13 +437,18 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
+  public void scale(float x, float y, float factor, @Nullable float[] remain) {
+    scale(x, y, factor);
+  }
+
+  @Override
   public void scale(float x, float y, float factor) {
     GalleryView view = getGalleryView();
     if (view == null) return;
-    Photo photo = getSelectedPhoto(view);
-    if (photo == null) return;
+    Transformer transformer = getFitTransformer(view);
+    if (transformer == null) return;
 
-    photo.scale(x, y, factor);
+    transformer.scale(x, y, factor, null);
   }
 
   /*
@@ -414,10 +458,10 @@ public class PagerLayoutManager extends GalleryLayoutManager {
   private void scrollPage(float dx, float dy) {
     GalleryView view = getGalleryView();
     if (view == null) return;
-    Photo photo = getSelectedPhoto(view);
-    if (photo == null) return;
+    Transformer transformer = getFitTransformer(view);
+    if (transformer == null) return;
 
-    photo.offset(dx, dy, remain);
+    transformer.scroll(dx, dy, remain);
   }
 
   @Override
@@ -425,8 +469,8 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
     if (view == null) return;
-    Photo photo = getSelectedPhoto(view);
-    if (photo == null) return;
+    Transformer transformer = getFitTransformer(view);
+    if (transformer == null) return;
 
     float velocity;
     lastFling = 0.0f;
@@ -456,7 +500,7 @@ public class PagerLayoutManager extends GalleryLayoutManager {
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
     if (view == null) return;
-    if (isPageSelected()) return;
+    if (isPageFit()) return;
 
     float finalPageOffset;
     int pageRange = pagerLayout.getPageRange();

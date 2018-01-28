@@ -50,7 +50,7 @@ public abstract class BasePagerLayout implements PagerLayoutManager.PagerLayout 
 
   private void layout(View view, int left, int top, int right, int bottom) {
     view.layout(left, top, right, bottom);
-    Utils.updateVisibleRect(view, width, height);
+    Utils.updateClipRegion(view, width, height);
   }
 
   @Override

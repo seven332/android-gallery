@@ -20,7 +20,6 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/11/4.
  */
 
-import android.support.annotation.Nullable;
 import android.view.View;
 
 final class Utils {
@@ -66,28 +65,6 @@ final class Utils {
   }
 
   /**
-   * Returns the page as photo. Returns {@code null} if the view isn't a photo or it's disabled.
-   */
-  @Nullable
-  public static Photo asPhoto(GalleryPage page) {
-    return page != null ? asPhoto(page.view) : null;
-  }
-
-  /**
-   * Returns the view as photo. Returns {@code null} if the view isn't a photo or it's disabled.
-   */
-  @Nullable
-  public static Photo asPhoto(View view) {
-    if (view instanceof Photo) {
-      Photo photo = (Photo) view;
-      if (photo.isPhotoEnabled()) {
-        return photo;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Returns {@code true} if the arguments are equal or within the range of allowed
    * error (inclusive).
    */
@@ -96,11 +73,18 @@ final class Utils {
   }
 
   /**
-   * Updates it's visible rect if the view is a photo.
+   * Returns {@code true} if the view is flexible.
    */
-  public static void updateVisibleRect(View view, int parentWidth, int parentHeight) {
-    Photo photo = Utils.asPhoto(view);
-    if (photo == null) return;
+  public static boolean isFlexible(View view) {
+    return view instanceof Flexible && ((Flexible) view).isFlexible();
+  }
+
+  /**
+   * Updates the view's clip region if the view is a clipper.
+   */
+  public static void updateClipRegion(View view, int parentWidth, int parentHeight) {
+    Clippable clippable = view instanceof Clippable ? (Clippable) view : null;
+    if (clippable == null) return;
 
     int left = Math.max(0, -view.getLeft());
     int top = Math.max(0, -view.getTop());
@@ -108,9 +92,9 @@ final class Utils {
     int bottom = Math.min(view.getHeight(), parentHeight - view.getTop());
 
     if (left < right && top < bottom) {
-      photo.setVisibleRect(left, top, right, bottom);
+      clippable.clip(left, top, right, bottom);
     } else {
-      photo.setVisibleRect(0, 0, 0, 0);
+      clippable.clip(0, 0, 0, 0);
     }
   }
 }

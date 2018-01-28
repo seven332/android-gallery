@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Hippo Seven
+ * Copyright 2018 Hippo Seven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@
 package com.hippo.android.gallery;
 
 /*
- * Created by Hippo on 2017/11/15.
+ * Created by Hippo on 2018/1/27.
  */
 
 import android.support.annotation.IntDef;
+import android.support.annotation.Nullable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * The direct child of {@link GalleryView}.
+ * Transformer can scale and scroll it's content without changing it's size.
  */
-public interface Photo {
+public interface Transformer {
 
   @IntDef({SCALE_TYPE_ORIGIN, SCALE_TYPE_FIT_WIDTH, SCALE_TYPE_FIT_HEIGHT,
       SCALE_TYPE_FIT, SCALE_TYPE_FIXED})
@@ -52,43 +53,42 @@ public interface Photo {
   int START_POSITION_CENTER = 4;
 
   /**
-   * Returns {@code false} if the photo should be treated as a normal page.
+   * Scale the content of this transformer.
    *
-   * If it returns {@code false}, none of the function would be called.
-   *
-   * If the return value changed, call {@link GalleryAdapter#notifyPageChanged(int)} first.
-   */
-  boolean isPhotoEnabled();
-
-  /**
-   * Set visible rect of the photo. The remain area should <b>NOT</b> be drawn.
-   */
-  void setVisibleRect(int left, int top, int right, int bottom);
-
-  /**
-   * Scale the content of the photo.
+   * The size of the content can be under some limitation. The factor may not take effort
+   * or not take all effort. The remain effort of the factor should be return.
    *
    * @param x focus x
    * @param y focus y
    * @param factor the factor of scale, greater than 1 for zoom in, smaller than 1 for zoom in
+   * @param remain return the
    */
-  void scale(float x, float y, float factor);
+  void scale(float x, float y, float factor, @Nullable float[] remain);
 
   /**
-   * Set scale type for the content of the photo.
-   */
-  void setScaleType(@ScaleType int scaleType);
-
-  /**
-   * Offset the content of the photo.
+   * Scroll the content of this transformer.
+   *
+   * The position of the content can be under some limitation. The offset may not take effort
+   * or not take all effort. The remain effort of the offset should be return.
    *
    * @param dx the distance to offset, positive for right to left
    * @param dy the distance to offset, positive for bottom to top
    */
-  void offset(float dx, float dy, float[] remain);
+  void scroll(float dx, float dy, @Nullable float[] remain);
 
   /**
-   * Set start position for the content of the photo.
+   * Set scale for the content of this transformer.
+   * Scale type will be set to {@link #SCALE_TYPE_FIXED}.
+   */
+  void setScale(float scale);
+
+  /**
+   * Set scale type for the content of this transformer.
+   */
+  void setScaleType(@ScaleType int scaleType);
+
+  /**
+   * Set start position for the content of this transformer.
    */
   void setStartPosition(@StartPosition int startPosition);
 }

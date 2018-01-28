@@ -50,7 +50,7 @@ public class GalleryView extends ViewGroup {
   public static final int INVALID_INDEX = -1;
   public static final int INVALID_TYPE = -1;
 
-  private static final int MAX_PAGES_EACH_TYPR = 5;
+  private static final int MAX_PAGES_EACH_TYPE = 5;
 
   private GestureRecognizer gestureRecognizer;
 
@@ -365,7 +365,7 @@ public class GalleryView extends ViewGroup {
       cache.put(page.getType(), stack);
     }
 
-    if (stack.size() < MAX_PAGES_EACH_TYPR) {
+    if (stack.size() < MAX_PAGES_EACH_TYPE) {
       stack.push(page);
     } else {
       adapter.destroyPage(page);

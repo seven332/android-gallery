@@ -20,7 +20,6 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/11/10.
  */
 
-import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -34,8 +33,6 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
 
   private boolean widthFixed;
   private boolean heightFixed;
-
-  private Rect temp = new Rect();
 
   public BaseScrollLayout(boolean widthFixed, boolean heightFixed) {
     this.widthFixed = widthFixed;
@@ -74,7 +71,7 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
   }
 
   protected void measure(View view) {
-    float scale = Utils.asPhoto(view) != null ? this.scale : 1.0f;
+    float scale = Utils.isFlexible(view) ? this.scale : 1.0f;
     ViewGroup.LayoutParams lp = view.getLayoutParams();
     int widthMeasureSpec = getPageMeasureSpec((int) (width * scale), lp.width, widthFixed);
     int heightMeasureSpec = getPageMeasureSpec((int) (height * scale), lp.height, heightFixed);
@@ -83,6 +80,6 @@ public abstract class BaseScrollLayout implements ScrollLayoutManager.ScrollLayo
 
   protected void layout(View view, int left, int top, int right, int bottom) {
     view.layout(left, top, right, bottom);
-    Utils.updateVisibleRect(view, width, height);
+    Utils.updateClipRegion(view, width, height);
   }
 }
