@@ -26,9 +26,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Transformer can scale and scroll it's content without changing it's size.
+ * Transformable can scale and scroll it's content without changing it's size.
  */
-public interface Transformer {
+public interface Transformable {
 
   @IntDef({SCALE_TYPE_ORIGIN, SCALE_TYPE_FIT_WIDTH, SCALE_TYPE_FIT_HEIGHT,
       SCALE_TYPE_FIT, SCALE_TYPE_FIXED})

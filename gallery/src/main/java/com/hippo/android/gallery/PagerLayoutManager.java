@@ -34,7 +34,7 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * PagerLayoutManager lays pages like {@code ViewPager}.
  */
-public class PagerLayoutManager extends GalleryLayoutManager implements Transformer {
+public class PagerLayoutManager extends GalleryLayoutManager implements Transformable {
 
   private static final String LOG_TAG = "PagerLayoutManager";
 
@@ -76,11 +76,11 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
   private float scale = 1.0f;
 
-  @Transformer.ScaleType
-  private int scaleType = Transformer.SCALE_TYPE_FIT;
+  @Transformable.ScaleType
+  private int scaleType = Transformable.SCALE_TYPE_FIT;
 
-  @Transformer.StartPosition
-  private int startPosition = Transformer.START_POSITION_TOP_LEFT;
+  @Transformable.StartPosition
+  private int startPosition = Transformable.START_POSITION_TOP_LEFT;
 
   // Stores the remain offset x and y
   private float[] remain = new float[2];
@@ -166,8 +166,8 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     if (view == null) return;
 
     for (GalleryPage page : view.getPages()) {
-      if (page instanceof Transformer) {
-        ((Transformer) page).setScale(scale);
+      if (page instanceof Transformable) {
+        ((Transformable) page).setScale(scale);
       }
     }
   }
@@ -178,7 +178,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
    * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
   @Override
-  public void setScaleType(@Transformer.ScaleType int scaleType) {
+  public void setScaleType(@Transformable.ScaleType int scaleType) {
     if (isInLayout()) throw new IllegalStateException("Can't set scale type during layout");
 
     if (this.scaleType == scaleType) return;
@@ -188,8 +188,8 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     if (view == null) return;
 
     for (GalleryPage page : view.getPages()) {
-      if (page instanceof Transformer) {
-        ((Transformer) page).setScaleType(scaleType);
+      if (page instanceof Transformable) {
+        ((Transformable) page).setScaleType(scaleType);
       }
     }
   }
@@ -200,7 +200,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
    * @throws IllegalStateException if the GalleryView it attached to is in layout.
    */
   @Override
-  public void setStartPosition(@Transformer.StartPosition int startPosition) {
+  public void setStartPosition(@Transformable.StartPosition int startPosition) {
     if (isInLayout()) throw new IllegalStateException("Can't set start position during layout");
 
     if (this.startPosition == startPosition) return;
@@ -210,8 +210,8 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     if (view == null) return;
 
     for (GalleryPage page : view.getPages()) {
-      if (page instanceof Transformer) {
-        ((Transformer) page).setStartPosition(startPosition);
+      if (page instanceof Transformable) {
+        ((Transformable) page).setStartPosition(startPosition);
       }
     }
   }
@@ -241,14 +241,14 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     boolean reset = !view.isViewAttached(index);
 
     GalleryPage page = view.pinPage(index);
-    if (reset && page.view instanceof Transformer) {
-      Transformer transformer = (Transformer) page.view;
+    if (reset && page.view instanceof Transformable) {
+      Transformable transformable = (Transformable) page.view;
       if (scaleType == SCALE_TYPE_FIXED) {
-        transformer.setScale(scale);
+        transformable.setScale(scale);
       } else {
-        transformer.setScaleType(scaleType);
+        transformable.setScaleType(scaleType);
       }
-      transformer.setStartPosition(startPosition);
+      transformable.setStartPosition(startPosition);
     }
 
     return page;
@@ -332,11 +332,11 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
    * Returns the transformer if current fit page is a transformer.
    */
   @Nullable
-  private Transformer getFitTransformer(GalleryView view) {
+  private Transformable getFitTransformer(GalleryView view) {
     if (isPageFit()) {
       GalleryPage page = view.getPageAt(currentIndex);
-      if (page != null && page.view instanceof Transformer) {
-        return (Transformer) page.view;
+      if (page != null && page.view instanceof Transformable) {
+        return (Transformable) page.view;
       }
     }
     return null;
@@ -406,10 +406,10 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     for (;;) {
       if (Utils.equals(dx, 0.0f, ERROR_FLOAT) && Utils.equals(dy, 0.0f, ERROR_FLOAT)) break;
 
-      // Offset current fit transformer
-      Transformer transformer = getFitTransformer(view);
-      if (transformer != null) {
-        transformer.scroll(dx, dy, remain);
+      // Offset current fit transformable
+      Transformable transformable = getFitTransformer(view);
+      if (transformable != null) {
+        transformable.scroll(dx, dy, remain);
         dx = remain[0];
         dy = remain[1];
       }
@@ -445,10 +445,10 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
   public void scale(float x, float y, float factor) {
     GalleryView view = getGalleryView();
     if (view == null) return;
-    Transformer transformer = getFitTransformer(view);
-    if (transformer == null) return;
+    Transformable transformable = getFitTransformer(view);
+    if (transformable == null) return;
 
-    transformer.scale(x, y, factor, null);
+    transformable.scale(x, y, factor, null);
   }
 
   /*
@@ -458,10 +458,10 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
   private void scrollPage(float dx, float dy) {
     GalleryView view = getGalleryView();
     if (view == null) return;
-    Transformer transformer = getFitTransformer(view);
-    if (transformer == null) return;
+    Transformable transformable = getFitTransformer(view);
+    if (transformable == null) return;
 
-    transformer.scroll(dx, dy, remain);
+    transformable.scroll(dx, dy, remain);
   }
 
   @Override
@@ -469,8 +469,8 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
     if (view == null) return;
-    Transformer transformer = getFitTransformer(view);
-    if (transformer == null) return;
+    Transformable transformable = getFitTransformer(view);
+    if (transformable == null) return;
 
     float velocity;
     lastFling = 0.0f;
