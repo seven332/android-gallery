@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hippo.android.gallery;
+package com.hippo.android.gallery.intf;
 
 /*
  * Created by Hippo on 2018/1/28.

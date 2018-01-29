@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package com.hippo.android.gallery;
+package com.hippo.android.gallery.intf;
 
 /*
  * Created by Hippo on 2018/1/28.
  */
 
+import android.graphics.Canvas;
+import android.graphics.RectF;
+import android.support.annotation.NonNull;
+
 /**
- * Clippable can clip its content.
+ * Accurate provides a way to draw only a rectangle region of this drawable.
  */
-public interface Clippable {
+public interface Accurate {
 
   /**
-   * Set the visible region of this clipper. The remain area should not be drawn.
-   * The clip operation doesn't effect it's size.
+   * Draw a rectangle region {@code src} in the destination region {@code dst}.
    */
-  void clip(float left, float top, float right, float bottom);
+  void draw(@NonNull Canvas canvas, @NonNull RectF src, @NonNull RectF dst);
 }

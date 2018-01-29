@@ -28,9 +28,11 @@ import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
+import com.hippo.android.gallery.intf.Transformable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+// TODO Update scale value if scale type is SCALE_TYPE_FIXED
 /**
  * PagerLayoutManager lays pages like {@code ViewPager}.
  */
