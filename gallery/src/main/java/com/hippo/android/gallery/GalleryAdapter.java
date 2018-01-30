@@ -41,6 +41,14 @@ public abstract class GalleryAdapter {
     this.view = null;
   }
 
+  /**
+   * Returns the GalleryView it attached to.
+   */
+  @Nullable
+  public GalleryView getGalleryView() {
+    return view;
+  }
+
   GalleryPage createPage(GalleryView parent, int type) {
     GalleryPage page = onCreatePage(parent, type);
     page.type = type;
