@@ -97,6 +97,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   public void offsetPages(List<GalleryPage> pages, int offset) {
     for (GalleryPage page : pages) {
       page.view.offsetLeftAndRight(offset);
+      Utils.updateClipRegion(page.view, width, height);
     }
 
     totalLeft += offset;

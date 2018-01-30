@@ -99,6 +99,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
 
     for (GalleryPage page : pages) {
       page.view.offsetLeftAndRight(actualOffset);
+      Utils.updateClipRegion(page.view, width, height);
     }
 
     totalLeft += actualOffset;

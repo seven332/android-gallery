@@ -99,6 +99,7 @@ public class ReversedVerticalScrollLayout extends BaseScrollLayout {
 
     for (GalleryPage page : pages) {
       page.view.offsetTopAndBottom(actualOffset);
+      Utils.updateClipRegion(page.view, width, height);
     }
 
     totalTop += actualOffset;

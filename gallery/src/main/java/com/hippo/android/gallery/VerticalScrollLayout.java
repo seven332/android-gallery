@@ -97,6 +97,7 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   public void offsetPages(List<GalleryPage> pages, int offset) {
     for (GalleryPage page : pages) {
       page.view.offsetTopAndBottom(offset);
+      Utils.updateClipRegion(page.view, width, height);
     }
 
     totalTop += offset;
