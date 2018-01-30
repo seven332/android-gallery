@@ -21,13 +21,20 @@ package com.hippo.android.gallery.demo;
  */
 
 import android.app.Application;
+import android.util.DisplayMetrics;
 import com.github.anrwatchdog.ANRWatchDog;
+import com.hippo.android.gallery.drawable.TiledDrawable;
 
-public class App extends Application {
+public class GalleryApp extends Application {
 
   @Override
   public void onCreate() {
     super.onCreate();
+
     new ANRWatchDog().start();
+
+    DisplayMetrics metrics = getResources().getDisplayMetrics();
+    int maxTextureSize = Math.max(metrics.widthPixels, metrics.heightPixels);
+    TiledDrawable.setMaxTextureSize(maxTextureSize);
   }
 }

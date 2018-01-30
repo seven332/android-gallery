@@ -33,6 +33,7 @@ import com.hippo.android.gallery.BaseGestureHandler;
 import com.hippo.android.gallery.GalleryAdapter;
 import com.hippo.android.gallery.GalleryPage;
 import com.hippo.android.gallery.GalleryView;
+import com.hippo.android.gallery.ScrollLayoutManager;
 import com.hippo.android.gesture.GestureRecognizer;
 
 public class MainActivity extends AppCompatActivity {
@@ -86,8 +87,9 @@ public class MainActivity extends AppCompatActivity {
 
   private static class Adapter extends GalleryAdapter {
 
-    private static final int TYPE_IMAGE = 0;
-    private static final int TYPE_TEXT = 1;
+    private static final int TYPE_IMAGE_TRANSFORM = 0;
+    private static final int TYPE_IMAGE_FLEXIBLE = 1;
+    private static final int TYPE_TEXT = 2;
 
     private LayoutInflater inflater;
 
@@ -98,8 +100,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public GalleryPage onCreatePage(GalleryView parent, int type) {
       View view;
-      if (type == TYPE_IMAGE) {
-        view = inflater.inflate(R.layout.page_image, parent, false);
+      if (type == TYPE_IMAGE_TRANSFORM) {
+        view = inflater.inflate(R.layout.page_image_transform, parent, false);
+      } else if (type == TYPE_IMAGE_FLEXIBLE) {
+        view = inflater.inflate(R.layout.page_image_flexible, parent, false);
       } else {
         view = inflater.inflate(R.layout.page_text, parent, false);
       }
@@ -111,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBindPage(GalleryPage page) {
-      if (page.getType() == TYPE_IMAGE) {
+      if (page.getType() != TYPE_TEXT) {
         ImageView imageView = page.view.findViewById(R.id.image);
 
         RequestOptions myOptions = new RequestOptions()
@@ -138,7 +142,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public int getPageType(int index) {
-      return index % 2 == 0 ? TYPE_IMAGE : TYPE_TEXT;
+      return index % 2 == 0
+          ? (getGalleryView().getLayoutManager() instanceof ScrollLayoutManager ? TYPE_IMAGE_FLEXIBLE : TYPE_IMAGE_TRANSFORM)
+          : TYPE_TEXT;
     }
   }
 }

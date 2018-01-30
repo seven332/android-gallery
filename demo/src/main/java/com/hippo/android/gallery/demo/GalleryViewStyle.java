@@ -25,10 +25,10 @@ import com.hippo.android.gallery.GalleryView;
 import com.hippo.android.gallery.HorizontalPagerLayout;
 import com.hippo.android.gallery.HorizontalScrollLayout;
 import com.hippo.android.gallery.PagerLayoutManager;
-import com.hippo.android.gallery.Photo;
 import com.hippo.android.gallery.ReversedHorizontalPagerLayout;
 import com.hippo.android.gallery.ReversedHorizontalScrollLayout;
 import com.hippo.android.gallery.ScrollLayoutManager;
+import com.hippo.android.gallery.intf.Transformable;
 import com.hippo.android.gallery.VerticalScrollLayout;
 
 public class GalleryViewStyle {
@@ -47,8 +47,8 @@ public class GalleryViewStyle {
   private int scrollLayout = SCROLL_LAYOUT_VERTICAL;
   private int pagerLayout = PAGER_LAYOUT_HORIZONTAL;
   private int pageInterval = 0;
-  private int scaleType = Photo.SCALE_TYPE_FIT;
-  private int startPosition = Photo.START_POSITION_TOP_LEFT;
+  private int scaleType = Transformable.SCALE_TYPE_FIT;
+  private int startPosition = Transformable.START_POSITION_TOP_LEFT;
 
   private boolean changed = true;
 

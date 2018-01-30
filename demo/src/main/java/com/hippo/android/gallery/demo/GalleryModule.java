@@ -28,11 +28,9 @@ import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.module.AppGlideModule;
 
 @GlideModule
-public class PhotoModule extends AppGlideModule {
+public class GalleryModule extends AppGlideModule {
 
   @Override
   public void registerComponents(@NonNull Context context, @NonNull Glide glide,
-      @NonNull Registry registry) {
-    // TODO
-  }
+      @NonNull Registry registry) {}
 }

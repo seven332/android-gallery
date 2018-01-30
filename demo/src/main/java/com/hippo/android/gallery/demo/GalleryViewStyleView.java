@@ -31,7 +31,7 @@ import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import com.hippo.android.gallery.GalleryView;
-import com.hippo.android.gallery.Photo;
+import com.hippo.android.gallery.intf.Transformable;
 
 public class GalleryViewStyleView extends NestedScrollView {
 
@@ -52,17 +52,17 @@ public class GalleryViewStyleView extends NestedScrollView {
     PAGER_LAYOUT_MAP.put(GalleryViewStyle.PAGER_LAYOUT_HORIZONTAL, R.id.pager_layout_horizontal);
     PAGER_LAYOUT_MAP.put(GalleryViewStyle.PAGER_LAYOUT_REVERSED_HORIZONTAL, R.id.pager_layout_reversed_horizontal);
 
-    SCALE_TYPE_MAP.put(Photo.SCALE_TYPE_ORIGIN, R.id.scale_type_origin);
-    SCALE_TYPE_MAP.put(Photo.SCALE_TYPE_FIT_WIDTH, R.id.scale_type_fit_width);
-    SCALE_TYPE_MAP.put(Photo.SCALE_TYPE_FIT_HEIGHT, R.id.scale_type_fit_height);
-    SCALE_TYPE_MAP.put(Photo.SCALE_TYPE_FIT, R.id.scale_type_fit);
-    SCALE_TYPE_MAP.put(Photo.SCALE_TYPE_FIXED, R.id.scale_type_fixed);
+    SCALE_TYPE_MAP.put(Transformable.SCALE_TYPE_ORIGIN, R.id.scale_type_origin);
+    SCALE_TYPE_MAP.put(Transformable.SCALE_TYPE_FIT_WIDTH, R.id.scale_type_fit_width);
+    SCALE_TYPE_MAP.put(Transformable.SCALE_TYPE_FIT_HEIGHT, R.id.scale_type_fit_height);
+    SCALE_TYPE_MAP.put(Transformable.SCALE_TYPE_FIT, R.id.scale_type_fit);
+    SCALE_TYPE_MAP.put(Transformable.SCALE_TYPE_FIXED, R.id.scale_type_fixed);
 
-    START_POSITION_MAP.put(Photo.START_POSITION_TOP_LEFT, R.id.start_position_top_left);
-    START_POSITION_MAP.put(Photo.START_POSITION_TOP_RIGHT, R.id.start_position_top_right);
-    START_POSITION_MAP.put(Photo.START_POSITION_BOTTOM_LEFT, R.id.start_position_bottom_left);
-    START_POSITION_MAP.put(Photo.START_POSITION_BOTTOM_RIGHT, R.id.start_position_bottom_right);
-    START_POSITION_MAP.put(Photo.START_POSITION_CENTER, R.id.start_position_center);
+    START_POSITION_MAP.put(Transformable.START_POSITION_TOP_LEFT, R.id.start_position_top_left);
+    START_POSITION_MAP.put(Transformable.START_POSITION_TOP_RIGHT, R.id.start_position_top_right);
+    START_POSITION_MAP.put(Transformable.START_POSITION_BOTTOM_LEFT, R.id.start_position_bottom_left);
+    START_POSITION_MAP.put(Transformable.START_POSITION_BOTTOM_RIGHT, R.id.start_position_bottom_right);
+    START_POSITION_MAP.put(Transformable.START_POSITION_CENTER, R.id.start_position_center);
   }
 
   private static int getValueByKey(SparseIntArray map, int key) {
