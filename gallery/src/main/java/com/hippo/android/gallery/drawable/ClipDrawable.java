@@ -25,6 +25,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import com.hippo.android.gallery.intf.Accurate;
 import com.hippo.android.gallery.intf.Clippable;
 
@@ -38,6 +39,12 @@ public class ClipDrawable extends DrawableWrapper implements Clippable {
 
   private RectF srcRect = new RectF();
   private RectF dstRect = new RectF();
+
+  @Override
+  public void onSetWrappedDrawable(@Nullable Drawable oldDrawable, @Nullable Drawable newDrawable) {
+    super.onSetWrappedDrawable(oldDrawable, newDrawable);
+    drawRectDirty = true;
+  }
 
   @Override
   public void clip(float left, float top, float right, float bottom) {
