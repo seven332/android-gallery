@@ -97,7 +97,7 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     drawRectFDirty = true;
     updateWrapperDrawableBounds();
     updateScaleLevels();
-    fixLayout();
+    resetLayout();
   }
 
   /*
@@ -227,7 +227,7 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   }
 
   /*
-   * Fix scale and offset.
+   * Fix scale and offset to fit bounds
    */
   private void fixLayout() {
     Rect bounds = getBounds();
