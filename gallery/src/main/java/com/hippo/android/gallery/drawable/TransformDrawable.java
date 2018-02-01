@@ -63,7 +63,6 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   @Override
   public void onSetWrappedDrawable(@Nullable Drawable oldDrawable, @Nullable Drawable newDrawable) {
     if (newDrawable != null) {
-      newDrawable.setCallback(this);
       updateWrapperDrawableBounds();
       updateScaleLevels();
       resetLayout();

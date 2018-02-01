@@ -62,4 +62,6 @@ public interface ImageRegionDecoder {
    * Recycles this ImageRegionDecoder.
    */
   void recycle();
+
+  // TODO Add size()
 }

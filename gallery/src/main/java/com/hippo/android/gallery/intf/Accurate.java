@@ -26,11 +26,15 @@ import android.support.annotation.NonNull;
 
 /**
  * Accurate provides a way to draw only a rectangle region of this drawable.
+ *
+ * If a drawable implements Accurate, it must have intrinsic width and height.
  */
 public interface Accurate {
 
   /**
    * Draw a rectangle region {@code src} in the destination region {@code dst}.
+   *
+   * The region {@code src} is based on intrinsic width and height.
    */
   void draw(@NonNull Canvas canvas, @NonNull RectF src, @NonNull RectF dst);
 }
