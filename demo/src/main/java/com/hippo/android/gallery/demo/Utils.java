@@ -21,6 +21,9 @@ package com.hippo.android.gallery.demo;
  */
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import com.hippo.android.gallery.drawable.DrawableWrapper;
+import com.hippo.android.gallery.drawable.TiledDrawable;
 
 final class Utils {
 
@@ -68,5 +71,13 @@ final class Utils {
   public static float pix2dp(Context context, int pix) throws NullPointerException {
     if (context == null) throw new NullPointerException("context == null");
     return pix / context.getResources().getDisplayMetrics().density;
+  }
+
+  public static void recycle(Drawable drawable) {
+    if (drawable instanceof TiledDrawable) {
+      ((TiledDrawable) drawable).recycle();
+    } else if (drawable instanceof DrawableWrapper) {
+      recycle(((DrawableWrapper) drawable).getDrawable());
+    }
   }
 }

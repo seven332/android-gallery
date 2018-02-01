@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
       "http://www.gstatic.com/webp/gallery/3.jpg",
       "http://www.gstatic.com/webp/gallery/4.jpg",
       "http://www.gstatic.com/webp/gallery/5.jpg",
+      "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg",
   };
 
   private GalleryView view;
@@ -123,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
             .override(Target.SIZE_ORIGINAL);
 
         GlideApp.with(inflater.getContext())
+            .asDrawable()
             .load(IMAGE_URLS[page.getIndex() / 2])
             .apply(myOptions)
             .into(imageView);

@@ -25,7 +25,6 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.ImageView;
 import com.hippo.android.gallery.drawable.TransformDrawable;
 import com.hippo.android.gallery.intf.Transformable;
@@ -48,6 +47,7 @@ public class TransformImageView extends AppCompatImageView implements Transforma
 
   @Override
   public void setImageDrawable(@Nullable Drawable drawable) {
+    Utils.recycle(transformDrawable.getDrawable());
     transformDrawable.setDrawable(drawable);
     requestLayout();
   }
@@ -65,18 +65,15 @@ public class TransformImageView extends AppCompatImageView implements Transforma
   @Override
   public void setScale(float scale) {
     transformDrawable.setScale(scale);
-    Log.d("TAG", "setScale " + scale);
   }
 
   @Override
   public void setScaleType(int scaleType) {
     transformDrawable.setScaleType(scaleType);
-    Log.d("TAG", "setScaleType " + scaleType);
   }
 
   @Override
   public void setStartPosition(int startPosition) {
     transformDrawable.setStartPosition(startPosition);
-    Log.d("TAG", "setStartPosition " + startPosition);
   }
 }

@@ -47,6 +47,7 @@ public class FlexibleImageView extends AppCompatImageView implements Flexible, C
 
   @Override
   public void setImageDrawable(@Nullable Drawable drawable) {
+    Utils.recycle(clipDrawable.getDrawable());
     clipDrawable.setDrawable(drawable);
     requestLayout();
   }
