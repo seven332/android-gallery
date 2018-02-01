@@ -62,7 +62,6 @@ public class ClipDrawable extends DrawableWrapper implements Clippable {
     RectF dstRect = this.dstRect;
 
     dstRect.set(bounds);
-
     if (!dstRect.intersect(clip.left, clip.top, clip.right, clip.bottom)) {
       srcRect.setEmpty();
       dstRect.setEmpty();
@@ -71,22 +70,12 @@ public class ClipDrawable extends DrawableWrapper implements Clippable {
 
     int width = drawable.getIntrinsicWidth();
     int height = drawable.getIntrinsicHeight();
-    srcRect.set(0, 0, width, height);
-    srcRect.offset(bounds.left, bounds.top);
-
-    if (!dstRect.intersect(srcRect)) {
-      srcRect.setEmpty();
-      dstRect.setEmpty();
-      return;
-    }
-
-    srcRect.set(dstRect);
-    srcRect.offset(-bounds.left, -bounds.top);
-
-    if (!srcRect.intersect(0, 0, width, height)) {
-      srcRect.setEmpty();
-      dstRect.setEmpty();
-    }
+    float scaleX = (float) width / bounds.width();
+    float scaleY = (float) height / bounds.height();
+    srcRect.set((dstRect.left - bounds.left) * scaleX,
+        (dstRect.top - bounds.top) * scaleY,
+        (dstRect.right - bounds.left) * scaleX,
+        (dstRect.bottom - bounds.top) * scaleY);
   }
 
   @Override
