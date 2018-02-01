@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Hippo Seven
+ * Copyright 2018 Hippo Seven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
-include ':demo'
-include ':gallery'
-include ':integration-glide'
+package com.hippo.gallery.integration.glide;
+
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ */
+public class ExampleUnitTest {
+
+  @Test
+  public void addition_isCorrect() throws Exception {
+    assertEquals(4, 2 + 2);
+  }
+}
