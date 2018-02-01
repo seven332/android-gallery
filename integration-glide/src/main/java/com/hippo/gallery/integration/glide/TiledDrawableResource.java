@@ -23,6 +23,7 @@ package com.hippo.gallery.integration.glide;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import com.bumptech.glide.load.engine.Initializable;
 import com.bumptech.glide.load.engine.Resource;
 import com.bumptech.glide.util.Util;
 import com.hippo.android.gallery.drawable.ImageRegionDecoder;
@@ -33,7 +34,7 @@ import java.util.concurrent.Executor;
  * TiledDrawableResource stores a ImageRegionDecoder.
  * It returns a new TiledDrawable in {@link #get()}.
  */
-public class TiledDrawableResource implements Resource<TiledDrawable> {
+public class TiledDrawableResource implements Resource<TiledDrawable>, Initializable {
 
   private ImageRegionDecoder decoder;
   private Bitmap preview;
@@ -80,5 +81,10 @@ public class TiledDrawableResource implements Resource<TiledDrawable> {
   public void recycle() {
     decoder.recycle(preview);
     decoder.recycle();
+  }
+
+  @Override
+  public void initialize() {
+    preview.prepareToDraw();
   }
 }
