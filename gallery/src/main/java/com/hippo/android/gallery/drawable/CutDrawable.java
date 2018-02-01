@@ -41,6 +41,9 @@ public class CutDrawable extends DrawableWrapper {
   private RectF cutPercent = new RectF();
   private Rect cut = new Rect();
 
+  private int drawableWidth = -1;
+  private int drawableHeight = -1;
+
   /**
    * Cuts drawable to a specified region.
    * If the region is out of drawable size, clamp the region.
@@ -103,20 +106,28 @@ public class CutDrawable extends DrawableWrapper {
 
   private void updateCut() {
     Drawable drawable = getDrawable();
-    if (drawable == null) {
+    Rect rect = getBounds();
+    if (drawable == null || rect.isEmpty()) {
+      cut.setEmpty();
+      return;
+    }
+
+    int width = drawableWidth > 0 ? drawableWidth : rect.width();
+    int height = drawableHeight > 0 ? drawableHeight : rect.height();
+    if (width <= 0 || height <= 0) {
       cut.setEmpty();
       return;
     }
 
     switch (cutMode) {
       case CUT_NONE:
-        cut.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        cut.set(0, 0, width, height);
         break;
       case CUT_RECT:
         if (cutRect.isEmpty()) {
           cut.setEmpty();
         } else {
-          cut.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+          cut.set(0, 0, width, height);
           if (!cut.intersect(cutRect)) {
             cut.setEmpty();
           }
@@ -126,16 +137,26 @@ public class CutDrawable extends DrawableWrapper {
         if (cutPercent.isEmpty()) {
           cut.setEmpty();
         } else {
-          cut.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+          cut.set(0, 0, width, height);
           if (!cut.intersect(
-              (int) (cutPercent.left * drawable.getIntrinsicWidth()),
-              (int) (cutPercent.top * drawable.getIntrinsicHeight()),
-              (int) (cutPercent.right * drawable.getIntrinsicWidth()),
-              (int) (cutPercent.bottom * drawable.getIntrinsicHeight()))) {
+              (int) (cutPercent.left * width),
+              (int) (cutPercent.top * height),
+              (int) (cutPercent.right * width),
+              (int) (cutPercent.bottom * height))) {
             cut.setEmpty();
           }
         }
         break;
+    }
+
+    // If no intrinsic width or height, no cut
+    if (drawableWidth <= 0) {
+      cut.left = 0;
+      cut.right = width;
+    }
+    if (drawableHeight <= 0) {
+      cut.top = 0;
+      cut.bottom = height;
     }
   }
 
@@ -148,16 +169,25 @@ public class CutDrawable extends DrawableWrapper {
     if (cut.isEmpty()) {
       drawable.setBounds(cut);
     } else {
-      // Map rect, rect -> getBounds(), (0, 0, dWidth, dHeight) -> dBounds
+      int left, top, right, bottom;
       Rect bounds = getBounds();
-      float scaleX = (float) bounds.width() / (float) cut.width();
-      float scaleY = (float) bounds.height() / (float) cut.height();
-      drawable.setBounds(
-          bounds.left + (int) (-cut.left * scaleX),
-          bounds.top + (int) (-cut.top * scaleY),
-          bounds.left + (int) ((drawable.getIntrinsicWidth() - cut.left) * scaleX),
-          bounds.top + (int) ((drawable.getIntrinsicHeight() - cut.top) * scaleY)
-      );
+      if (drawableWidth > 0) {
+        float scaleX = (float) bounds.width() / (float) cut.width();
+        left = bounds.left + (int) (-cut.left * scaleX);
+        right = bounds.left + (int) ((drawableWidth - cut.left) * scaleX);
+      } else {
+        left = bounds.left;
+        right = bounds.right;
+      }
+      if (drawableHeight > 0) {
+        float scaleY = (float) bounds.height() / (float) cut.height();
+        top = bounds.top + (int) (-cut.top * scaleY);
+        bottom = bounds.top + (int) ((drawableWidth - cut.top) * scaleY);
+      } else {
+        top = bounds.top;
+        bottom = bounds.bottom;
+      }
+      drawable.setBounds(left, top, right, bottom);
     }
   }
 
@@ -170,6 +200,14 @@ public class CutDrawable extends DrawableWrapper {
 
   @Override
   public void onSetWrappedDrawable(@Nullable Drawable oldDrawable, @Nullable Drawable newDrawable) {
+    if (newDrawable != null) {
+      drawableWidth = newDrawable.getIntrinsicWidth();
+      drawableHeight = newDrawable.getIntrinsicHeight();
+    } else {
+      drawableWidth = -1;
+      drawableHeight = -1;
+    }
+
     updateCut();
     updateBounds();
   }
@@ -201,8 +239,17 @@ public class CutDrawable extends DrawableWrapper {
 
   @Override
   public void invalidateDrawable(@NonNull Drawable who) {
-    updateCut();
-    updateBounds();
+    if (who == getDrawable()) {
+      int oldDrawableWidth = drawableWidth;
+      int oldDrawableHeight = drawableHeight;
+      drawableWidth = who.getIntrinsicWidth();
+      drawableHeight = who.getIntrinsicHeight();
+
+      if (drawableWidth != oldDrawableWidth || drawableHeight != oldDrawableHeight) {
+        updateCut();
+        updateBounds();
+      }
+    }
     super.invalidateDrawable(who);
   }
 }
