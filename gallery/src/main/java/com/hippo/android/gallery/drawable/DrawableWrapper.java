@@ -213,16 +213,22 @@ public class DrawableWrapper extends Drawable implements Drawable.Callback {
 
   @Override
   public void invalidateDrawable(@NonNull Drawable who) {
-    invalidateSelf();
+    if (who == drawable) {
+      invalidateSelf();
+    }
   }
 
   @Override
   public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {
-    scheduleSelf(what, when);
+    if (who == drawable) {
+      scheduleSelf(what, when);
+    }
   }
 
   @Override
   public void unscheduleDrawable(@NonNull Drawable who, @NonNull Runnable what) {
-    unscheduleSelf(what);
+    if (who == drawable) {
+      unscheduleSelf(what);
+    }
   }
 }
