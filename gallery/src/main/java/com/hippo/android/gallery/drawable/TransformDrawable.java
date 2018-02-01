@@ -60,13 +60,20 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   private float maxScale;
   private float[] scaleLevels;
 
+  private int drawableWidth = -1;
+  private int drawableHeight = -1;
+
   @Override
   public void onSetWrappedDrawable(@Nullable Drawable oldDrawable, @Nullable Drawable newDrawable) {
     if (newDrawable != null) {
+      drawableWidth = newDrawable.getIntrinsicWidth();
+      drawableHeight = newDrawable.getIntrinsicHeight();
       updateWrapperDrawableBounds();
       updateScaleLevels();
       resetLayout();
     } else {
+      drawableWidth = -1;
+      drawableHeight = -1;
       width = -1;
       height = -1;
       scale = 0.0f;
@@ -102,10 +109,8 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   /*
    * Update wrapper drawable bounds. Returns true if the bounds changes.
    */
-  private boolean updateWrapperDrawableBounds() {
+  private void updateWrapperDrawableBounds() {
     Rect bounds = getBounds();
-    int oldWidth = width;
-    int oldHeight = height;
     Drawable drawable = getDrawable();
 
     if (drawable != null) {
@@ -118,8 +123,6 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       width = -1;
       height = -1;
     }
-
-    return oldWidth != width || oldHeight != height;
   }
 
   /*
@@ -398,10 +401,18 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
 
   @Override
   public void invalidateDrawable(@NonNull Drawable who) {
-    drawRectFDirty = true;
-    if (updateWrapperDrawableBounds()) {
-      updateScaleLevels();
-      fixLayout();
+    if (who == getDrawable()) {
+      int oldDrawableWidth = drawableWidth;
+      int oldDrawableHeight = drawableHeight;
+      drawableWidth = who.getIntrinsicWidth();
+      drawableHeight = who.getIntrinsicHeight();
+
+      if (drawableWidth != oldDrawableWidth || drawableHeight != oldDrawableHeight) {
+        drawRectFDirty = true;
+        updateWrapperDrawableBounds();
+        updateScaleLevels();
+        fixLayout();
+      }
     }
     super.invalidateDrawable(who);
   }
