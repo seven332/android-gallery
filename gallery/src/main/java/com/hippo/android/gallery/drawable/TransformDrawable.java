@@ -104,6 +104,7 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     updateWrapperDrawableBounds();
     updateScaleLevels();
     resetLayout();
+    invalidateSelf();
   }
 
   /*

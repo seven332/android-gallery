@@ -216,6 +216,7 @@ public class CutDrawable extends DrawableWrapper {
   protected void onBoundsChange(Rect bounds) {
     updateCut();
     updateBounds();
+    invalidateSelf();
   }
 
   @Override
