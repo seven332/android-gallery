@@ -43,7 +43,9 @@ import java.util.concurrent.Executor;
 
 /**
  * TiledDrawable is designed for displaying huge images without OutOfMemoryErrors.
- * It can only be used with TransformDrawable.
+ *
+ * It can only be used with {@link TransformDrawable}, {@link ClipDrawable}, or
+ * {@link CutAccurateDrawable}.
  */
 public class TiledDrawable extends Drawable implements Accurate {
 
