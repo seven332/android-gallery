@@ -98,7 +98,7 @@ public abstract class GalleryAdapter {
    *
    * The view of the page is already detached from the GalleryView.
    *
-   * The index of the Page is valid.
+   * The index of the Page is invalid.
    * The type of the Page is valid.
    */
   public abstract void onUnbindPage(GalleryPage page);

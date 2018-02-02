@@ -29,15 +29,18 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import com.hippo.android.gesture.GestureRecognizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 /**
@@ -61,9 +64,15 @@ public class GalleryView extends ViewGroup {
   @Nullable
   private GalleryAdapter adapter;
 
-  // Pages which are attached to GalleryView
+  // The pages whose view is attached to GalleryView, and they are valid.
+  // Key is the index of the page.
   @SuppressLint("UseSparseArrays")
   private Map<Integer, GalleryPage> pages = new HashMap<>();
+
+  // The pages whose view is attached to GalleryView, and they are invalid.
+  // Attached but invalid pages is caused by notifyPageXXX().
+  private Set<GalleryPage> invalidPages = new HashSet<>();
+
   // Page cache, key is page type
   @SuppressLint("UseSparseArrays")
   private Map<Integer, Stack<GalleryPage>> cache = new HashMap<>();
@@ -100,12 +109,19 @@ public class GalleryView extends ViewGroup {
     removeAllViews();
 
     if (adapter != null) {
-      // Unbind and destroy all attached page
+      // Unbind and destroy all attached valid page
       for (GalleryPage page : pages.values()) {
         adapter.unbindPage(page);
         adapter.destroyPage(page);
       }
       pages.clear();
+
+      // Unbind and destroy all attached valid page
+      for (GalleryPage page : invalidPages) {
+        adapter.unbindPage(page);
+        adapter.destroyPage(page);
+      }
+      invalidPages.clear();
 
       // Destroy all cached page
       for (Stack<GalleryPage> stack : cache.values()) {
@@ -299,65 +315,42 @@ public class GalleryView extends ViewGroup {
   private void startLayout() {
     inLayout = true;
 
-    List<GalleryPage> holder = null;
-
-    Iterator<GalleryPage> iterator = pages.values().iterator();
-    while (iterator.hasNext()) {
-      GalleryPage page = iterator.next();
-      if (page.pinned) {
-        // Mark the page unpinned
-        page.pinned = false;
-        // Update page index
-        if (page.newIndex != GalleryView.INVALID_INDEX) {
-          page.index = page.newIndex;
-          page.newIndex = GalleryView.INVALID_INDEX;
-          // Remove all pages which has new index, put them back to the map later.
-          // It's to avoid key conflict.
-          iterator.remove();
-          if (holder == null) {
-            holder = new ArrayList<>();
-          }
-          holder.add(page);
-        }
-      } else {
-        // Unpin the page if it's not pinned
-        unpinPageInternal(page);
-        iterator.remove();
-      }
-    }
-
-    // Put pages back to the map
-    if (holder != null) {
-      for (int i = 0, n = holder.size(); i < n; i++) {
-        GalleryPage page = holder.get(i);
-        pages.put(page.getIndex(), page);
-      }
+    // Make all attached valid pages' pinned false to
+    // track unpinned pages
+    for (GalleryPage page : pages.values()) {
+      page.pinned = false;
     }
   }
 
   private void endLayout() {
+    // Remove all unpinned pages in attached valid pages
     Iterator<GalleryPage> iterator = pages.values().iterator();
     while (iterator.hasNext()) {
       GalleryPage page = iterator.next();
-      // Remove all unpinned pages
       if (!page.pinned) {
         unpinPageInternal(page);
         iterator.remove();
       }
     }
 
+    // Remove all pages in invalidPages
+    for (GalleryPage page : invalidPages) {
+      unpinPageInternal(page);
+    }
+    invalidPages.clear();
+
     inLayout = false;
   }
 
   /*
    * Unpin the page.
-   * Note: pages still keeps the page.
+   * Note: pages or invalidPages still keeps the page.
    */
   private void unpinPageInternal(GalleryPage page) {
     page.pinned = false;
-    removeView(page.view);
     //noinspection ConstantConditions
     adapter.unbindPage(page);
+    removeView(page.view);
 
     Stack<GalleryPage> stack = cache.get(page.getType());
     if (stack == null) {
@@ -388,35 +381,43 @@ public class GalleryView extends ViewGroup {
 
     // Get from unpinned attached page
     GalleryPage page = pages.get(index);
-    if (page != null && adapter.getPageType(index) == page.getType()) {
+    if (page != null) {
       page.pinned = true;
       return page;
     }
 
-    /*
-     * The page isn't attached.
-     * Get the page, bind it and attach it.
-     */
-
-    // Get from cache
-    page = null;
     int type = adapter.getPageType(index);
-    Stack<GalleryPage> stack = cache.get(type);
-    if (stack != null && !stack.empty()) {
-      page = stack.pop();
+
+    // Reuse a attached invalid page with the same type
+    Iterator<GalleryPage> iterator = invalidPages.iterator();
+    while (iterator.hasNext()) {
+      GalleryPage galleryPage = iterator.next();
+      if (galleryPage.getType() == type) {
+        page = galleryPage;
+        adapter.unbindPage(page);
+        iterator.remove();
+        break;
+      }
     }
 
-    // Create page
     if (page == null) {
-      page = adapter.createPage(this, type);
+      // Get from cache
+      Stack<GalleryPage> stack = cache.get(type);
+      if (stack != null && !stack.empty()) {
+        page = stack.pop();
+      }
+
+      // Create page
+      if (page == null) {
+        page = adapter.createPage(this, type);
+      }
+
+      addView(page.view);
     }
 
-    // Bind and attach
     page.pinned = true;
-
-    addView(page.view);
+    pages.put(index, page);
     adapter.bindPage(page, index);
-    pages.put(page.getIndex(), page);
 
     return page;
   }
@@ -433,8 +434,8 @@ public class GalleryView extends ViewGroup {
       throw new IllegalStateException("Don't unset adapter in layout");
     }
 
-    pages.remove(page.getIndex());
     unpinPageInternal(page);
+    pages.remove(page.index);
   }
 
   @Override
@@ -505,6 +506,19 @@ public class GalleryView extends ViewGroup {
   }
 
   /**
+   * Returns the attached page with the specified view.
+   */
+  @Nullable
+  public GalleryPage getPageByView(View view) {
+    for (GalleryPage page : pages.values()) {
+      if (page.view == view) {
+        return page;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Returns an unmodifiable collection of all attached page.
    */
   public Collection<GalleryPage> getPages() {
@@ -517,17 +531,56 @@ public class GalleryView extends ViewGroup {
   public boolean isViewAttached(int index) {
     if (adapter != null) {
       GalleryPage page = pages.get(index);
-      return page != null && adapter.getPageType(index) == page.getType();
+      return page != null;
     }
     return false;
   }
 
-  /*
-   * notifyPageXXX() might be called multiple times continuously.
-   * newIndex should be treated as the actual index if it's not INVALID_INDEX.
-   */
-  private int getPagePendingIndex(GalleryPage page) {
-    return page.newIndex != GalleryView.INVALID_INDEX ? page.newIndex : page.index;
+  private interface NewIndexGetter {
+    /*
+     * Returns INVALID_INDEX to invalid the page.
+     * Returns the oldIndex to keep the index.
+     */
+    int getNewIndex(int oldIndex);
+  }
+
+  private void notifyPages(NewIndexGetter getter) {
+    boolean removed = false;
+    List<GalleryPage> holder = null;
+
+    Iterator<GalleryPage> iterator = pages.values().iterator();
+    while (iterator.hasNext()) {
+      GalleryPage page = iterator.next();
+      int oldIndex = page.index;
+
+      int newIndex = getter.getNewIndex(oldIndex);
+      if (newIndex == INVALID_INDEX) {
+        // Invalid the page
+        page.index = GalleryView.INVALID_INDEX;
+        iterator.remove();
+        invalidPages.add(page);
+        removed = true;
+      } else if (newIndex != oldIndex) {
+        // Remove the page temporarily
+        page.index = newIndex;
+        iterator.remove();
+        if (holder == null) {
+          holder = new ArrayList<>(pages.size());
+        }
+        holder.add(page);
+      }
+    }
+
+    if (holder != null) {
+      // Put the pages back to update their key
+      for (GalleryPage page : holder) {
+        pages.put(page.index, page);
+      }
+    }
+
+    if (removed || holder != null) {
+      requestLayout();
+    }
   }
 
   void notifyPageRangeChanged(int indexStart, int itemCount) {
@@ -535,19 +588,14 @@ public class GalleryView extends ViewGroup {
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
-    boolean needLayout = false;
-    for (GalleryPage page : pages.values()) {
-      int pendingIndex = getPagePendingIndex(page);
-      // Marks all page in [indexStart, indexStart + itemCount) 'pinned = false'
-      if (pendingIndex >= indexStart && pendingIndex < indexStart + itemCount) {
-        page.pinned = false;
-        needLayout = true;
+    notifyPages(oldIndex -> {
+      // Invalid pages whose index is in [indexStart, indexStart + itemCount)
+      if (oldIndex >= indexStart && oldIndex < indexStart + itemCount) {
+        return GalleryView.INVALID_INDEX;
+      } else {
+        return oldIndex;
       }
-    }
-
-    if (needLayout) {
-      requestLayout();
-    }
+    });
   }
 
   void notifyPageRangeInserted(int indexStart, int itemCount) {
@@ -555,19 +603,14 @@ public class GalleryView extends ViewGroup {
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
-    boolean needLayout = false;
-    for (GalleryPage page : pages.values()) {
-      int pendingIndex = getPagePendingIndex(page);
-      // Increases all pages in [indexStart, +∞) by itemCount.
-      if (pendingIndex >= indexStart) {
-        page.newIndex = pendingIndex + itemCount;
-        needLayout = true;
+    notifyPages(oldIndex -> {
+      // Increases the index of pages, whose index is in [indexStart, +∞), by itemCount.
+      if (oldIndex >= indexStart) {
+        return oldIndex + itemCount;
+      } else {
+        return oldIndex;
       }
-    }
-
-    if (needLayout) {
-      requestLayout();
-    }
+    });
   }
 
   void notifyPageRangeRemoved(int indexStart, int itemCount) {
@@ -575,23 +618,17 @@ public class GalleryView extends ViewGroup {
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
-    boolean needLayout = false;
-    for (GalleryPage page : pages.values()) {
-      int pendingIndex = getPagePendingIndex(page);
-      if (pendingIndex >= indexStart + itemCount) {
-        // Decreases all pages in [indexStart + itemCount, +∞) by itemCount.
-        page.newIndex = pendingIndex - itemCount;
-        needLayout = true;
-      } else if (pendingIndex >= indexStart) {
-        // Marks all page in [indexStart, indexStart + itemCount) 'pinned = false'
-        page.pinned = false;
-        needLayout = true;
+    notifyPages(oldIndex -> {
+      // Decreases the index of pages, whose index is in [indexStart + itemCount, +∞), by itemCount
+      if (oldIndex >= indexStart + itemCount) {
+        return oldIndex - itemCount;
+      // Invalid pages whose index is in [indexStart, indexStart + itemCount)
+      } else if (oldIndex >= indexStart) {
+        return GalleryView.INVALID_INDEX;
+      } else {
+        return oldIndex;
       }
-    }
-
-    if (needLayout) {
-      requestLayout();
-    }
+    });
   }
 
   void notifyPageMoved(int fromIndex, int toIndex) {
@@ -612,31 +649,22 @@ public class GalleryView extends ViewGroup {
       diff = 1;
     }
 
-    boolean needLayout = false;
-    for (GalleryPage page : pages.values()) {
-      int pendingIndex = getPagePendingIndex(page);
-      if (pendingIndex == fromIndex) {
-        page.newIndex = toIndex;
-        needLayout = true;
-      } else if (pendingIndex >= minIndex && pendingIndex <= maxIndex) {
-        page.newIndex = pendingIndex + diff;
-        needLayout = true;
+    notifyPages(oldIndex -> {
+      if (oldIndex == fromIndex) {
+        return toIndex;
+      } else if (oldIndex >= minIndex && oldIndex <= maxIndex) {
+        return oldIndex + diff;
+      } else {
+        return oldIndex;
       }
-    }
-
-    if (needLayout) {
-      requestLayout();
-    }
+    });
   }
 
   void notifyPageSetChanged() {
     if (inLayout) return;
     if (pages.isEmpty()) return;
 
-    for (GalleryPage page : pages.values()) {
-      page.pinned = false;
-    }
-    requestLayout();
+    notifyPages(oldIndex -> GalleryView.INVALID_INDEX);
   }
 
   private GestureRecognizer.OnGestureListener listener = new GestureRecognizer.OnGestureListener() {
