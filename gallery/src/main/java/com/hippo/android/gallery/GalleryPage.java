@@ -42,6 +42,9 @@ public class GalleryPage {
    */
   boolean pinned = false;
 
+  // For debug
+  boolean bound = false;
+
   public GalleryPage(View view) {
     this.view = view;
   }
@@ -67,6 +70,6 @@ public class GalleryPage {
   @Override
   public String toString() {
     return "Page{" + Integer.toHexString(hashCode()) + " index=" + index + ", type=" + type +
-        ", pinned=" + pinned + "}";
+        ", pinned=" + pinned + ", bound=" + bound + "}";
   }
 }

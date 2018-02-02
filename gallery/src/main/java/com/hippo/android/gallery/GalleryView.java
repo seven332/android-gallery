@@ -266,6 +266,12 @@ public class GalleryView extends ViewGroup {
     }
     // Reset view to avoid memory leak
     reset();
+
+    if (BuildConfig.DEBUG) {
+      if (getChildCount() != 0) {
+        throw new AssertionError("GalleryView still contain pages after detached from window");
+      }
+    }
   }
 
   @Override
@@ -382,6 +388,13 @@ public class GalleryView extends ViewGroup {
     // Get from unpinned attached page
     GalleryPage page = pages.get(index);
     if (page != null) {
+
+      if (BuildConfig.DEBUG) {
+        if (page.pinned) {
+          throw new AssertionError("Can't pin one page twice in one turn layout");
+        }
+      }
+
       page.pinned = true;
       return page;
     }

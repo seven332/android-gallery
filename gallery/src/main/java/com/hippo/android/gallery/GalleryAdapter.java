@@ -74,6 +74,14 @@ public abstract class GalleryAdapter {
   public abstract void onDestroyPage(GalleryPage page);
 
   void bindPage(GalleryPage page, int index) {
+
+    if (BuildConfig.DEBUG) {
+      if (page.bound) {
+        throw new AssertionError("Call bindPage() twice without unbindPage()");
+      }
+      page.bound = true;
+    }
+
     page.index = index;
     onBindPage(page);
   }
@@ -89,6 +97,14 @@ public abstract class GalleryAdapter {
   public abstract void onBindPage(GalleryPage page);
 
   void unbindPage(GalleryPage page) {
+
+    if (BuildConfig.DEBUG) {
+      if (!page.bound) {
+        throw new AssertionError("unbindPage() should be called after bindPage()");
+      }
+      page.bound = false;
+    }
+
     onUnbindPage(page);
     page.index = GalleryView.INVALID_INDEX;
   }
