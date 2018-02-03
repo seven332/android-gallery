@@ -67,7 +67,7 @@ public class GalleryView extends ViewGroup {
   // The pages whose view is attached to GalleryView, and they are valid.
   // Key is the index of the page.
   @SuppressLint("UseSparseArrays")
-  private Map<Integer, GalleryPage> pages = new HashMap<>();
+  private Map<Integer, GalleryPage> pages = BuildConfig.DEBUG ? new DebugPageMap() : new HashMap<>();
 
   // The pages whose view is attached to GalleryView, and they are invalid.
   // Attached but invalid pages is caused by notifyPageXXX().
@@ -751,4 +751,23 @@ public class GalleryView extends ViewGroup {
       }
     }
   };
+
+  private static class DebugPageMap extends HashMap<Integer, GalleryPage> {
+
+    @Override
+    public GalleryPage put(Integer key, GalleryPage value) {
+      if (key == null || key < 0) {
+        throw new IllegalStateException("Invalid index: " + key);
+      }
+      return super.put(key, value);
+    }
+
+    @Override
+    public GalleryPage remove(Object key) {
+      if (key instanceof Integer && ((Integer) key) < 0) {
+        throw new IllegalStateException("Invalid index: " + key);
+      }
+      return super.remove(key);
+    }
+  }
 }
