@@ -23,30 +23,26 @@ package com.hippo.android.gallery.demo;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 import com.hippo.android.gallery.drawable.TransformDrawable;
 import com.hippo.android.gallery.intf.Transformable;
 
-public class TransformImageView extends AppCompatImageView implements Transformable {
+public class TransformDrawableView extends DrawableView implements Transformable {
 
   private TransformDrawable transformDrawable = new TransformDrawable();
 
-  public TransformImageView(Context context) {
+  public TransformDrawableView(Context context) {
     super(context);
-    setScaleType(ImageView.ScaleType.FIT_XY);
-    super.setImageDrawable(transformDrawable);
+    super.setDrawable(transformDrawable);
   }
 
-  public TransformImageView(Context context, AttributeSet attrs) {
+  public TransformDrawableView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    setScaleType(ImageView.ScaleType.FIT_XY);
-    super.setImageDrawable(transformDrawable);
+    super.setDrawable(transformDrawable);
   }
 
   @Override
-  public void setImageDrawable(@Nullable Drawable drawable) {
+  public void setDrawable(@Nullable Drawable drawable) {
     Utils.recycle(transformDrawable.getDrawable());
     transformDrawable.setDrawable(drawable);
     requestLayout();

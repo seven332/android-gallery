@@ -23,33 +23,30 @@ package com.hippo.android.gallery.demo;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import com.hippo.android.gallery.drawable.ClipDrawable;
 import com.hippo.android.gallery.intf.Clippable;
 import com.hippo.android.gallery.intf.Flexible;
 
-public class FlexibleImageView extends AppCompatImageView implements Flexible, Clippable {
+public class FlexibleDrawableView extends DrawableView implements Flexible, Clippable {
 
   private ClipDrawable clipDrawable = new ClipDrawable();
 
-  public FlexibleImageView(Context context) {
+  public FlexibleDrawableView(Context context) {
     super(context);
-    setScaleType(ScaleType.FIT_XY);
-    super.setImageDrawable(clipDrawable);
+    super.setDrawable(clipDrawable);
   }
 
-  public FlexibleImageView(Context context, AttributeSet attrs) {
+  public FlexibleDrawableView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    setScaleType(ScaleType.FIT_XY);
-    super.setImageDrawable(clipDrawable);
+    super.setDrawable(clipDrawable);
   }
 
   @Override
-  public void setImageDrawable(@Nullable Drawable drawable) {
+  public void setDrawable(@Nullable Drawable drawable) {
     Utils.recycle(clipDrawable.getDrawable());
     clipDrawable.setDrawable(drawable);
-    requestLayout();
+    invalidateDrawable(clipDrawable);
   }
 
   @Override

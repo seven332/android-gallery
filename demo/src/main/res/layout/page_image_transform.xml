@@ -15,12 +15,8 @@
   ~ limitations under the License.
   -->
 
-<com.hippo.android.gallery.demo.TransformImageView
+<com.hippo.android.gallery.demo.TransformDrawableView
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/image"
   android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:minWidth="50dp"
-  android:minHeight="50dp"
-  android:adjustViewBounds="true"
-  android:background="@android:color/black"/>
+  android:layout_height="wrap_content"/>
