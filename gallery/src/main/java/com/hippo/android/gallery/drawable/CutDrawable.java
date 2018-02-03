@@ -106,12 +106,12 @@ public class CutDrawable extends DrawableWrapper {
 
   private void updateCut() {
     Drawable drawable = getDrawable();
-    Rect rect = getBounds();
-    if (drawable == null || rect.isEmpty()) {
+    if (drawable == null) {
       cut.setEmpty();
       return;
     }
 
+    Rect rect = getBounds();
     int width = drawableWidth > 0 ? drawableWidth : rect.width();
     int height = drawableHeight > 0 ? drawableHeight : rect.height();
     if (width <= 0 || height <= 0) {
