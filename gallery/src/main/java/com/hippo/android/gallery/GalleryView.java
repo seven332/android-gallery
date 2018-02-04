@@ -538,17 +538,6 @@ public class GalleryView extends ViewGroup {
     return Collections.unmodifiableCollection(pages.values());
   }
 
-  /**
-   * Returns {@code true} if the view of the page with the specific index is attached.
-   */
-  public boolean isViewAttached(int index) {
-    if (adapter != null) {
-      GalleryPage page = pages.get(index);
-      return page != null;
-    }
-    return false;
-  }
-
   private interface NewIndexGetter {
     /*
      * Returns INVALID_INDEX to invalid the page.

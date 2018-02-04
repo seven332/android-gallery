@@ -240,10 +240,10 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
   }
 
   private GalleryPage pinPage(GalleryView view, int index) {
-    boolean reset = !view.isViewAttached(index);
+    boolean isNew = view.getPageAt(index) == null;
 
     GalleryPage page = view.pinPage(index);
-    if (reset && page.view instanceof Transformable) {
+    if (isNew && page.view instanceof Transformable) {
       Transformable transformable = (Transformable) page.view;
       if (scaleType == SCALE_TYPE_FIXED) {
         transformable.setScale(scale);
