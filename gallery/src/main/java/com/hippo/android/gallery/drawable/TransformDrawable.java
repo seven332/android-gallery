@@ -27,6 +27,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import com.hippo.android.gallery.BuildConfig;
 import com.hippo.android.gallery.Utils;
 import com.hippo.android.gallery.intf.Accurate;
 import com.hippo.android.gallery.intf.Transformable;
@@ -69,8 +70,10 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       drawableWidth = newDrawable.getIntrinsicWidth();
       drawableHeight = newDrawable.getIntrinsicHeight();
       updateWrapperDrawableBounds();
-      updateScaleLevels();
-      resetLayout();
+      if (width > 0 && height > 0 && !getBounds().isEmpty()) {
+        updateScaleLevels();
+        resetLayout();
+      }
     } else {
       drawableWidth = -1;
       drawableHeight = -1;
@@ -102,9 +105,11 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   protected void onBoundsChange(Rect bounds) {
     drawRectFDirty = true;
     updateWrapperDrawableBounds();
-    updateScaleLevels();
-    resetLayout();
-    invalidateSelf();
+    if (width > 0 && height > 0 && !getBounds().isEmpty()) {
+      updateScaleLevels();
+      resetLayout();
+      invalidateSelf();
+    }
   }
 
   /*
@@ -124,6 +129,8 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       width = -1;
       height = -1;
     }
+
+    drawRectFDirty = true;
   }
 
   /*
@@ -131,10 +138,6 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
    */
   private void updateScaleLevels() {
     Rect bounds = getBounds();
-    if (width <= 0 || height <= 0 || bounds.isEmpty()) {
-      return;
-    }
-
     int vWidth = bounds.width();
     int vHeight = bounds.height();
     int dWidth = width;
@@ -157,10 +160,6 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
    */
   private void resetLayout() {
     Rect bounds = getBounds();
-    if (width <= 0 || height <= 0 || bounds.isEmpty()) {
-      return;
-    }
-
     int vWidth = bounds.width();
     int vHeight = bounds.height();
     int dWidth = width;
@@ -224,40 +223,30 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
         break;
     }
 
-    fixLayout();
-
+    fixOffset();
     drawRectFDirty = true;
   }
 
-  /*
-   * Fix scale and offset to fit bounds
-   */
-  private void fixLayout() {
-    Rect bounds = getBounds();
-    if (width <= 0 || height <= 0 || bounds.isEmpty()) {
-      return;
-    }
-
+  private void fixScale() {
     scale = Utils.clamp(scale, minScale, maxScale);
+  }
 
-    int vWidth = bounds.width();
-    int vHeight = bounds.height();
-    float tWidth = width * scale;
-    float tHeight = height * scale;
+  private void fixOffset() {
+    Rect bounds = getBounds();
 
-    if (tWidth > vWidth) {
-      offsetX = Utils.clamp(offsetX, vWidth - tWidth, 0);
+    float actualWidth = width * scale;
+    if (actualWidth <= bounds.width()) {
+      offsetX = (bounds.width() - actualWidth) / 2;
     } else {
-      offsetX = (vWidth - tWidth) / 2;
+      offsetX = Utils.clamp(offsetX, bounds.width() - actualWidth, 0);
     }
 
-    if (tHeight > vHeight) {
-      offsetY = Utils.clamp(offsetY, vHeight - tHeight, 0);
+    float actualHeight = height * scale;
+    if (actualHeight <= bounds.height()) {
+      offsetY = (bounds.height() - actualHeight) / 2;
     } else {
-      offsetY = (vHeight - tHeight) / 2;
+      offsetY = Utils.clamp(offsetY, bounds.height() - actualHeight, 0);
     }
-
-    drawRectFDirty = true;
   }
 
   @Override
@@ -265,12 +254,12 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     if (scaleType != SCALE_TYPE_FIXED || this.scale != scale) {
       this.scale = scale;
       scaleType = SCALE_TYPE_FIXED;
-      drawRectFDirty = true;
       resetLayout();
       invalidateSelf();
     }
   }
 
+  // TODO if the scaleType is the same, resetLayout() should still be called
   @Override
   public void setScaleType(int scaleType) {
     if (this.scaleType != scaleType) {
@@ -280,6 +269,7 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     }
   }
 
+  // TODO if the startPosition is the same, resetLayout() should still be called
   @Override
   public void setStartPosition(int startPosition) {
     if (this.startPosition != startPosition) {
@@ -289,52 +279,161 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     }
   }
 
+  // For debug
+  private void checkLayout() {
+    // Check scale
+    if (scale < minScale) {
+      throw new IllegalStateException("scale < minScale");
+    }
+    if (scale > maxScale) {
+      throw new IllegalStateException("scale > maxScale");
+    }
+
+    Rect bounds = getBounds();
+
+    // Check offsetX
+    float actualWidth = width * scale;
+    if (actualWidth <= bounds.width()) {
+      if (offsetX != (bounds.width() - actualWidth) / 2) {
+        throw new IllegalStateException("offsetX != (bounds.width() - actualWidth) / 2");
+      }
+    } else {
+      if (offsetX > 0) {
+        throw new IllegalStateException("offsetX > 0");
+      }
+      if (offsetX + actualWidth < bounds.width()) {
+        throw new IllegalStateException("offsetX + actualWidth < bounds.width()");
+      }
+    }
+
+    // Check offsetY
+    float actualHeight = height * scale;
+    if (actualHeight <= bounds.height()) {
+      if (offsetY != (bounds.height() - actualHeight) / 2) {
+        throw new IllegalStateException("offsetY != (bounds.height() - actualHeight) / 2");
+      }
+    } else {
+      if (offsetY > 0) {
+        throw new IllegalStateException("offsetY > 0");
+      }
+      if (offsetY + actualHeight < bounds.height()) {
+        throw new IllegalStateException("offsetY + actualHeight < bounds.height()");
+      }
+    }
+  }
+
   @Override
   public void scroll(float dx, float dy, @Nullable float[] remain) {
-    if (width == 0 || height == 0) {
+    Rect bounds = getBounds();
+    if (width <= 0 || height <= 0 || bounds.isEmpty()) {
       return;
     }
 
-    float oldOffsetX = offsetX;
-    float oldOffsetY = offsetY;
-    offsetX += dx;
-    offsetY += dy;
-    fixLayout();
-
-    if (remain != null) {
-      remain[0] = dx - (offsetX - oldOffsetX);
-      remain[1] = dy - (offsetY - oldOffsetY);
+    // Assume offset and scale is in bounds
+    if (BuildConfig.DEBUG) {
+      checkLayout();
     }
 
-    drawRectFDirty = true;
+    // Try to avoid float operation. Comparison only.
 
-    invalidateSelf();
+    float remainX;
+    float assumedOffsetX = offsetX + dx;
+    float actualWidth = width * scale;
+    if (offsetX > 0) {
+      // actualWidth < bounds.width(), can't scroll along x axis
+      remainX = dx;
+    } else if (assumedOffsetX > 0) {
+      // dx > 0, dx is too positive large
+      offsetX = 0;
+      // 0 = offsetX + (dx - (assumedOffsetX))
+      remainX = assumedOffsetX;
+    } else if (assumedOffsetX + actualWidth < bounds.width()) {
+      // dx < 0, dx is too negative large
+      offsetX = bounds.width() - actualWidth;
+      // bounds.width() - actualWidth = offsetX + (dx - (actualWidth + assumedOffsetX - bounds.width()))
+      remainX = actualWidth + assumedOffsetX - bounds.width();
+    } else {
+      offsetX = assumedOffsetX;
+      remainX = 0;
+    }
+
+    float remainY;
+    float assumedOffsetY = offsetY + dy;
+    float actualHeight = height * scale;
+    if (offsetY > 0) {
+      // actualHeight < bounds.height(), can't scroll along y axis
+      remainY = dy;
+    } else if (assumedOffsetY > 0) {
+      // dy > 0, dy is too positive large
+      offsetY = 0;
+      // 0 = offsetY + (dy - (assumedOffsetY))
+      remainY = assumedOffsetY;
+    } else if (assumedOffsetY + actualHeight < bounds.height()) {
+      // dy < 0, dy is too negative large
+      offsetY = bounds.height() - actualHeight;
+      // bounds.height() - actualHeight = offsetY + (dy - (actualHeight + assumedOffsetY - bounds.height()))
+      remainY = actualHeight + assumedOffsetY - bounds.height();
+    } else {
+      offsetY = assumedOffsetY;
+      remainY = 0;
+    }
+
+    if (remain != null) {
+      remain[0] = remainX;
+      remain[1] = remainY;
+    }
+
+    if (dx != remainX || dy != remainY) {
+      drawRectFDirty = true;
+      invalidateSelf();
+    }
   }
 
   @Override
   public void scale(float x, float y, float factor, @Nullable float[] remain) {
-    if (width == 0 || height == 0) {
+    Rect bounds = getBounds();
+    if (width <= 0 || height <= 0 || bounds.isEmpty()) {
       return;
     }
 
-    float oldScale = scale;
-    scale = Utils.clamp(scale * factor, minScale, maxScale);
-    float actualFactor = scale / oldScale;
-    if (scale == oldScale) {
-      return;
+    // Assume offset and scale is in bounds
+    if (BuildConfig.DEBUG) {
+      checkLayout();
     }
 
-    offsetX = x - ((x - offsetX) * actualFactor);
-    offsetY = y - ((y - offsetY) * actualFactor);
-    fixLayout();
+    // Try to avoid float operation. Comparison only.
+
+    float actualFactor;
+    float remainFactor;
+    if ((scale != minScale && factor < 1) ||
+        (scale != maxScale && factor > 1)) {
+      float assumedScale = scale * factor;
+      float newScale = Utils.clamp(assumedScale, minScale, maxScale);
+      if (assumedScale == newScale) {
+        scale = newScale;
+        actualFactor = factor;
+        remainFactor = 1;
+      } else {
+        actualFactor = newScale / scale;
+        remainFactor = factor / actualFactor;
+        scale = newScale;
+      }
+    } else {
+      actualFactor = 1;
+      remainFactor = factor;
+    }
 
     if (remain != null) {
-      remain[0] = factor / actualFactor;
+      remain[0] = remainFactor;
     }
 
-    drawRectFDirty = true;
-
-    invalidateSelf();
+    if (factor != remainFactor) {
+      offsetX = x - ((x - offsetX) * actualFactor);
+      offsetY = y - ((y - offsetY) * actualFactor);
+      fixOffset();
+      drawRectFDirty = true;
+      invalidateSelf();
+    }
   }
 
   /*
@@ -378,20 +477,21 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   public void draw(@NonNull Canvas canvas) {
     Rect bounds = getBounds();
     Drawable drawable = getDrawable();
+    if (width <= 0 || height <= 0 || bounds.isEmpty() || drawable == null) {
+      return;
+    }
 
-    if (drawable != null && width > 0 && height > 0 && !bounds.isEmpty()) {
-      if (drawable instanceof Accurate) {
-        updateDrawRect();
-        if (!srcRect.isEmpty() && !dstRect.isEmpty()) {
-          ((Accurate) drawable).draw(canvas, srcRect, dstRect);
-        }
-      } else {
-        int saved = canvas.save();
-        canvas.translate(bounds.left + offsetX, bounds.top + offsetY);
-        canvas.scale(scale, scale);
-        drawable.draw(canvas);
-        canvas.restoreToCount(saved);
+    if (drawable instanceof Accurate) {
+      updateDrawRect();
+      if (!srcRect.isEmpty() && !dstRect.isEmpty()) {
+        ((Accurate) drawable).draw(canvas, srcRect, dstRect);
       }
+    } else {
+      int saved = canvas.save();
+      canvas.translate(bounds.left + offsetX, bounds.top + offsetY);
+      canvas.scale(scale, scale);
+      drawable.draw(canvas);
+      canvas.restoreToCount(saved);
     }
   }
 
@@ -411,8 +511,11 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       if (drawableWidth != oldDrawableWidth || drawableHeight != oldDrawableHeight) {
         drawRectFDirty = true;
         updateWrapperDrawableBounds();
-        updateScaleLevels();
-        fixLayout();
+        if (width > 0 && height > 0 && !getBounds().isEmpty()) {
+          updateScaleLevels();
+          fixScale();
+          fixOffset();
+        }
       }
     }
     super.invalidateDrawable(who);
