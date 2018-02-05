@@ -64,6 +64,11 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   private int drawableWidth = -1;
   private int drawableHeight = -1;
 
+  // false if scale isn't fit scaleType
+  private boolean scaleDirty = true;
+  // false if offsetX or offsetY isn't fit startPosition
+  private boolean offsetDirty = true;
+
   @Override
   public void onSetWrappedDrawable(@Nullable Drawable oldDrawable, @Nullable Drawable newDrawable) {
     if (newDrawable != null) {
@@ -81,6 +86,8 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       height = -1;
       scale = 0.0f;
       drawRectFDirty = true;
+      scaleDirty = true;
+      offsetDirty = true;
     }
   }
 
@@ -104,6 +111,8 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
   @Override
   protected void onBoundsChange(Rect bounds) {
     drawRectFDirty = true;
+    scaleDirty = true;
+    offsetDirty = true;
     updateWrapperDrawableBounds();
     if (width > 0 && height > 0 && !getBounds().isEmpty()) {
       updateScaleLevels();
@@ -131,6 +140,8 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     }
 
     drawRectFDirty = true;
+    scaleDirty = true;
+    offsetDirty = true;
   }
 
   /*
@@ -224,7 +235,10 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     }
 
     fixOffset();
+
     drawRectFDirty = true;
+    scaleDirty = false;
+    offsetDirty = false;
   }
 
   private void fixScale() {
@@ -259,20 +273,18 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
     }
   }
 
-  // TODO if the scaleType is the same, resetLayout() should still be called
   @Override
   public void setScaleType(int scaleType) {
-    if (this.scaleType != scaleType) {
+    if (this.scaleType != scaleType || scaleDirty) {
       this.scaleType = scaleType;
       resetLayout();
       invalidateSelf();
     }
   }
 
-  // TODO if the startPosition is the same, resetLayout() should still be called
   @Override
   public void setStartPosition(int startPosition) {
-    if (this.startPosition != startPosition) {
+    if (this.startPosition != startPosition || offsetDirty) {
       this.startPosition = startPosition;
       resetLayout();
       invalidateSelf();
@@ -385,6 +397,7 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
 
     if (dx != remainX || dy != remainY) {
       drawRectFDirty = true;
+      offsetDirty = true;
       invalidateSelf();
     }
   }
@@ -432,6 +445,7 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       offsetY = y - ((y - offsetY) * actualFactor);
       fixOffset();
       drawRectFDirty = true;
+      scaleDirty = true;
       invalidateSelf();
     }
   }
@@ -509,7 +523,6 @@ public class TransformDrawable extends DrawableWrapper implements Transformable 
       drawableHeight = who.getIntrinsicHeight();
 
       if (drawableWidth != oldDrawableWidth || drawableHeight != oldDrawableHeight) {
-        drawRectFDirty = true;
         updateWrapperDrawableBounds();
         if (width > 0 && height > 0 && !getBounds().isEmpty()) {
           updateScaleLevels();
