@@ -130,23 +130,34 @@ public class DrawableView extends View implements Drawable.Callback {
       width = measureNoAspect(widthSpecMode, widthSpecSize, drawableWidth);
       height = measureNoAspect(heightSpecMode, heightSpecSize, drawableHeight);
     } else {
-      width = widthSpecMode == MeasureSpec.UNSPECIFIED ? drawableWidth : widthSpecSize;
-      switch (heightSpecMode) {
-        case MeasureSpec.EXACTLY:
+      if (widthSpecMode == MeasureSpec.UNSPECIFIED && heightSpecMode == MeasureSpec.UNSPECIFIED) {
+        width = drawableWidth;
+        height = drawableHeight;
+      } else if (widthSpecMode == MeasureSpec.UNSPECIFIED) {
+        // width: UNSPECIFIED, height: AT_MOST or EXACTLY
+        width = (int) ((float) heightSpecSize * drawableWidth / drawableHeight);
+        height = heightSpecSize;
+      } else if (heightSpecMode == MeasureSpec.UNSPECIFIED) {
+        // width: AT_MOST or EXACTLY, height UNSPECIFIED
+        width = widthSpecSize;
+        height = (int) ((float) widthSpecSize / drawableWidth * drawableHeight);
+      } else if (widthSpecMode == MeasureSpec.AT_MOST && heightSpecMode == MeasureSpec.AT_MOST) {
+        width = widthSpecSize;
+        height = (int) ((float) widthSpecSize / drawableWidth * drawableHeight);
+        if (height > heightSpecSize) {
+          width = (int) ((float) heightSpecSize * drawableWidth / drawableHeight);
           height = heightSpecSize;
-          break;
-        default:
-        case MeasureSpec.AT_MOST:
-        case MeasureSpec.UNSPECIFIED:
-          float aspect = (float) drawableWidth / (float) drawableHeight;
-          height = (int) (width / aspect);
-          if (heightSpecMode == MeasureSpec.AT_MOST && height > heightSpecSize) {
-            height = heightSpecSize;
-            if (widthSpecMode != MeasureSpec.EXACTLY) {
-              width = (int) (height * aspect);
-            }
-          }
-          break;
+        }
+      } else if (widthSpecMode == MeasureSpec.AT_MOST && heightSpecMode == MeasureSpec.EXACTLY) {
+        width = Math.min(widthSpecSize, (int) ((float) heightSpecSize * drawableWidth / drawableHeight));
+        height = heightSpecSize;
+      } else if (widthSpecMode == MeasureSpec.EXACTLY && heightSpecMode == MeasureSpec.AT_MOST) {
+        width = widthSpecSize;
+        height = Math.min(heightSpecSize, (int) ((float) widthSpecSize / drawableWidth * drawableHeight));
+      } else {
+        // width: EXACTLY, height: EXACTLY
+        width = widthSpecSize;
+        height = heightSpecSize;
       }
     }
     setMeasuredDimension(width, height);
