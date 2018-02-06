@@ -131,10 +131,12 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
 
       // If the last pages can't has previous, remove the second last page
       if (!scrollLayout.canLayoutPrevious(nextPage.view, 0)) {
-        // pages.size() must be 2
-        if (pages.size() != 2) {
-          throw new IllegalStateException("If canLayoutPrevious() is true in layoutNextPages(), "
-              + "pages.size() must be 2");
+        if (BuildConfig.DEBUG) {
+          // pages.size() must be 2
+          if (pages.size() != 2) {
+            throw new IllegalStateException("If canLayoutPrevious() is true in layoutNextPages(), "
+                + "pages.size() must be 2");
+          }
         }
         // Remove it
         view.unpinPage(pages.getFirst());
@@ -158,10 +160,12 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
 
       // If the first pages can't has next, remove the second first page
       if (!scrollLayout.canLayoutNext(previousPage.view, nextBlank)) {
-        // pages.size() must be 2
-        if (pages.size() != 2) {
-          throw new IllegalStateException("If canLayoutNext() is true in layoutPreviousPages(), "
-              + "pages.size() must be 2");
+        if (BuildConfig.DEBUG) {
+          // pages.size() must be 2
+          if (pages.size() != 2) {
+            throw new IllegalStateException("If canLayoutNext() is true in layoutPreviousPages(), "
+                + "pages.size() must be 2");
+          }
         }
         // Remove it
         view.unpinPage(pages.getLast());
