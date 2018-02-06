@@ -49,7 +49,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public boolean canLayoutNext(View last, float offset) {
-    return last.getLeft() < width + offset;
+    return last.getLeft() <= width + offset;
   }
 
   @Override
@@ -72,7 +72,7 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public boolean canLayoutPrevious(View first, float offset) {
-    return first.getRight() > offset;
+    return first.getRight() >= offset;
   }
 
   @Override
