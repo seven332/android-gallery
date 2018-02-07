@@ -21,6 +21,7 @@ package com.hippo.android.gallery;
  */
 
 import android.support.annotation.Nullable;
+import android.view.View;
 
 /**
  * LayoutManager handles page layout and actions about layout, like scrolling and scaling.
@@ -85,6 +86,13 @@ public abstract class GalleryLayoutManager {
    */
   public boolean isInLayout() {
     return view != null && view.isInLayout2();
+  }
+
+  /**
+   * Returns {@code true} if the child view of GalleryView should be drawn.
+   */
+  public boolean shouldDrawView(View view) {
+    return true;
   }
 
   /**

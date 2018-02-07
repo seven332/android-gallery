@@ -32,7 +32,6 @@ import com.hippo.android.gallery.intf.Transformable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-// TODO Update scale value if scale type is SCALE_TYPE_FIXED
 /**
  * PagerLayoutManager lays pages like {@code ViewPager}.
  */
@@ -342,6 +341,18 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean shouldDrawView(View view) {
+    // Sometimes the edge of the page next to the fit page can be seen.
+    // This method should avoid it.
+    GalleryView galleryView = getGalleryView();
+    if (galleryView != null && isPageFit()) {
+      GalleryPage page = galleryView.getPageAt(currentIndex);
+      return page != null && view == page.view;
+    }
+    return true;
   }
 
   /*

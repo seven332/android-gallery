@@ -22,6 +22,7 @@ package com.hippo.android.gallery;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -499,6 +500,15 @@ public class GalleryView extends ViewGroup {
     // Block requestLayout() if it isn't in layout
     if (!inLayout) {
       super.requestLayout();
+    }
+  }
+
+  @Override
+  protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+    if (layoutManager == null || layoutManager.shouldDrawView(child)) {
+      return super.drawChild(canvas, child, drawingTime);
+    } else {
+      return true;
     }
   }
 
