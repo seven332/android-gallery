@@ -27,6 +27,8 @@ import com.hippo.android.gallery.intf.Flexible;
 
 public final class Utils {
 
+  public static final float ERROR_FLOAT = 1e-4f;
+
   /**
    * Returns the input value x clamped to the range [bound1, bound2] if bound2 &gt;= bound1,
    * otherwise [bound2, bound1].
@@ -71,8 +73,8 @@ public final class Utils {
    * Returns {@code true} if the arguments are equal or within the range of allowed
    * error (inclusive).
    */
-  public static boolean equals(float x, float y, float eps) {
-    return Math.abs(y - x) <= eps;
+  public static boolean floatEquals(float x, float y) {
+    return Math.abs(y - x) <= ERROR_FLOAT;
   }
 
   /**

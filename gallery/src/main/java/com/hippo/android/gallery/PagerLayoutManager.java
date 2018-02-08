@@ -49,8 +49,6 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
   public static final int TURNING_THRESHOLD_DP = 48;
 
-  public static final float ERROR_FLOAT = 1e-4f;
-
   // Current page index
   private int currentIndex = 0;
 
@@ -417,7 +415,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     boolean needLayout = false;
 
     for (;;) {
-      if (Utils.equals(dx, 0.0f, ERROR_FLOAT) && Utils.equals(dy, 0.0f, ERROR_FLOAT)) break;
+      if (Utils.floatEquals(dx, 0.0f) && Utils.floatEquals(dy, 0.0f)) break;
 
       // Offset current fit transformable
       Transformable transformable = getFitTransformer(view);
@@ -427,7 +425,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
         dy = remain[1];
       }
 
-      if (Utils.equals(dx, 0.0f, ERROR_FLOAT) && Utils.equals(dy, 0.0f, ERROR_FLOAT)) break;
+      if (Utils.floatEquals(dx, 0.0f) && Utils.floatEquals(dy, 0.0f)) break;
 
       float oldPageOffset = pageOffset;
 
