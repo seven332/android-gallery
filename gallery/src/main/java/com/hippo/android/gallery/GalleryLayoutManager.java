@@ -101,7 +101,7 @@ public abstract class GalleryLayoutManager {
    * @param dx left to right is positive
    * @param dy top to bottom is positive
    */
-  public abstract void scroll(float dx, float dy);
+  public abstract void scroll(float dx, float dy, @Nullable float[] remain);
 
   /**
    * Scales the GalleryView attached to LayoutManager.
@@ -110,7 +110,7 @@ public abstract class GalleryLayoutManager {
    * @param y the y of the center point
    * @param factor the factor of the scaling
    */
-  public abstract void scale(float x, float y, float factor);
+  public abstract void scale(float x, float y, float factor, @Nullable float[] remain);
 
   /**
    * Flings the GalleryView attached to LayoutManager.

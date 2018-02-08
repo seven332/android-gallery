@@ -56,6 +56,12 @@ public class HorizontalPagerLayout extends BasePagerLayout {
   }
 
   @Override
+  public void assignRemainOffset(float remainOffset, float[] remain) {
+    remain[0] = remainOffset;
+    remain[1] = 0;
+  }
+
+  @Override
   public void offsetRect(Rect rect, float offset, int position) {
     int pageRange = getPageRange();
     switch (position) {

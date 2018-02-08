@@ -82,7 +82,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
   private int startPosition = Transformable.START_POSITION_TOP_LEFT;
 
   // Stores the remain offset x and y
-  private float[] remain = new float[2];
+  private float[] temp = new float[2];
 
   private PagerLayout pagerLayout;
 
@@ -355,8 +355,9 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
   /*
    * Handle page turning and fix PageOffset to make it in range.
+   * Return remained page offset.
    */
-  private void fixPageOffset(GalleryView view) {
+  private float fixPageOffset(GalleryView view) {
     int pageRange = pagerLayout.getPageRange();
 
     // Try to turn to previous page
@@ -373,9 +374,15 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
     // Ensure page offset in range
     if (currentIndex == 0 && pageOffset > 0.0f) {
+      float oldPageOffset = pageOffset;
       pageOffset = 0.0f;
+      return oldPageOffset;
     } else if (currentIndex == view.getPageCount() - 1 && pageOffset < 0.0f) {
+      float oldPageOffset = pageOffset;
       pageOffset = 0.0f;
+      return oldPageOffset;
+    } else {
+      return 0.0f;
     }
   }
 
@@ -403,15 +410,16 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
   @Override
   public void scroll(float dx, float dy, @Nullable float[] remain) {
-    scroll(dx, dy);
-  }
+    if (remain != null) {
+      remain[0] = 0.0f;
+      remain[1] = 0.0f;
+    }
 
-  @Override
-  public void scroll(float dx, float dy) {
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
     if (view == null) return;
 
+    float remainOffset = 0.0f;
     boolean needLayout = false;
 
     for (;;) {
@@ -420,9 +428,9 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
       // Offset current fit transformable
       Transformable transformable = getFitTransformer(view);
       if (transformable != null) {
-        transformable.scroll(dx, dy, remain);
-        dx = remain[0];
-        dy = remain[1];
+        transformable.scroll(dx, dy, temp);
+        dx = temp[0];
+        dy = temp[1];
       }
 
       if (Utils.floatEquals(dx, 0.0f) && Utils.floatEquals(dy, 0.0f)) break;
@@ -430,11 +438,11 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
       float oldPageOffset = pageOffset;
 
       // Offset all pages
-      pageOffset = pagerLayout.scrollPage(pageOffset, dx, dy, remain);
-      dx = remain[0];
-      dy = remain[1];
+      pageOffset = pagerLayout.scrollPage(pageOffset, dx, dy, temp);
+      dx = temp[0];
+      dy = temp[1];
 
-      fixPageOffset(view);
+      remainOffset += fixPageOffset(view);
 
       // Only need layout if pageOffset changes
       if (pageOffset != oldPageOffset) {
@@ -445,15 +453,18 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     if (needLayout) {
       view.layout();
     }
+
+    if (remain != null) {
+      pagerLayout.assignRemainOffset(remainOffset, remain);
+    }
   }
 
   @Override
   public void scale(float x, float y, float factor, @Nullable float[] remain) {
-    scale(x, y, factor);
-  }
+    if (remain != null) {
+      remain[0] = 1.0f;
+    }
 
-  @Override
-  public void scale(float x, float y, float factor) {
     GalleryView view = getGalleryView();
     if (view == null) return;
     Transformable transformable = getFitTransformer(view);
@@ -472,7 +483,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     Transformable transformable = getFitTransformer(view);
     if (transformable == null) return;
 
-    transformable.scroll(dx, dy, remain);
+    transformable.scroll(dx, dy, null);
   }
 
   @Override
@@ -579,5 +590,14 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
      * @return new page offset, must in [-getPageRange(), getPageRange()]
      */
     float scrollPage(float offset, float dx, float dy, float[] remain);
+
+    /**
+     * Assign remain offset to the remain container.
+     * It's called by {@link PagerLayoutManager#scroll(float, float, float[])}.
+     *
+     * @param remainOffset the remain offset
+     * @param remain the remain container
+     */
+    void assignRemainOffset(float remainOffset, float[] remain);
   }
 }

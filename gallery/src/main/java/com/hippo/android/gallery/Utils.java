@@ -73,8 +73,8 @@ public final class Utils {
    * Returns {@code true} if the arguments are equal or within the range of allowed
    * error (inclusive).
    */
-  public static boolean floatEquals(float x, float y) {
-    return Math.abs(y - x) <= ERROR_FLOAT;
+  public static boolean floatEquals(float a, float b) {
+    return Math.abs(b - a) <= ERROR_FLOAT;
   }
 
   /**
@@ -192,5 +192,12 @@ public final class Utils {
         dY + (s.top - sY) * scaleY,
         dX + (s.right - sX) * scaleX,
         dY + (s.bottom - sY) * scaleY);
+  }
+
+  /**
+   * Returns {@code true} if these tow floats have opposite signs.
+   */
+  public static boolean oppositeSigns(float a, float b) {
+    return (a > 0 && b < 0) || (a < 0 && b > 0);
   }
 }

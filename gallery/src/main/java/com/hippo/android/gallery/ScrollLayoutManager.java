@@ -22,6 +22,7 @@ package com.hippo.android.gallery;
 
 import android.support.animation.FlingAnimation;
 import android.support.animation.FloatPropertyCompat;
+import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
 import java.util.Collections;
@@ -64,7 +65,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     public void setValue(ScrollLayoutManager slm, float value) {
       float d = value - slm.lastFling;
       slm.lastFling = value;
-      slm.scroll(d * slm.flingScaleX, d * slm.flingScaleY);
+      slm.scroll(d * slm.flingScaleX, d * slm.flingScaleY, null);
     }
     @Override
     public float getValue(ScrollLayoutManager slm) {
@@ -284,8 +285,14 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     updateAnchor(pages);
   }
 
+  // TODO remain
   @Override
-  public void scroll(float dx, float dy) {
+  public void scroll(float dx, float dy, @Nullable float[] remain) {
+    if (remain != null) {
+      remain[0] = 0.0f;
+      remain[1] = 0.0f;
+    }
+
     GalleryView view = getGalleryView();
     if (view == null) return;
 
@@ -296,8 +303,13 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     view.layout();
   }
 
+  // TODO remain
   @Override
-  public void scale(float x, float y, float factor) {
+  public void scale(float x, float y, float factor, @Nullable float[] remain) {
+    if (remain != null) {
+      remain[0] = 1.0f;
+    }
+
     GalleryView view = getGalleryView();
     if (view == null) return;
 

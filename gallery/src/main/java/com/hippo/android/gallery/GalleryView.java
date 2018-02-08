@@ -81,6 +81,9 @@ public class GalleryView extends ViewGroup {
   // Whether the GalleryView is in layout
   private boolean inLayout;
 
+  private float overScrollX = 0.0f;
+  private float overScrollY = 0.0f;
+
   public GalleryView(Context context) {
     super(context);
     init(context);
@@ -483,7 +486,7 @@ public class GalleryView extends ViewGroup {
       Log.e(LOG_TAG, "Cannot scroll without a LayoutManager set");
       return;
     }
-    layoutManager.scroll(dx, dy);
+    layoutManager.scroll(dx, dy, null);
   }
 
   @Override
@@ -516,10 +519,23 @@ public class GalleryView extends ViewGroup {
     }
   }
 
+  /**
+   * Apply over scroll offset. It affects the render offset of all children.
+   */
+  public void setOverScroll(float overScrollX, float overScrollY) {
+    this.overScrollX = overScrollX;
+    this.overScrollY = overScrollY;
+    invalidate();
+  }
+
   @Override
   protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
     if (layoutManager == null || layoutManager.shouldDrawView(child)) {
-      return super.drawChild(canvas, child, drawingTime);
+      int saved = canvas.save();
+      canvas.translate(overScrollX, overScrollY);
+      boolean result = super.drawChild(canvas, child, drawingTime);
+      canvas.restoreToCount(saved);
+      return result;
     } else {
       return true;
     }
