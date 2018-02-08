@@ -20,18 +20,84 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/12/31.
  */
 
+import android.support.annotation.Nullable;
+
+// TODO let GalleryGestureHandler handles common animations, like fling animation.
 /**
  * GalleryGestureHandler handles gestures from GalleryView.
  */
-public interface GalleryGestureHandler {
-  void onDown(GalleryView view, float x, float y);
-  void onUp(GalleryView view, float x, float y);
-  void onCancel(GalleryView view);
-  void onSingleTap(GalleryView view, float x, float y);
-  void onDoubleTap(GalleryView view, float x, float y);
-  void onLongPress(GalleryView view, float x, float y);
-  void onScroll(GalleryView view, float dx, float dy, float totalX, float totalY, float x, float y);
-  void onFling(GalleryView view, float velocityX, float velocityY);
-  void onScale(GalleryView view, float x, float y, float scale);
-  void onRotate(GalleryView view, float x, float y, float angle);
+public class GalleryGestureHandler {
+
+  @Nullable
+  private GalleryView view;
+
+  void attach(GalleryView view) {
+    if (this.view != null) {
+      throw new IllegalStateException("This GestureHandler is already attached to a GalleryView.");
+    }
+    this.view = view;
+  }
+
+  void detach() {
+    this.view = null;
+  }
+
+  @Nullable
+  private GalleryLayoutManager getLayoutManager() {
+    if (view != null) {
+      return view.getLayoutManager();
+    } else {
+      return null;
+    }
+  }
+
+  public void onDown(float x, float y) {
+    GalleryLayoutManager layoutManager = getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.cancelAnimations();
+    }
+  }
+
+  public void onUp(float x, float y) {
+    GalleryLayoutManager layoutManager = getLayoutManager();
+    if (layoutManager instanceof PagerLayoutManager) {
+      ((PagerLayoutManager) layoutManager).startTurningAnimation();
+    }
+  }
+
+  public void onCancel() {
+    GalleryLayoutManager layoutManager = getLayoutManager();
+    if (layoutManager instanceof PagerLayoutManager) {
+      ((PagerLayoutManager) layoutManager).startTurningAnimation();
+    }
+  }
+
+  public void onSingleTap(float x, float y) {}
+
+  public void onDoubleTap(float x, float y) {}
+
+  public void onLongPress(float x, float y) {}
+
+  public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
+    GalleryLayoutManager layoutManager = getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.scroll(dx, dy);
+    }
+  }
+
+  public void onFling(float velocityX, float velocityY) {
+    GalleryLayoutManager layoutManager = getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.fling(velocityX, velocityY);
+    }
+  }
+
+  public void onScale(float x, float y, float scale) {
+    GalleryLayoutManager layoutManager = getLayoutManager();
+    if (layoutManager != null) {
+      layoutManager.scale(x, y, scale);
+    }
+  }
+
+  public void onRotate(float x, float y, float angle) {}
 }

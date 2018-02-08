@@ -209,7 +209,20 @@ public class GalleryView extends ViewGroup {
    * Sets a GalleryGestureHandler to handle gestures.
    */
   public void setGestureHandler(@Nullable GalleryGestureHandler gestureHandler) {
+    if (this.gestureHandler == gestureHandler) {
+      // Skip the same GalleryAdapter
+      return;
+    }
+
+    GalleryGestureHandler oldGestureHandler = this.gestureHandler;
+    if (oldGestureHandler != null) {
+      oldGestureHandler.detach();
+    }
+
     this.gestureHandler = gestureHandler;
+    if (gestureHandler != null) {
+      gestureHandler.attach(this);
+    }
   }
 
   /**
@@ -683,70 +696,70 @@ public class GalleryView extends ViewGroup {
     @Override
     public void onDown(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onDown(GalleryView.this, x, y);
+        gestureHandler.onDown(x, y);
       }
     }
 
     @Override
     public void onUp(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onUp(GalleryView.this, x, y);
+        gestureHandler.onUp(x, y);
       }
     }
 
     @Override
     public void onCancel() {
       if (gestureHandler != null) {
-        gestureHandler.onCancel(GalleryView.this);
+        gestureHandler.onCancel();
       }
     }
 
     @Override
     public void onSingleTap(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onSingleTap(GalleryView.this, x, y);
+        gestureHandler.onSingleTap(x, y);
       }
     }
 
     @Override
     public void onDoubleTap(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onDoubleTap(GalleryView.this, x, y);
+        gestureHandler.onDoubleTap(x, y);
       }
     }
 
     @Override
     public void onLongPress(float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onLongPress(GalleryView.this, x, y);
+        gestureHandler.onLongPress(x, y);
       }
     }
 
     @Override
     public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
       if (gestureHandler != null) {
-        gestureHandler.onScroll(GalleryView.this, dx, dy, totalX, totalY, x, y);
+        gestureHandler.onScroll(dx, dy, totalX, totalY, x, y);
       }
     }
 
     @Override
     public void onFling(float velocityX, float velocityY) {
       if (gestureHandler != null) {
-        gestureHandler.onFling(GalleryView.this, velocityX, velocityY);
+        gestureHandler.onFling(velocityX, velocityY);
       }
     }
 
     @Override
     public void onScale(float x, float y, float scale) {
       if (gestureHandler != null) {
-        gestureHandler.onScale(GalleryView.this, x, y, scale);
+        gestureHandler.onScale(x, y, scale);
       }
     }
 
     @Override
     public void onRotate(float x, float y, float angle) {
       if (gestureHandler != null) {
-        gestureHandler.onRotate(GalleryView.this, x, y, angle);
+        gestureHandler.onRotate(x, y, angle);
       }
     }
   };
