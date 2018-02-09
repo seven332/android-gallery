@@ -57,7 +57,7 @@ public class ReversedHorizontalPagerLayout extends BasePagerLayout {
 
   @Override
   public void assignRemainOffset(float remainOffset, float[] remain) {
-    remain[0] = remainOffset;
+    remain[0] = -remainOffset;
     remain[1] = 0;
   }
 
