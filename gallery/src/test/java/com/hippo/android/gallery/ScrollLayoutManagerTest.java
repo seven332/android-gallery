@@ -31,7 +31,6 @@ import com.hippo.android.gallery.util.HorizontalFlip;
 import com.hippo.android.gallery.util.NoOp;
 import com.hippo.android.gallery.util.Transformer;
 import com.hippo.android.gallery.util.TransformerChain;
-import com.hippo.android.gallery.util.VerticalFlip;
 import com.hippo.android.gallery.util.View1;
 import com.hippo.android.gallery.util.View2;
 import java.util.Collections;
@@ -68,12 +67,6 @@ public class ScrollLayoutManagerTest {
         new VerticalScrollLayout(),
         new NoOp(),
         VerticalScrollLayout.class.getSimpleName(),
-    });
-
-    parameters.add(new Object[]{
-        new ReversedVerticalScrollLayout(),
-        new VerticalFlip(),
-        ReversedVerticalScrollLayout.class.getSimpleName(),
     });
 
     parameters.add(new Object[]{
