@@ -54,7 +54,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   // The offset against scroll direction
   private float pageDeviate;
 
-  private float[] temp = new float[2];
+  private float[] temp = new float[4];
 
   private ScrollLayout scrollLayout;
 
@@ -296,9 +296,22 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     GalleryView view = getGalleryView();
     if (view == null) return;
 
-    scrollLayout.scrollBy(anchorOffset, pageDeviate, dx, dy, temp);
+    GalleryPage first = view.getPageAt(0);
+    GalleryPage last = null;
+    int count = view.getPageCount();
+    if (count > 0) {
+      last = view.getPageAt(count - 1);
+    }
+
+    scrollLayout.scrollBy(anchorOffset, pageDeviate, dx, dy,
+        first != null ? first.view : null, last != null ? last.view : null, temp);
     anchorOffset = temp[0];
     pageDeviate = temp[1];
+    if (remain != null) {
+      remain[0] = temp[2];
+      remain[1] = temp[3];
+    }
+
     // It's hard to fix anchorOffset, let layout() fix it
     view.layout();
   }
@@ -434,10 +447,11 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     /**
      * Apply scroll to current layout state.
      *
-     * @param result a two-size array to store the offset of
-     *               anchorOffset and pageDeviate
+     * @param result a four-size array to store the new anchorOffset, the new pageDeviate
+     *               the remained dx and the remained dy
      */
-    void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy, float[] result);
+    void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy,
+        @Nullable View first, @Nullable View last, float[] result);
 
     /**
      * Apply scale to current layout state.

@@ -20,6 +20,7 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/11/10.
  */
 
+import android.support.annotation.Nullable;
 import android.view.View;
 import java.util.List;
 
@@ -123,9 +124,32 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy, float[] result) {
-    result[0] = anchorOffset - dx;
-    result[1] = pageDeviate + dy;
+  public void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy,
+      @Nullable View first, @Nullable View last, float[] result) {
+    float newAnchorOffset = anchorOffset - dx;
+    float newPageDeviate = pageDeviate + dy;
+    float remainDx = 0;
+    float remainDy = 0;
+
+    if (first != null) {
+      float newRight = first.getRight() + dx;
+      if (newRight < width) {
+        remainDx = newRight - width;
+      }
+    }
+
+    if (last != null) {
+      float newLeft = last.getLeft() + dx;
+      float maxLeft = first != null ? Math.min(width - (first.getRight() - last.getLeft()), 0) : 0;
+      if (newLeft > maxLeft) {
+        remainDx = newLeft - maxLeft;
+      }
+    }
+
+    result[0] = newAnchorOffset + remainDx;
+    result[1] = newPageDeviate - remainDy;
+    result[2] = remainDx;
+    result[3] = remainDy;
   }
 
   @Override
