@@ -23,8 +23,8 @@ package com.hippo.android.gallery;
 import android.support.animation.FloatPropertyCompat;
 import android.support.animation.SpringAnimation;
 import android.support.annotation.Nullable;
+import android.view.View;
 
-// TODO let GalleryGestureHandler handles common animations, like fling animation.
 /**
  * GalleryGestureHandler handles gestures from GalleryView.
  */
@@ -85,6 +85,10 @@ public class GalleryGestureHandler {
     }
   }
 
+  private boolean canOverScroll() {
+    return view != null && view.getOverScrollMode() != View.OVER_SCROLL_NEVER;
+  }
+
   public void onDown(float x, float y) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager != null) {
@@ -94,6 +98,7 @@ public class GalleryGestureHandler {
   }
 
   private void startOverScrollAnimation() {
+    // This section starts an animation to reduces over scroll, no need to check over scroll mode
     if (!Utils.floatEquals(overScrollX, 0.0f) || !Utils.floatEquals(overScrollY, 0.0f)) {
       float startValue = Math.max(Math.abs(overScrollX), Math.abs(overScrollY));
       overScrollXAnimationFactor = overScrollX / startValue;
@@ -180,6 +185,7 @@ public class GalleryGestureHandler {
   public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager != null) {
+      // This section reduces over scroll, no need to check over scroll mode
       overScrollBefore(overScrollX, dx, remain);
       float newOverScrollX = remain[0];
       dx = remain[1];
@@ -193,11 +199,13 @@ public class GalleryGestureHandler {
         dy = remain[1];
       }
 
-      if (!Utils.floatEquals(dx, 0.0f)) {
-        newOverScrollX = toOverScroll(fromOverScroll(newOverScrollX) + dx);
-      }
-      if (!Utils.floatEquals(dy, 0.0f)) {
-        newOverScrollY = toOverScroll(fromOverScroll(newOverScrollY) + dy);
+      if (canOverScroll()) {
+        if (!Utils.floatEquals(dx, 0.0f)) {
+          newOverScrollX = toOverScroll(fromOverScroll(newOverScrollX) + dx);
+        }
+        if (!Utils.floatEquals(dy, 0.0f)) {
+          newOverScrollY = toOverScroll(fromOverScroll(newOverScrollY) + dy);
+        }
       }
 
       setOverScroll(newOverScrollX, newOverScrollY);
