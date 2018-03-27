@@ -30,8 +30,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import com.bumptech.glide.request.RequestOptions;
-import com.hippo.android.gallery.BaseGestureHandler;
 import com.hippo.android.gallery.GalleryAdapter;
+import com.hippo.android.gallery.GalleryGestureHandler;
 import com.hippo.android.gallery.GalleryPage;
 import com.hippo.android.gallery.GalleryView;
 import com.hippo.android.gallery.ScrollLayoutManager;
@@ -64,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
     view = findViewById(R.id.gallery_view);
     view.setAdapter(new Adapter(getLayoutInflater()));
-    view.setGestureHandler(new BaseGestureHandler());
+    view.setGestureHandler(new GalleryGestureHandler());
+    view.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
     GestureRecognizer gestureRecognizer = view.getGestureRecognizer();
     gestureRecognizer.setScaleEnabled(true);
 
