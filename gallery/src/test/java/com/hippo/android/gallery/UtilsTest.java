@@ -22,8 +22,10 @@ package com.hippo.android.gallery;
 
 import static org.junit.Assert.assertEquals;
 
-import android.graphics.Rect;
-import com.hippo.android.gallery.util.PhotoView;
+import android.content.Context;
+import android.graphics.RectF;
+import android.view.View;
+import com.hippo.android.gallery.intf.Clippable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -36,28 +38,42 @@ public class UtilsTest {
 
   @Test
   public void testEquals() {
-    assertEquals(false, Utils.equals(-0.001f, 0.0f, 1e-4f));
-    assertEquals(true, Utils.equals(-0.0001f, 0.0f, 1e-4f));
+    assertEquals(false, Utils.floatEquals(-0.001f, 0.0f));
+    assertEquals(true, Utils.floatEquals(-0.0001f, 0.0f));
   }
 
   @Test
   public void testUpdateVisibleRect() {
-    PhotoView view = new PhotoView(RuntimeEnvironment.application);
+    ClippableView view = new ClippableView(RuntimeEnvironment.application);
 
     view.layout(10, 10, 50, 50);
-    Utils.updateVisibleRect(view, 100, 100);
-    assertEquals(new Rect(0, 0, 40, 40), view.getVisibleRect());
+    Utils.updateClipRegion(view, 100, 100);
+    assertEquals(new RectF(0, 0, 40, 40), view.clip);
 
     view.layout(-50, -50, 0, 0);
-    Utils.updateVisibleRect(view, 100, 100);
-    assertEquals(new Rect(0, 0, 0, 0), view.getVisibleRect());
+    Utils.updateClipRegion(view, 100, 100);
+    assertEquals(new RectF(0, 0, 0, 0), view.clip);
 
     view.layout(-10, -20, 120, 130);
-    Utils.updateVisibleRect(view, 100, 100);
-    assertEquals(new Rect(10, 20, 110, 120), view.getVisibleRect());
+    Utils.updateClipRegion(view, 100, 100);
+    assertEquals(new RectF(10, 20, 110, 120), view.clip);
 
     view.layout(-10, -20, 90, 90);
-    Utils.updateVisibleRect(view, 100, 100);
-    assertEquals(new Rect(10, 20, 100, 110), view.getVisibleRect());
+    Utils.updateClipRegion(view, 100, 100);
+    assertEquals(new RectF(10, 20, 100, 110), view.clip);
+  }
+
+  private static class ClippableView extends View implements Clippable {
+
+    public RectF clip = new RectF();
+
+    public ClippableView(Context context) {
+      super(context);
+    }
+
+    @Override
+    public void clip(float left, float top, float right, float bottom) {
+      clip.set(left, top, right, bottom);
+    }
   }
 }
