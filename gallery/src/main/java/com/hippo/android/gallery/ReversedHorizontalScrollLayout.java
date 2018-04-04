@@ -50,7 +50,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public boolean canLayoutNext(View last, float offset) {
-    return last.getRight() >= -offset;
+    return last.getRight() > -offset;
   }
 
   @Override
@@ -73,7 +73,7 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
 
   @Override
   public boolean canLayoutPrevious(View first, float offset) {
-    return first.getLeft() <= width - offset;
+    return first.getLeft() < width - offset;
   }
 
   @Override
