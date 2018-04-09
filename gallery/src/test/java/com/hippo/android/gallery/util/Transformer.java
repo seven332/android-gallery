@@ -20,16 +20,16 @@ package com.hippo.android.gallery.util;
  * Created by Hippo on 2017/12/15.
  */
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import android.graphics.PointF;
+import android.graphics.RectF;
 
 public interface Transformer {
 
-  void setUp(int width, int height);
+  void setUp(float width, float height);
 
-  void transformOffset(Point point);
+  void transformOffset(PointF point);
 
-  void transformPoint(Point point);
+  void transformPoint(PointF point);
 
-  void transformRect(Rect rect);
+  void transformRect(RectF rect);
 }

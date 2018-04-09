@@ -20,40 +20,37 @@ package com.hippo.android.gallery.util;
  * Created by Hippo on 2017/12/15.
  */
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import android.graphics.PointF;
+import android.graphics.RectF;
 
+@SuppressWarnings("SuspiciousNameCombination")
 public class AxisSwap implements Transformer {
 
-  private int width;
-  private int height;
+  @Override
+  public void setUp(float width, float height) {}
 
   @Override
-  public void setUp(int width, int height) {
-    this.width = width;
-    this.height = height;
+  public void transformOffset(PointF point) {
+    float temp = point.x;
+    point.x = point.y;
+    point.y = temp;
   }
 
   @Override
-  public void transformOffset(Point point) {
-    point.x = point.x ^ point.y;
-    point.y = point.x ^ point.y;
-    point.x = point.x ^ point.y;
+  public void transformPoint(PointF point) {
+    float temp = point.x;
+    point.x = point.y;
+    point.y = temp;
   }
 
   @Override
-  public void transformPoint(Point point) {
-    // TODO
-  }
+  public void transformRect(RectF rect) {
+    float temp = rect.left;
+    rect.left = rect.top;
+    rect.top = temp;
 
-  @Override
-  public void transformRect(Rect rect) {
-    rect.left = rect.left ^ rect.top;
-    rect.top = rect.left ^ rect.top;
-    rect.left = rect.left ^ rect.top;
-
-    rect.right = rect.right ^ rect.bottom;
-    rect.bottom = rect.right ^ rect.bottom;
-    rect.right = rect.right ^ rect.bottom;
+    temp = rect.right;
+    rect.right = rect.bottom;
+    rect.bottom = temp;
   }
 }

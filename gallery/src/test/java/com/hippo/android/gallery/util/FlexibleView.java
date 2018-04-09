@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Hippo Seven
+ * Copyright 2018 Hippo Seven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,23 @@
 package com.hippo.android.gallery.util;
 
 /*
- * Created by Hippo on 2017/11/28.
+ * Created by Hippo on 2018/4/9.
  */
 
 import android.content.Context;
 import android.view.View;
+import com.hippo.android.gallery.intf.Flexible;
 
-public class View1 extends View {
+public class FlexibleView extends View implements Flexible {
 
-  public View1(Context context) {
+  public boolean flexible;
+
+  public FlexibleView(Context context) {
     super(context);
+  }
+
+  @Override
+  public boolean isFlexible() {
+    return flexible;
   }
 }

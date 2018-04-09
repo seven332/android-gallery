@@ -20,20 +20,20 @@ package com.hippo.android.gallery.util;
  * Created by Hippo on 2017/12/15.
  */
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import android.graphics.PointF;
+import android.graphics.RectF;
 
 public class NoOp implements Transformer {
 
   @Override
-  public void setUp(int width, int height) {}
+  public void setUp(float width, float height) {}
 
   @Override
-  public void transformOffset(Point point) {}
+  public void transformOffset(PointF point) {}
 
   @Override
-  public void transformPoint(Point point) {}
+  public void transformPoint(PointF point) {}
 
   @Override
-  public void transformRect(Rect rect) {}
+  public void transformRect(RectF rect) {}
 }

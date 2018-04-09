@@ -20,8 +20,8 @@ package com.hippo.android.gallery.util;
  * Created by Hippo on 2017/12/15.
  */
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import android.graphics.PointF;
+import android.graphics.RectF;
 
 public class TransformerChain implements Transformer {
 
@@ -32,28 +32,28 @@ public class TransformerChain implements Transformer {
   }
 
   @Override
-  public void setUp(int width, int height) {
+  public void setUp(float width, float height) {
     for (Transformer transformer : transformers) {
       transformer.setUp(width, height);
     }
   }
 
   @Override
-  public void transformOffset(Point point) {
+  public void transformOffset(PointF point) {
     for (Transformer transformer : transformers) {
       transformer.transformOffset(point);
     }
   }
 
   @Override
-  public void transformPoint(Point point) {
+  public void transformPoint(PointF point) {
     for (Transformer transformer : transformers) {
       transformer.transformPoint(point);
     }
   }
 
   @Override
-  public void transformRect(Rect rect) {
+  public void transformRect(RectF rect) {
     for (Transformer transformer : transformers) {
       transformer.transformRect(rect);
     }

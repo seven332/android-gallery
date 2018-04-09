@@ -20,32 +20,32 @@ package com.hippo.android.gallery.util;
  * Created by Hippo on 2017/12/15.
  */
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import android.graphics.PointF;
+import android.graphics.RectF;
 
 public class HorizontalFlip implements Transformer {
 
-  private int width;
+  private float width;
 
   @Override
-  public void setUp(int width, int height) {
+  public void setUp(float width, float height) {
     this.width = width;
   }
 
   @Override
-  public void transformOffset(Point point) {
+  public void transformOffset(PointF point) {
     point.x = -point.x;
   }
 
   @Override
-  public void transformPoint(Point point) {
-    // TODO
+  public void transformPoint(PointF point) {
+    point.x = width - point.x;
   }
 
   @Override
-  public void transformRect(Rect rect) {
-    int oldLeft = rect.left;
-    int oldRight = rect.right;
+  public void transformRect(RectF rect) {
+    float oldLeft = rect.left;
+    float oldRight = rect.right;
     rect.left = width - oldRight;
     rect.right = width - oldLeft;
   }
