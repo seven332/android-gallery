@@ -19,6 +19,7 @@ package com.hippo.android.gallery.demo;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
       }
     }
 
+    @NonNull
     @Override
     public GalleryPage onCreatePage(GalleryView parent, int type) {
       View view;

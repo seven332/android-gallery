@@ -20,6 +20,7 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/12/31.
  */
 
+import android.support.annotation.NonNull;
 import android.view.View;
 
 /**
@@ -30,6 +31,7 @@ public class GalleryPage {
   /**
    * The view of this Page.
    */
+  @NonNull
   public final View view;
 
   int index = GalleryView.INVALID_INDEX;
@@ -45,7 +47,7 @@ public class GalleryPage {
   // For debug
   boolean bound = false;
 
-  public GalleryPage(View view) {
+  public GalleryPage(@NonNull View view) {
     this.view = view;
   }
 

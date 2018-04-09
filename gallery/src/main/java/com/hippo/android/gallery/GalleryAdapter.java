@@ -20,6 +20,7 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2017/12/31.
  */
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 /**
@@ -58,6 +59,7 @@ public abstract class GalleryAdapter {
   /**
    * Creates a Page of the specified type.
    */
+  @NonNull
   public abstract GalleryPage onCreatePage(GalleryView parent, int type);
 
   void destroyPage(GalleryPage page) {

@@ -23,6 +23,7 @@ package com.hippo.android.gallery;
 import static org.junit.Assert.assertArrayEquals;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -200,6 +201,7 @@ public class GalleryAdapterTest {
 
     public int[] data;
 
+    @NonNull
     @Override
     public GalleryPage onCreatePage(GalleryView parent, int type) {
       View view = new TextView(parent.getContext());
