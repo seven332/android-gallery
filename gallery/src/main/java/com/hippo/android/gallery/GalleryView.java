@@ -578,6 +578,22 @@ public class GalleryView extends ViewGroup {
     return Collections.unmodifiableCollection(pages.values());
   }
 
+  public void scroll(float dx, float dy) {
+    if (layoutManager == null) {
+      Log.e(LOG_TAG, "Cannot scroll without a LayoutManager set");
+      return;
+    }
+    layoutManager.scroll(dx, dy, null);
+  }
+
+  public void scale(float x, float y, float factor) {
+    if (layoutManager == null) {
+      Log.e(LOG_TAG, "Cannot scale without a LayoutManager set");
+      return;
+    }
+    layoutManager.scale(x, y, factor, null);
+  }
+
   private interface NewIndexGetter {
     /*
      * Returns INVALID_INDEX to invalid the page.
