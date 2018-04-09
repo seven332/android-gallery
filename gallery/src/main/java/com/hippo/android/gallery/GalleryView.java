@@ -196,8 +196,9 @@ public class GalleryView extends ViewGroup {
     this.layoutManager = layoutManager;
     if (layoutManager != null) {
       layoutManager.attach(this);
-      requestLayout();
     }
+
+    requestLayout();
   }
 
   /**
