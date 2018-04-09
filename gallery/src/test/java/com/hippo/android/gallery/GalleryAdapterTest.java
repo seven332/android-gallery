@@ -20,7 +20,7 @@ package com.hippo.android.gallery;
  * Created by Hippo on 2018/1/9.
  */
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 
 import android.content.Context;
 import android.view.View;
@@ -186,11 +186,13 @@ public class GalleryAdapterTest {
     }
 
     public void assertPages() {
-      int[] data = adapter.data;
+      int[] data = new int[adapter.data.length];
       for (int i = 0, n = data.length; i < n; i++) {
         GalleryPage page = view.getPageAt(i);
-        assertEquals("" + data[i], ((TextView) page.view).getText().toString());
+        data[i] = Integer.parseInt(((TextView) page.view).getText().toString());
       }
+
+      assertArrayEquals(adapter.data, data);
     }
   }
 
@@ -211,7 +213,7 @@ public class GalleryAdapterTest {
 
     @Override
     public void onBindPage(GalleryPage page) {
-      ((TextView) page.view).setText("" + data[page.getIndex()]);
+      ((TextView) page.view).setText(Integer.toString(data[page.getIndex()]));
     }
 
     @Override
