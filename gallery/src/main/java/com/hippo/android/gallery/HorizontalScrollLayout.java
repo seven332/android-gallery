@@ -35,12 +35,17 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void layoutAnchor(View page, float offset) {
+  public void layoutAnchor(View page, float offset, float keep) {
+    int oldWidth = page.getWidth();
     measure(page);
+    int newWidth = page.getMeasuredWidth();
 
     int top = Utils.isFlexible(page) ? (int) deviate : 0;
     int bottom = top + page.getMeasuredHeight();
     int left = (int) offset;
+    if (keep > 0 && newWidth != 0) {
+      left += Math.min(keep, page.getWidth()) * (1 - (float) newWidth / (float) oldWidth);
+    }
     int right = left + page.getMeasuredWidth();
     layout(page, left, top, right, bottom);
 
@@ -151,8 +156,38 @@ public class HorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result) {
-    result[0] = x - ((x - anchorOffset) * factor);
-    result[1] = y - ((y - pageDeviate) * factor);
+  public void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor,
+      GalleryView gallery, int anchorIndex, float[] result) {
+    int newAnchorIndex = anchorIndex;
+    float newAnchorOffset = anchorOffset;
+    float newAnchorKeep = 0;
+
+    boolean forward = x > anchorOffset;
+    int index = anchorIndex;
+    int increment = forward ? 1: -1;
+    for (;;) {
+      GalleryPage page = gallery.getPageAt(index);
+      if (page == null) {
+        // Reach the end of attached pages
+        break;
+      }
+
+      View view = page.view;
+      newAnchorIndex = index;
+      newAnchorOffset = view.getLeft();
+      newAnchorKeep = x - view.getLeft();
+
+      if (x > view.getLeft() - interval && x <= view.getRight()) {
+        // The x is in the range of this view
+        break;
+      }
+
+      index += increment;
+    }
+
+    result[0] = newAnchorIndex;
+    result[1] = newAnchorOffset;
+    result[2] = newAnchorKeep;
+    result[3] = y - ((y - pageDeviate) * factor);
   }
 }

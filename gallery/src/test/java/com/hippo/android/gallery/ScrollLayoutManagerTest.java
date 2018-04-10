@@ -245,4 +245,35 @@ public class ScrollLayoutManagerTest {
   public void testSmallScroll() {
     // TODO Test multiple small scrolls whose step is smaller than 1
   }
+
+  @Test
+  public void testScale() {
+    GalleryViewWrapper gallery = newBuilder()
+        .add(PAGE_SIZE, true)
+        .add(PAGE_SIZE, true)
+        .add(PAGE_SIZE, true)
+        .add(PAGE_SIZE, true)
+        .add(PAGE_SIZE, true)
+        .build();
+    ScrollLayoutManager slm = (ScrollLayoutManager) gallery.getLayoutManager();
+    slm.setAnchor(1, -10);
+    gallery.layout();
+
+    List<PageState> states = new LinkedList<>();
+    states.add(gallery.newPageState(0, 0, -70, GALLERY_SIZE, -20));
+    states.add(gallery.newPageState(1, 0, -10, GALLERY_SIZE, 40));
+    states.add(gallery.newPageState(2, 0, 50, GALLERY_SIZE, 100));
+    states.add(gallery.newPageState(3, 0, 110, GALLERY_SIZE, 160));
+    states.add(gallery.newPageState(4, 0, 170, GALLERY_SIZE, 220));
+    gallery.assertPages(states);
+
+    gallery.scale(50, 70, 1.5f);
+    states = new LinkedList<>();
+    states.add(gallery.newPageState(0, -25, -130, 200, -55));
+    states.add(gallery.newPageState(1, -25, -45, 200, 30));
+    states.add(gallery.newPageState(2, -25, 40, 200, 115));
+    states.add(gallery.newPageState(3, -25, 125, 200, 200));
+    states.add(gallery.newPageState(4, -25, 210, 200, 285));
+    gallery.assertPages(states);
+  }
 }

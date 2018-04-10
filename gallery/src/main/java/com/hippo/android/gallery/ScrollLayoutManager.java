@@ -38,11 +38,14 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 3.0f;
 
-  // First anchor page index
+  // Anchor page index
   private int anchorIndex = 0;
 
-  // First anchor page offset
+  // Anchor page offset
   private float anchorOffset = 0;
+
+  // The position to keep after scaling
+  private float anchorKeep = 0;
 
   // The interval between pages
   private int pageInterval = 0;
@@ -204,6 +207,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
 
     if (anchor != null) {
       anchorIndex = anchor.getIndex();
+      // TODO anchorOffset is forced to be int
       anchorOffset = scrollLayout.getAnchorOffset(anchor.view);
     }
   }
@@ -253,7 +257,8 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
      */
     GalleryPage anchorPage = view.pinPage(anchorIndex);
     pages.add(anchorPage);
-    scrollLayout.layoutAnchor(anchorPage.view, anchorOffset);
+    scrollLayout.layoutAnchor(anchorPage.view, anchorOffset, anchorKeep);
+    anchorKeep = 0;
 
     /*
      * 2. Layout next pages one by one, until the first out-of-screen page
@@ -285,7 +290,6 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     updateAnchor(pages);
   }
 
-  // TODO remain
   @Override
   public void scroll(float dx, float dy, @Nullable float[] remain) {
     if (remain != null) {
@@ -330,10 +334,11 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     pageScale = Utils.clamp(factor * pageScale, SCALE_MIN, SCALE_MAX);
 
     if (pageScale != oldPageScale) {
-      // TODO Need a better way to fix anchorOffset and pageDeviate
-      scrollLayout.scaleBy(anchorOffset, pageDeviate, x, y, pageScale / oldPageScale, temp);
-      anchorOffset = temp[0];
-      pageDeviate = temp[1];
+      scrollLayout.scaleBy(anchorOffset, pageDeviate, x, y, pageScale / oldPageScale, view, anchorIndex, temp);
+      anchorIndex = (int) temp[0];
+      anchorOffset = temp[1];
+      anchorKeep = temp[2];
+      pageDeviate = temp[3];
       view.layout();
     }
   }
@@ -384,7 +389,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
      *
      * @param offset the offset of the page to the baseline.
      */
-    void layoutAnchor(View page, float offset);
+    void layoutAnchor(View page, float offset, float keep);
 
     /**
      * Returns {@code true} if a page can be layout after the current last page.
@@ -447,7 +452,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     /**
      * Apply scroll to current layout state.
      *
-     * @param result a four-size array to store the new anchorOffset, the new pageDeviate
+     * @param result a four-size array to store the new anchorOffset, the new pageDeviate,
      *               the remained dx and the remained dy
      */
     void scrollBy(float anchorOffset, float pageDeviate, float dx, float dy,
@@ -456,9 +461,11 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     /**
      * Apply scale to current layout state.
      *
-     * @param result a two-size to store new anchorOffset and pageDeviate
+     * @param result a four-size to store the new anchorIndex, the new anchorOffset,
+     *               the new anchorKeep and pageDeviate
      */
-    void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result);
+    void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor,
+        GalleryView gallery, int anchorIndex, float[] result);
   }
 
   public interface AnchorSelector {

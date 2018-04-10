@@ -26,14 +26,43 @@ import com.hippo.android.gallery.intf.Flexible;
 
 public class FlexibleView extends View implements Flexible {
 
-  public boolean flexible;
+  private boolean flexible;
+  private int gallerySize;
+  private int viewSize;
 
   public FlexibleView(Context context) {
     super(context);
   }
 
+  public void setFlexible(boolean flexible) {
+    this.flexible = flexible;
+  }
+
+  public void setSize(int gallerySize, int viewSize) {
+    this.gallerySize = gallerySize;
+    this.viewSize = viewSize;
+  }
+
   @Override
   public boolean isFlexible() {
     return flexible;
+  }
+
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+    int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+    int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+    int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+
+    if (widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.UNSPECIFIED) {
+      float scale = (float) widthSize / (float) gallerySize;
+      setMeasuredDimension(widthSize, (int) (viewSize * scale));
+    } else if (widthMode == MeasureSpec.UNSPECIFIED && heightMode == MeasureSpec.EXACTLY) {
+      float scale = (float) heightSize / (float) gallerySize;
+      setMeasuredDimension((int) (viewSize * scale), heightSize);
+    } else {
+      super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
   }
 }

@@ -35,12 +35,17 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void layoutAnchor(View page, float offset) {
+  public void layoutAnchor(View page, float offset, float keep) {
+    int oldHeight = page.getHeight();
     measure(page);
+    int newHeight = page.getMeasuredHeight();
 
     int left = Utils.isFlexible(page) ? (int) deviate : 0;
     int right = left + page.getMeasuredWidth();
     int top = (int) offset;
+    if (keep > 0 && oldHeight != 0) {
+      top += Math.min(keep, page.getHeight()) * (1 - (float) newHeight / (float) oldHeight);
+    }
     int bottom = top + page.getMeasuredHeight();
     layout(page, left, top, right, bottom);
 
@@ -151,8 +156,38 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor, float[] result) {
-    result[0] = y - ((y - anchorOffset) * factor);
-    result[1] = x - ((x - pageDeviate) * factor);
+  public void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor,
+      GalleryView gallery, int anchorIndex, float[] result) {
+    int newAnchorIndex = anchorIndex;
+    float newAnchorOffset = anchorOffset;
+    float newAnchorKeep = 0;
+
+    boolean forward = y > anchorOffset;
+    int index = anchorIndex;
+    int increment = forward ? 1: -1;
+    for (;;) {
+      GalleryPage page = gallery.getPageAt(index);
+      if (page == null) {
+        // Reach the end of attached pages
+        break;
+      }
+
+      View view = page.view;
+      newAnchorIndex = index;
+      newAnchorOffset = view.getTop();
+      newAnchorKeep = y - view.getTop();
+
+      if (y > view.getTop() - interval && y <= view.getBottom()) {
+        // The y is in the range of this view
+        break;
+      }
+
+      index += increment;
+    }
+
+    result[0] = newAnchorIndex;
+    result[1] = newAnchorOffset;
+    result[2] = newAnchorKeep;
+    result[3] = x - ((x - pageDeviate) * factor);
   }
 }

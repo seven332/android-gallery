@@ -26,7 +26,6 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.support.annotation.NonNull;
 import android.view.View;
-import android.view.ViewGroup;
 import com.hippo.android.gallery.GalleryAdapter;
 import com.hippo.android.gallery.GalleryLayoutManager;
 import com.hippo.android.gallery.GalleryPage;
@@ -51,7 +50,7 @@ public final class GalleryViewWrapper {
 
     galleryView = new GalleryView(RuntimeEnvironment.application);
     galleryView.setLayoutManager(builder.layoutManager);
-    galleryView.setAdapter(new Adapter(builder.pageInfos));
+    galleryView.setAdapter(new Adapter(builder.size, builder.pageInfos));
 
     layoutManager = builder.layoutManager;
 
@@ -115,9 +114,11 @@ public final class GalleryViewWrapper {
 
   private static class Adapter extends GalleryAdapter {
 
-    public List<PageInfo> pageInfos;
+    private int gallerySize;
+    private List<PageInfo> pageInfos;
 
-    public Adapter(List<PageInfo> pageInfos) {
+    public Adapter(int gallerySize, List<PageInfo> pageInfos) {
+      this.gallerySize = gallerySize;
       this.pageInfos = pageInfos;
     }
 
@@ -134,8 +135,8 @@ public final class GalleryViewWrapper {
     public void onBindPage(GalleryPage page) {
       int index = page.getIndex();
       PageInfo info = pageInfos.get(index);
-      ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(info.size, info.size);
-      page.view.setLayoutParams(lp);
+      ((FlexibleView) page.view).setFlexible(info.flexible);
+      ((FlexibleView) page.view).setSize(gallerySize, info.size);
     }
 
     @Override
