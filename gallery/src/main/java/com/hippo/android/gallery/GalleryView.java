@@ -45,7 +45,20 @@ import java.util.Set;
 import java.util.Stack;
 
 /**
- * GalleryView displays pages like a gallery.
+ * <p>
+ * GalleryViews display pages like galleries.
+ * </p>
+ *
+ * <p>
+ * GalleryViews follows the principle of {@code RecyclerView}.
+ * {@link GalleryAdapter}s bind pages, {@link GalleryLayoutManager}s
+ * take care of measuring and positioning pages.
+ * </p>
+ *
+ * <p>
+ * GalleryViews support custom gesture handler. Call {@link #setGestureHandler(GalleryGestureHandler)}
+ * to set custom gesture handler.
+ * </p>
  */
 public class GalleryView extends ViewGroup {
 
@@ -100,6 +113,9 @@ public class GalleryView extends ViewGroup {
 
   /**
    * Returns the GestureRecognizer attached to this GalleryView.
+   *
+   * GalleryView uses {@link GestureRecognizer} to handle gestures.
+   * {@link GestureRecognizer} can be configured to enable some kinds of gestures.
    */
   public GestureRecognizer getGestureRecognizer() {
     return gestureRecognizer;

@@ -61,7 +61,6 @@ public interface Transformable {
    * @param x focus x
    * @param y focus y
    * @param factor the factor of scale, greater than 1 for zoom in, smaller than 1 for zoom in
-   * @param remain return the
    */
   void scale(float x, float y, float factor, @Nullable float[] remain);
 

@@ -33,7 +33,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * PagerLayoutManager lays pages like {@code ViewPager}.
+ * <p>
+ * The PagerLayoutManager lays pages like {@code ViewPager}.
+ * </p>
+ *
+ * <p>
+ * The root view of a page must implement {@link Transformable} to enable scaling and scrolling.
+ * </p>
  */
 public class PagerLayoutManager extends GalleryLayoutManager implements Transformable {
 

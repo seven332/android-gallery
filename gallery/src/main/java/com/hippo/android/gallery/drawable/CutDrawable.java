@@ -29,6 +29,10 @@ import android.support.annotation.Nullable;
 
 /**
  * CutDrawable cuts a drawable.
+ * The size of this drawable is the same as the size of the cut region.
+ *
+ * @see ClipDrawable
+ * @see CutAccurateDrawable
  */
 public class CutDrawable extends DrawableWrapper {
 

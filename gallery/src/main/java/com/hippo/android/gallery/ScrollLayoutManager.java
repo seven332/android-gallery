@@ -25,12 +25,38 @@ import android.support.animation.FloatPropertyCompat;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.view.View;
+import com.hippo.android.gallery.intf.Flexible;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * ScrollLayoutManager lays pages like {@code ScrollView}.
+ * <p>
+ * The ScrollLayoutManager lays pages like a {@code ScrollView}.
+ * </p>
+ *
+ * <p>
+ * The layout direction is controlled by a {@link ScrollLayout}.
+ * <table>
+ *   <tr><td>Vertical</td><td>{@link VerticalScrollLayout}</td></tr>
+ *   <tr><td>Horizontal</td><td>{@link HorizontalScrollLayout}</td></tr>
+ *   <tr><td>Reversed horizontal</td><td>{@link ReversedHorizontalScrollLayout}</td></tr>
+ * </table>
+ * </p>
+ *
+ * <p>
+ * The ScrollLayoutManager always measures pages with one {@code EXACTLY} measure spec
+ * against layout direction and one {@code UNSPECIFIED} measure spec in layout direction.
+ * (Actually it's achieved by {@link BaseScrollLayout}.)
+ * </p>
+ *
+ * <p>
+ * The ScrollLayoutManager supports scaling. Scaling is optional for each page.
+ * The root view of a page must implement {@link Flexible} to enable scaling.
+ * The scaling factor is shared between pages. The its only affection is the change of
+ * the size of the measure spec against layout direction. The root page view must
+ * adjust its measured dimension against the size to achieved scaling.
+ * </p>
  */
 public class ScrollLayoutManager extends GalleryLayoutManager {
 

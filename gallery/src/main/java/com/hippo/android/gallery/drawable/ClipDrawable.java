@@ -31,6 +31,10 @@ import com.hippo.android.gallery.intf.Clippable;
 
 /**
  * CutDrawable clips a drawable.
+ * The size of this drawable is the same as the size of the origin drawable.
+ *
+ * @see CutDrawable
+ * @see CutAccurateDrawable
  */
 public class ClipDrawable extends DrawableWrapper implements Clippable {
 
