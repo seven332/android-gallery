@@ -33,19 +33,23 @@ public class SkiaImageRegionDecoder implements ImageRegionDecoder {
   private static final String LOG_TAG = "SkiaImageRegionDecoder";
 
   private BitmapRegionDecoder decoder;
+  private int width;
+  private int height;
 
   public SkiaImageRegionDecoder(BitmapRegionDecoder decoder) {
     this.decoder = decoder;
+    this.width = decoder.getWidth();
+    this.height = decoder.getHeight();
   }
 
   @Override
   public int getWidth() {
-    return decoder.getWidth();
+    return width;
   }
 
   @Override
   public int getHeight() {
-    return decoder.getHeight();
+    return height;
   }
 
   @Nullable
