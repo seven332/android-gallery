@@ -346,7 +346,6 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     view.layout();
   }
 
-  // TODO remain
   @Override
   public void scale(float x, float y, float factor, @Nullable float[] remain) {
     if (remain != null) {
@@ -358,6 +357,9 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
 
     float oldPageScale = pageScale;
     pageScale = Utils.clamp(factor * pageScale, SCALE_MIN, SCALE_MAX);
+    if (remain != null) {
+      remain[0] = factor / (pageScale / oldPageScale);
+    }
 
     if (pageScale != oldPageScale) {
       scrollLayout.scaleBy(anchorOffset, pageDeviate, x, y, pageScale / oldPageScale, view, anchorIndex, temp);
