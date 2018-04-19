@@ -42,7 +42,7 @@ android {
 
 dependencies {
     implementation "com.android.support:support-dynamic-animation:$support_library_version"
-    implementation "com.github.seven332:android-gesture:$android_gesture_version"
+    api "com.github.seven332:android-gesture:$android_gesture_version"
     testImplementation "junit:junit:4.12"
     testImplementation "org.robolectric:robolectric:$robolectric_version"
 }
