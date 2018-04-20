@@ -539,7 +539,7 @@ public class GalleryView extends ViewGroup {
   /**
    * Apply over scroll offset. It affects the render offset of all children.
    */
-  public void setOverScroll(float overScrollX, float overScrollY) {
+  void setOverScroll(float overScrollX, float overScrollY) {
     this.overScrollX = overScrollX;
     this.overScrollY = overScrollY;
     invalidate();
