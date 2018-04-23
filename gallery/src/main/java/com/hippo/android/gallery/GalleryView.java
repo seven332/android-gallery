@@ -78,6 +78,10 @@ public class GalleryView extends ViewGroup {
   @Nullable
   private GalleryAdapter adapter;
 
+  @Nullable
+  private OnSelectedIndexChangeListener onSelectedIndexChangeListener;
+  private int selectedIndex = INVALID_INDEX;
+
   // The pages whose view is attached to GalleryView, and they are valid.
   // Key is the index of the page.
   @SuppressLint("UseSparseArrays")
@@ -291,6 +295,15 @@ public class GalleryView extends ViewGroup {
     return adapter;
   }
 
+  public interface OnSelectedIndexChangeListener {
+    void onSelectedIndexChanged(GalleryView view, int selectedIndex);
+  }
+
+  // TODO GalleryLayoutManager.setSelectedIndex() or GalleryView.setSelectedIndex()?
+  public void setOnSelectedIndexChangedListener(OnSelectedIndexChangeListener listener) {
+    onSelectedIndexChangeListener = listener;
+  }
+
   @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
@@ -332,6 +345,17 @@ public class GalleryView extends ViewGroup {
   public void layout() {
     checkNotInLayout("Can't call layout recursively");
 
+    layoutInternal();
+
+    // Update selected index
+    int oldSelectedIndex = selectedIndex;
+    selectedIndex = layoutManager != null ? layoutManager.getSelectedIndex() : INVALID_INDEX;
+    if (onSelectedIndexChangeListener != null && selectedIndex != oldSelectedIndex) {
+      onSelectedIndexChangeListener.onSelectedIndexChanged(this, selectedIndex);
+    }
+  }
+
+  private void layoutInternal() {
     if (layoutManager == null) {
       Log.e(LOG_TAG, "Can't layout without a LayoutManager set");
       return;
