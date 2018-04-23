@@ -245,6 +245,8 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
 
   @Override
   public void setSelectedIndex(int index) {
+    if (isInLayout()) throw new IllegalStateException("Can't set selected index during layout");
+
     GalleryView view = getGalleryView();
     if (view != null) {
       index = Utils.clamp(index, 0, view.getPageCount() - 1);
