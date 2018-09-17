@@ -47,6 +47,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
   private static final String[] IMAGE_URLS = {
+      "http://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Flowers_blooming_outside_Dunvegan_Castle_during_summer.png/398px-Flowers_blooming_outside_Dunvegan_Castle_during_summer.png",
       "http://www.gstatic.com/webp/gallery/1.jpg",
       "http://www.gstatic.com/webp/gallery/2.jpg",
       "http://www.gstatic.com/webp/gallery/3.jpg",
