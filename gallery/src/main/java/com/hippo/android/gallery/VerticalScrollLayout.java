@@ -111,8 +111,24 @@ public class VerticalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public boolean canBeAnchor(View page) {
-    return Math.max(0, page.getTop()) < Math.min(height, page.getBottom());
+  public GalleryPage selectAnchor(List<GalleryPage> pages) {
+    GalleryPage last = null;
+
+    for (GalleryPage page : pages) {
+      last = page;
+
+      View view = page.view;
+
+      if (view.getTop() >= 0) {
+        return page;
+      }
+
+      if (view.getBottom() >= height / 4) {
+        return page;
+      }
+    }
+
+    return last;
   }
 
   @Override

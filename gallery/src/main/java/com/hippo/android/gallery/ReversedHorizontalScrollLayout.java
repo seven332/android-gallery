@@ -113,8 +113,24 @@ public class ReversedHorizontalScrollLayout extends BaseScrollLayout {
   }
 
   @Override
-  public boolean canBeAnchor(View page) {
-    return Math.max(0, page.getLeft()) < Math.min(width, page.getRight());
+  public GalleryPage selectAnchor(List<GalleryPage> pages) {
+    GalleryPage last = null;
+
+    for (GalleryPage page : pages) {
+      last = page;
+
+      View view = page.view;
+
+      if (view.getRight() <= width) {
+        return page;
+      }
+
+      if (view.getLeft() <= width / 4 * 3) {
+        return page;
+      }
+    }
+
+    return last;
   }
 
   @Override

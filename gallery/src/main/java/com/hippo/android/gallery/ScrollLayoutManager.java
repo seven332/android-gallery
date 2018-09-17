@@ -87,8 +87,6 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
 
   private ScrollLayout scrollLayout;
 
-  private AnchorSelector anchorSelector;
-
   public static final FloatPropertyCompat<ScrollLayoutManager> SCROLL_BY = new FloatPropertyCompat<ScrollLayoutManager>("scrollBy") {
     @Override
     public void setValue(ScrollLayoutManager slm, float value) {
@@ -131,13 +129,6 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
       this.scrollLayout = pageLayout;
       requestLayout();
     }
-  }
-
-  /**
-   * Sets anchor selector to this ScrollLayoutManager.
-   */
-  public void setAnchorSelector(AnchorSelector anchorSelector) {
-    this.anchorSelector = anchorSelector;
   }
 
   @VisibleForTesting
@@ -219,17 +210,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   }
 
   private void updateAnchor(List<GalleryPage> pages) {
-    GalleryPage anchor = null;
-    if (anchorSelector != null) {
-      anchor = anchorSelector.selectAnchor(Collections.unmodifiableList(pages));
-    } else {
-      for (GalleryPage page : pages) {
-        if (scrollLayout.canBeAnchor(page.view)) {
-          anchor = page;
-          break;
-        }
-      }
-    }
+    GalleryPage anchor = scrollLayout.selectAnchor(Collections.unmodifiableList(pages));
 
     if (anchor != null) {
       anchorIndex = anchor.getIndex();
@@ -470,9 +451,9 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     void offsetPages(List<GalleryPage> pages, int offset);
 
     /**
-     * Whether the page can be a anchor.
+     * Select anchor for next layout turn.
      */
-    boolean canBeAnchor(View page);
+    GalleryPage selectAnchor(List<GalleryPage> pages);
 
     /**
      * Return the offset ot the anchor.
@@ -501,13 +482,5 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
      */
     void scaleBy(float anchorOffset, float pageDeviate, float x, float y, float factor,
         GalleryView gallery, int anchorIndex, float[] result);
-  }
-
-  public interface AnchorSelector {
-
-    /**
-     * Select anchor for next layout turn.
-     */
-    GalleryPage selectAnchor(List<GalleryPage> pages);
   }
 }
