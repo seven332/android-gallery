@@ -261,6 +261,11 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   }
 
   @Override
+  public void updateSelectedIndex(int index) {
+    anchorIndex = index;
+  }
+
+  @Override
   public void layout(int width, int height) {
     GalleryView view = getGalleryView();
     if (view == null) return;

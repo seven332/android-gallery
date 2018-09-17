@@ -287,6 +287,11 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
   }
 
   @Override
+  public void updateSelectedIndex(int index) {
+    currentIndex = index;
+  }
+
+  @Override
   public void layout(int width, int height) {
     if (pagerLayout == null) {
       Log.e(LOG_TAG, "Cannot layout without a PagerLayout set");

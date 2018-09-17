@@ -63,6 +63,12 @@ public abstract class GalleryLayoutManager {
   public abstract void setSelectedIndex(int index);
 
   /**
+   * The page that selected index point to may changes due to
+   * {@code GalleryAdapter.notifyPageXXX()}.
+   */
+  abstract void updateSelectedIndex(int index);
+
+  /**
    * Lays the GalleryView attached to LayoutManager.
    * It's sure that width > 0, height > 0 and page count > 0.
    *

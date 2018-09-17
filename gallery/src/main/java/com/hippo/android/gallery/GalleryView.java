@@ -683,6 +683,7 @@ public class GalleryView extends ViewGroup {
 
   void notifyPageRangeChanged(int indexStart, int itemCount) {
     if (inLayout) return;
+    if (layoutManager == null) return;
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
@@ -698,6 +699,7 @@ public class GalleryView extends ViewGroup {
 
   void notifyPageRangeInserted(int indexStart, int itemCount) {
     if (inLayout) return;
+    if (layoutManager == null) return;
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
@@ -709,10 +711,16 @@ public class GalleryView extends ViewGroup {
         return oldIndex;
       }
     });
+
+    int selectedIndex = layoutManager.getSelectedIndex();
+    if (selectedIndex >= indexStart) {
+      layoutManager.updateSelectedIndex(selectedIndex + itemCount);
+    }
   }
 
   void notifyPageRangeRemoved(int indexStart, int itemCount) {
     if (inLayout) return;
+    if (layoutManager == null) return;
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
@@ -727,11 +735,19 @@ public class GalleryView extends ViewGroup {
         return oldIndex;
       }
     });
+
+    int selectedIndex = layoutManager.getSelectedIndex();
+    if (selectedIndex >= indexStart + itemCount) {
+      layoutManager.updateSelectedIndex(selectedIndex - itemCount);
+    } else if (selectedIndex >= indexStart) {
+      layoutManager.updateSelectedIndex(indexStart);
+    }
   }
 
   void notifyPageMoved(int fromIndex, int toIndex) {
     if (inLayout) return;
     if (pages.isEmpty()) return;
+    if (layoutManager == null) return;
     if (fromIndex == toIndex) return;
 
     int minIndex;
@@ -760,6 +776,7 @@ public class GalleryView extends ViewGroup {
 
   void notifyPageSetChanged() {
     if (inLayout) return;
+    if (layoutManager == null) return;
     if (pages.isEmpty()) return;
 
     notifyPages(oldIndex -> GalleryView.INVALID_INDEX);
