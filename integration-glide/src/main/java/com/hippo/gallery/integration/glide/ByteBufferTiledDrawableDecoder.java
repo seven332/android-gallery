@@ -23,6 +23,7 @@ package com.hippo.gallery.integration.glide;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import com.bumptech.glide.load.Option;
 import com.bumptech.glide.load.Options;
 import com.bumptech.glide.load.ResourceDecoder;
 import com.bumptech.glide.load.engine.Resource;
@@ -39,6 +40,9 @@ import java.util.concurrent.Executor;
  */
 public class ByteBufferTiledDrawableDecoder implements ResourceDecoder<ByteBuffer, TiledDrawable> {
 
+  public static final Option<Boolean> ENABLE = Option.memory(
+      "com.hippo.gallery.integration.glide.ByteBufferTiledDrawableDecoder.ENABLE", false);
+
   private static final int MARK_POSITION = 10 * 1024 * 1024;
 
   private ImageRegionDecoderFactory factory;
@@ -54,8 +58,7 @@ public class ByteBufferTiledDrawableDecoder implements ResourceDecoder<ByteBuffe
 
   @Override
   public boolean handles(@NonNull ByteBuffer source, @NonNull Options options) throws IOException {
-    // Always return true
-    return true;
+    return options.get(ENABLE);
   }
 
   @Nullable
