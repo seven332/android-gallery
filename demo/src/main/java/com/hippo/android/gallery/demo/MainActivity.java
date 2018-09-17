@@ -40,6 +40,7 @@ import com.hippo.android.gallery.drawable.CutAccurateDrawable;
 import com.hippo.android.gallery.drawable.CutDrawable;
 import com.hippo.android.gallery.drawable.TiledDrawable;
 import com.hippo.android.gesture.GestureRecognizer;
+import com.hippo.gallery.integration.glide.ByteBufferTiledDrawableDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,16 +148,17 @@ public class MainActivity extends AppCompatActivity {
 
         DrawableView imageView = page.view.findViewById(R.id.image);
 
-        RequestOptions myOptions = new RequestOptions()
+        RequestOptions options = new RequestOptions()
             .dontTransform()
             .override(Target.SIZE_ORIGINAL)
             .placeholder(AppCompatResources.getDrawable(context, R.drawable.ic_image_black_24dp))
-            .error(AppCompatResources.getDrawable(context, R.drawable.ic_broken_image_black_24dp));
+            .error(AppCompatResources.getDrawable(context, R.drawable.ic_broken_image_black_24dp))
+            .set(ByteBufferTiledDrawableDecoder.ENABLE, true);
 
         GlideApp.with(inflater.getContext())
             .asDrawable()
             .load(imageItem.url)
-            .apply(myOptions)
+            .apply(options)
             .into(new Target(imageView));
       } else {
         TextView textView = page.view.findViewById(R.id.text);
@@ -188,6 +190,14 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       protected void setResource(@Nullable Drawable resource) {
+        if (getGalleryView().isInLayout2()) {
+          getGalleryView().postDelayed(() -> setResourceInternal(resource), 0);
+        } else {
+          setResourceInternal(resource);
+        }
+      }
+
+      private void setResourceInternal(@Nullable Drawable resource) {
         if (resource == null) {
           //Log.d("TAG", "resource = null");
           super.setResource(resource);
@@ -228,20 +238,23 @@ public class MainActivity extends AppCompatActivity {
           }
         }
 
-        CutDrawable cutDrawable;
-        if (resource instanceof TiledDrawable) {
-          cutDrawable = new CutAccurateDrawable();
-        } else {
-          cutDrawable = new CutDrawable();
+        if (item.part != ImageItem.WHOLE) {
+          CutDrawable cutDrawable;
+          if (resource instanceof TiledDrawable) {
+            cutDrawable = new CutAccurateDrawable();
+          } else {
+            cutDrawable = new CutDrawable();
+          }
+          if (item.part == ImageItem.LEFT) {
+            cutDrawable.cutPercent(0.0f, 0.0f, 0.5f, 1.0f);
+          } else if (item.part == ImageItem.RIGHT) {
+            cutDrawable.cutPercent(0.5f, 0.0f, 1.0f, 1.0f);
+          }
+          cutDrawable.setDrawable(resource);
+          resource = cutDrawable;
         }
-        if (item.part == ImageItem.LEFT) {
-          cutDrawable.cutPercent(0.0f, 0.0f, 0.5f, 1.0f);
-        } else if (item.part == ImageItem.RIGHT) {
-          cutDrawable.cutPercent(0.5f, 0.0f, 1.0f, 1.0f);
-        }
-        cutDrawable.setDrawable(resource);
 
-        super.setResource(cutDrawable);
+        super.setResource(resource);
       }
     }
   }
@@ -257,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
     static final int RIGHT = 2;
 
     String url;
-    int part = WHOLE;
+    int part;
 
     public ImageItem(String url, int part) {
       this.url = url;
