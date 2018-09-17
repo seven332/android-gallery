@@ -682,7 +682,7 @@ public class GalleryView extends ViewGroup {
   }
 
   void notifyPageRangeChanged(int indexStart, int itemCount) {
-    if (inLayout) return;
+    checkNotInLayout("Can't call notifyPageRangeChanged() in layout");
     if (layoutManager == null) return;
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
@@ -698,7 +698,7 @@ public class GalleryView extends ViewGroup {
   }
 
   void notifyPageRangeInserted(int indexStart, int itemCount) {
-    if (inLayout) return;
+    checkNotInLayout("Can't call notifyPageRangeInserted() in layout");
     if (layoutManager == null) return;
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
@@ -719,7 +719,7 @@ public class GalleryView extends ViewGroup {
   }
 
   void notifyPageRangeRemoved(int indexStart, int itemCount) {
-    if (inLayout) return;
+    checkNotInLayout("Can't call notifyPageRangeRemoved() in layout");
     if (layoutManager == null) return;
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
@@ -745,7 +745,7 @@ public class GalleryView extends ViewGroup {
   }
 
   void notifyPageMoved(int fromIndex, int toIndex) {
-    if (inLayout) return;
+    checkNotInLayout("Can't call notifyPageMoved() in layout");
     if (pages.isEmpty()) return;
     if (layoutManager == null) return;
     if (fromIndex == toIndex) return;
@@ -775,9 +775,8 @@ public class GalleryView extends ViewGroup {
   }
 
   void notifyPageSetChanged() {
-    if (inLayout) return;
+    checkNotInLayout("Can't call notifyPageSetChanged() in layout");
     if (layoutManager == null) return;
-    if (pages.isEmpty()) return;
 
     notifyPages(oldIndex -> GalleryView.INVALID_INDEX);
   }
