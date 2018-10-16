@@ -22,6 +22,7 @@ package com.hippo.android.gallery;
 
 import android.support.animation.FloatPropertyCompat;
 import android.support.animation.SpringAnimation;
+import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 import android.view.View;
 
@@ -43,7 +44,7 @@ public class GalleryGestureHandler {
 
   private float overScrollXAnimationFactor;
   private float overScrollYAnimationFactor;
-  public static final FloatPropertyCompat<GalleryGestureHandler> OVER_SCROLL =
+  private static final FloatPropertyCompat<GalleryGestureHandler> OVER_SCROLL =
       new FloatPropertyCompat<GalleryGestureHandler>("overScroll") {
         @Override
         public float getValue(GalleryGestureHandler ggh) {
@@ -89,6 +90,7 @@ public class GalleryGestureHandler {
     return view != null && view.getOverScrollMode() != View.OVER_SCROLL_NEVER;
   }
 
+  @CallSuper
   public void onDown(float x, float y) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager != null) {
@@ -116,6 +118,7 @@ public class GalleryGestureHandler {
     }
   }
 
+  @CallSuper
   public void onUp(float x, float y) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager instanceof PagerLayoutManager) {
@@ -125,6 +128,7 @@ public class GalleryGestureHandler {
     startOverScrollAnimation();
   }
 
+  @CallSuper
   public void onCancel() {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager instanceof PagerLayoutManager) {
@@ -134,10 +138,13 @@ public class GalleryGestureHandler {
     startOverScrollAnimation();
   }
 
+  @CallSuper
   public void onSingleTap(float x, float y) {}
 
+  @CallSuper
   public void onDoubleTap(float x, float y) {}
 
+  @CallSuper
   public void onLongPress(float x, float y) {}
 
   private float toOverScroll(float from) {
@@ -182,6 +189,7 @@ public class GalleryGestureHandler {
     }
   }
 
+  @CallSuper
   public void onScroll(float dx, float dy, float totalX, float totalY, float x, float y) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager != null) {
@@ -212,6 +220,7 @@ public class GalleryGestureHandler {
     }
   }
 
+  @CallSuper
   public void onFling(float velocityX, float velocityY) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager != null) {
@@ -219,6 +228,7 @@ public class GalleryGestureHandler {
     }
   }
 
+  @CallSuper
   public void onScale(float x, float y, float scale) {
     GalleryLayoutManager layoutManager = getLayoutManager();
     if (layoutManager != null) {
@@ -226,5 +236,6 @@ public class GalleryGestureHandler {
     }
   }
 
+  @CallSuper
   public void onRotate(float x, float y, float angle) {}
 }
