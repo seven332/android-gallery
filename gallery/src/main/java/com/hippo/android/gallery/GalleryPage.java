@@ -41,6 +41,8 @@ public class GalleryPage {
    * In layout, the pinned of all attached valid page are set to false at the beginning,
    * pining a page to set the pinned to true.
    * Remove the pages whose pinned is false.
+   *
+   * If the page is not in GalleryView.pages, this field is meaningless.
    */
   boolean pinned = false;
 

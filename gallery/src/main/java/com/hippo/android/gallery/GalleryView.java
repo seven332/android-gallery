@@ -82,13 +82,14 @@ public class GalleryView extends ViewGroup {
   private OnSelectedIndexChangeListener onSelectedIndexChangeListener;
   private int selectedIndex = INVALID_INDEX;
 
-  // The pages whose view is attached to GalleryView, and they are valid.
+  // The pages whose view is attached to GalleryView, and they are bound and valid.
   // Key is the index of the page.
   @SuppressLint("UseSparseArrays")
   private Map<Integer, GalleryPage> pages = BuildConfig.DEBUG ? new DebugPageMap() : new HashMap<>();
 
-  // The pages whose view is attached to GalleryView, and they are invalid.
+  // The pages whose view is attached to GalleryView, and they are bound but invalid.
   // Attached but invalid pages is caused by notifyPageXXX().
+  // They must be reused or removed in the next layout.
   private Set<GalleryPage> invalidPages = new HashSet<>();
 
   // Page cache, key is page type
@@ -140,7 +141,7 @@ public class GalleryView extends ViewGroup {
       }
       pages.clear();
 
-      // Unbind and destroy all attached valid page
+      // Unbind and destroy all attached invalid page
       for (GalleryPage page : invalidPages) {
         adapter.unbindPage(page);
         adapter.destroyPage(page);
