@@ -42,6 +42,7 @@ import com.hippo.android.gallery.drawable.TiledDrawable;
 import com.hippo.android.gesture.GestureRecognizer;
 import com.hippo.gallery.integration.glide.ByteBufferTiledDrawableDecoder;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
       "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg",
   };
 
-  private GalleryView view;
+  private CallbackGalleryView view;
   private GalleryViewStyle style = new GalleryViewStyle();
 
   @Override
@@ -65,8 +66,11 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
+    Adapter adapter = new Adapter(getLayoutInflater());
+
     view = findViewById(R.id.gallery_view);
-    view.setAdapter(new Adapter(getLayoutInflater()));
+    view.setAdapter(adapter);
+    view.setAfterLayoutListener(adapter);
     view.setGestureHandler(new GalleryGestureHandler());
     view.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
     GestureRecognizer gestureRecognizer = view.getGestureRecognizer();
@@ -97,12 +101,14 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  private static class Adapter extends GalleryAdapter {
+  private static class Adapter extends GalleryAdapter implements CallbackGalleryView.AfterLayoutListener {
 
     private List<Object> items = new ArrayList<>();
 
     private Context context;
     private LayoutInflater inflater;
+
+    private List<Operation> pendingOperations = new LinkedList<>();
 
     public Adapter(LayoutInflater inflater) {
       this.context = inflater.getContext();
@@ -183,6 +189,53 @@ public class MainActivity extends AppCompatActivity {
           : TYPE_TEXT;
     }
 
+    private int fixIndex(int index) {
+      for (Operation operation : pendingOperations) {
+        if (operation.mode == Operation.ADD && index >= operation.index) {
+          index = index + 1;
+        } else if (operation.mode == Operation.REMOVE && index < operation.index) {
+          index = index - 1;
+        }
+      }
+
+      return index;
+    }
+
+    private void addItem(int index, Object item) {
+      if (getGalleryView().isInLayout2()) {
+        index = fixIndex(index);
+        pendingOperations.add(new Operation(Operation.ADD, index, item));
+      } else {
+        items.add(index, item);
+        notifyPageInserted(index);
+      }
+    }
+
+    private void removeItem(int index) {
+      if (getGalleryView().isInLayout2()) {
+        index = fixIndex(index);
+        pendingOperations.add(new Operation(Operation.REMOVE, index, null));
+      } else {
+        items.remove(index);
+        notifyPageRemoved(index);
+      }
+    }
+
+    @Override
+    public void onAfterLayout() {
+      for (Operation operation : pendingOperations) {
+        if (operation.mode == Operation.ADD) {
+          items.add(operation.index, operation.item);
+          notifyPageInserted(operation.index);
+        } else {
+          items.remove(operation.index);
+          notifyPageRemoved(operation.index);
+        }
+      }
+
+      pendingOperations.clear();
+    }
+
     private class Target extends DrawableViewTarget {
 
       public Target(DrawableView view) {
@@ -191,11 +244,7 @@ public class MainActivity extends AppCompatActivity {
 
       @Override
       protected void setResource(@Nullable Drawable resource) {
-        if (getGalleryView().isInLayout2()) {
-          getGalleryView().postDelayed(() -> setResourceInternal(resource), 0);
-        } else {
-          setResourceInternal(resource);
-        }
+        setResourceInternal(resource);
       }
 
       private void setResourceInternal(@Nullable Drawable resource) {
@@ -223,19 +272,16 @@ public class MainActivity extends AppCompatActivity {
 
         if (needToBeCut && !hasBeenCut) {
           item.part = ImageItem.LEFT;
-          items.add(index + 1, new ImageItem(item.url, ImageItem.RIGHT));
-          notifyPageInserted(index + 1);
+          addItem(index + 1, new ImageItem(item.url, ImageItem.RIGHT));
         } else if (!needToBeCut && hasBeenCut) {
           item.part = ImageItem.WHOLE;
           if (index > 0 && items.get(index - 1) instanceof ImageItem &&
               ((ImageItem) items.get(index - 1)).url.equals(item.url)) {
-            items.remove(index - 1);
-            notifyPageRemoved(index - 1);
+            removeItem(index - 1);
           }
           if (index < items.size() - 1 && items.get(index + 1) instanceof ImageItem &&
               ((ImageItem) items.get(index + 1)).url.equals(item.url)) {
-            items.remove(index + 1);
-            notifyPageRemoved(index + 1);
+            removeItem(index + 1);
           }
         }
 
@@ -284,6 +330,22 @@ public class MainActivity extends AppCompatActivity {
 
     public TextItem(String text) {
       this.text = text;
+    }
+  }
+
+  static class Operation {
+
+    private static final int ADD = 0;
+    private static final int REMOVE = 0;
+
+    int mode;
+    int index;
+    Object item;
+
+    public Operation(int mode, int index, Object item) {
+      this.mode = mode;
+      this.index = index;
+      this.item = item;
     }
   }
 }
