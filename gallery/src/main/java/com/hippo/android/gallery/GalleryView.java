@@ -635,6 +635,13 @@ public class GalleryView extends ViewGroup {
     layoutManager.scale(x, y, factor, null);
   }
 
+  private interface EffectChecker {
+    /*
+     * Returns true if the index is effected.
+     */
+    boolean effected(int oldIndex);
+  }
+
   private interface NewIndexGetter {
     /*
      * Returns INVALID_INDEX to invalid the page.
@@ -643,14 +650,17 @@ public class GalleryView extends ViewGroup {
     int getNewIndex(int oldIndex);
   }
 
-  private void notifyPages(NewIndexGetter getter) {
-    boolean removed = false;
+  private void notifyPages(EffectChecker checker, NewIndexGetter getter) {
     List<GalleryPage> holder = null;
+
+    boolean isEmpty = pages.isEmpty();
+    boolean effected = false;
 
     Iterator<GalleryPage> iterator = pages.values().iterator();
     while (iterator.hasNext()) {
       GalleryPage page = iterator.next();
       int oldIndex = page.index;
+      effected |= checker.effected(oldIndex);
 
       int newIndex = getter.getNewIndex(oldIndex);
       if (newIndex == INVALID_INDEX) {
@@ -658,7 +668,6 @@ public class GalleryView extends ViewGroup {
         page.index = GalleryView.INVALID_INDEX;
         iterator.remove();
         invalidPages.add(page);
-        removed = true;
       } else if (newIndex != oldIndex) {
         // Remove the page temporarily
         page.index = newIndex;
@@ -677,7 +686,7 @@ public class GalleryView extends ViewGroup {
       }
     }
 
-    if (removed || holder != null) {
+    if (isEmpty || effected) {
       requestLayout();
     }
   }
@@ -688,14 +697,16 @@ public class GalleryView extends ViewGroup {
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
-    notifyPages(oldIndex -> {
-      // Invalid pages whose index is in [indexStart, indexStart + itemCount)
-      if (oldIndex >= indexStart && oldIndex < indexStart + itemCount) {
-        return GalleryView.INVALID_INDEX;
-      } else {
-        return oldIndex;
-      }
-    });
+    notifyPages(
+        oldIndex -> oldIndex >= indexStart && oldIndex < indexStart + itemCount,
+        oldIndex -> {
+          // Invalid pages whose index is in [indexStart, indexStart + itemCount)
+          if (oldIndex >= indexStart && oldIndex < indexStart + itemCount) {
+            return GalleryView.INVALID_INDEX;
+          } else {
+            return oldIndex;
+          }
+        });
   }
 
   void notifyPageRangeInserted(int indexStart, int itemCount) {
@@ -704,14 +715,17 @@ public class GalleryView extends ViewGroup {
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
-    notifyPages(oldIndex -> {
-      // Increases the index of pages, whose index is in [indexStart, +∞), by itemCount.
-      if (oldIndex >= indexStart) {
-        return oldIndex + itemCount;
-      } else {
-        return oldIndex;
-      }
-    });
+    notifyPages(
+        // Include the items next to the inserted items
+        oldIndex -> oldIndex >= indexStart - 1 && oldIndex <= indexStart + itemCount,
+        oldIndex -> {
+          // Increases the index of pages, whose index is in [indexStart, +∞), by itemCount.
+          if (oldIndex >= indexStart) {
+            return oldIndex + itemCount;
+          } else {
+            return oldIndex;
+          }
+        });
 
     int selectedIndex = layoutManager.getSelectedIndex();
     if (selectedIndex >= indexStart) {
@@ -725,17 +739,19 @@ public class GalleryView extends ViewGroup {
     if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
-    notifyPages(oldIndex -> {
-      // Decreases the index of pages, whose index is in [indexStart + itemCount, +∞), by itemCount
-      if (oldIndex >= indexStart + itemCount) {
-        return oldIndex - itemCount;
-      // Invalid pages whose index is in [indexStart, indexStart + itemCount)
-      } else if (oldIndex >= indexStart) {
-        return GalleryView.INVALID_INDEX;
-      } else {
-        return oldIndex;
-      }
-    });
+    notifyPages(
+        oldIndex -> oldIndex >= indexStart && oldIndex < indexStart + itemCount,
+        oldIndex -> {
+          // Decreases the index of pages, whose index is in [indexStart + itemCount, +∞), by itemCount
+          if (oldIndex >= indexStart + itemCount) {
+            return oldIndex - itemCount;
+            // Invalid pages whose index is in [indexStart, indexStart + itemCount)
+          } else if (oldIndex >= indexStart) {
+            return GalleryView.INVALID_INDEX;
+          } else {
+            return oldIndex;
+          }
+        });
 
     int selectedIndex = layoutManager.getSelectedIndex();
     if (selectedIndex >= indexStart + itemCount) {
@@ -764,22 +780,24 @@ public class GalleryView extends ViewGroup {
       diff = 1;
     }
 
-    notifyPages(oldIndex -> {
-      if (oldIndex == fromIndex) {
-        return toIndex;
-      } else if (oldIndex >= minIndex && oldIndex <= maxIndex) {
-        return oldIndex + diff;
-      } else {
-        return oldIndex;
-      }
-    });
+    notifyPages(
+        oldIndex -> oldIndex == fromIndex || oldIndex == toIndex,
+        oldIndex -> {
+          if (oldIndex == fromIndex) {
+            return toIndex;
+          } else if (oldIndex >= minIndex && oldIndex <= maxIndex) {
+            return oldIndex + diff;
+          } else {
+            return oldIndex;
+          }
+        });
   }
 
   void notifyPageSetChanged() {
     checkNotInLayout("Can't call notifyPageSetChanged() in layout");
     if (layoutManager == null) return;
 
-    notifyPages(oldIndex -> GalleryView.INVALID_INDEX);
+    notifyPages(oldIndex -> true, oldIndex -> GalleryView.INVALID_INDEX);
   }
 
   private GestureRecognizer.OnGestureListener listener = new GestureRecognizer.OnGestureListener() {
