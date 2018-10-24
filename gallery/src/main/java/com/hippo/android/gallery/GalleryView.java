@@ -712,7 +712,6 @@ public class GalleryView extends ViewGroup {
   void notifyPageRangeInserted(int indexStart, int itemCount) {
     checkNotInLayout("Can't call notifyPageRangeInserted() in layout");
     if (layoutManager == null) return;
-    if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
     notifyPages(
@@ -736,7 +735,6 @@ public class GalleryView extends ViewGroup {
   void notifyPageRangeRemoved(int indexStart, int itemCount) {
     checkNotInLayout("Can't call notifyPageRangeRemoved() in layout");
     if (layoutManager == null) return;
-    if (pages.isEmpty()) return;
     if (itemCount < 1) return;
 
     notifyPages(
