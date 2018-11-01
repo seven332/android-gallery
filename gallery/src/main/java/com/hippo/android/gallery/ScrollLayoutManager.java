@@ -312,7 +312,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     }
 
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     GalleryPage first = view.getPageAt(0);
     GalleryPage last = null;
@@ -341,7 +341,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
     }
 
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     float oldPageScale = pageScale;
     pageScale = Utils.clamp(factor * pageScale, SCALE_MIN, SCALE_MAX);
@@ -362,7 +362,7 @@ public class ScrollLayoutManager extends GalleryLayoutManager {
   @Override
   public void fling(float velocityX, float velocityY) {
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     float velocity;
     lastFling = 0.0f;

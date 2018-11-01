@@ -168,7 +168,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     this.scale = scale;
 
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     for (GalleryPage page : view.getPages()) {
       if (page instanceof Transformable) {
@@ -190,7 +190,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     this.scaleType = scaleType;
 
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     for (GalleryPage page : view.getPages()) {
       if (page instanceof Transformable) {
@@ -212,7 +212,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     this.startPosition = startPosition;
 
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     for (GalleryPage page : view.getPages()) {
       if (page instanceof Transformable) {
@@ -430,7 +430,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
 
     float remainOffset = 0.0f;
     boolean needLayout = false;
@@ -479,7 +479,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
     }
 
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
     Transformable transformable = getFitTransformer(view);
     if (transformable == null) return;
 
@@ -492,7 +492,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
    */
   private void scrollPage(float dx, float dy) {
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
     Transformable transformable = getFitTransformer(view);
     if (transformable == null) return;
 
@@ -534,7 +534,7 @@ public class PagerLayoutManager extends GalleryLayoutManager implements Transfor
 
     if (pagerLayout == null) return;
     GalleryView view = getGalleryView();
-    if (view == null) return;
+    if (view == null || view.getChildCount() == 0) return;
     if (isPageFit()) return;
 
     float finalPageOffset;
